@@ -6,12 +6,9 @@ MotionFly lắp ghép từ các dự án mã nguồn mở dưới đây. Code v�
 
 | Thành phần trong repo | Nguồn | Phiên bản | Giấy phép | Đã sửa gì |
 |---|---|---|---|---|
-| `styles/whiteboard/STYLE.md` | [lemomo-ai/lemo-opuscar](https://github.com/lemomo-ai/lemo-opuscar) `styles/whiteboard/STYLE.md` | commit a75e2b3 | MIT | Thêm khối nguồn đầu file và mục "Bổ sung của MotionFly" |
-| `styles/iso-infographic/STYLE.md` | lemo-opuscar `styles/iso-infographic/STYLE.md` | commit a75e2b3 | MIT | Như trên |
-| `styles/dataviz/STYLE.md` | lemo-opuscar `styles/dataviz/STYLE.md` | commit a75e2b3 | MIT | Như trên |
-| `styles/swiss-motion/STYLE.md` | lemo-opuscar `styles/swiss-motion/STYLE.md` | commit a75e2b3 | MIT | Như trên |
-| `styles/dark-keynote/STYLE.md` | lemo-opuscar `styles/dark-keynote/STYLE.md` | commit a75e2b3 | MIT | Như trên |
-| `styles/paper-popup/STYLE.md` | lemo-opuscar `styles/paper-popup/STYLE.md` | commit a75e2b3 | MIT | Như trên |
+| `styles/*/STYLE.md` (43 style) | [lemomo-ai/lemo-opuscar](https://github.com/lemomo-ai/lemo-opuscar) `styles/<tên>/STYLE.md` | commit a75e2b3 | MIT | Thêm khối nguồn đầu file và mục "Bổ sung của MotionFly" ở cuối; thân giữ nguyên |
+| `styles/index.json` | lemo-opuscar `styles/<tên>/style.json` (số thứ tự, tên, nhóm) | commit a75e2b3 | MIT | Gộp một file, thêm tên tiếng Việt, nhu cầu, mood nhạc, cờ GPU |
+| `site/media/styles/*.jpg` (43 ảnh xem trước) | lemo-opuscar `docs/frames/<tên>.jpg` | commit a75e2b3 | MIT (ảnh render từ demo của tác giả; tài nguyên bên thứ ba trong demo giữ giấy phép riêng, xem CREDITS của từng demo gốc) | Không sửa |
 | `vendor/bestagentkits/fit-beat-grid.py` | [bestagentkits/motion-video-skill](https://github.com/bestagentkits/motion-video-skill) `skills/motion-video/scripts/fit-beat-grid.py` | commit a73702b | MIT | Không sửa |
 | `templates/fonts/BeVietnamPro-*.ttf` | [google/fonts](https://github.com/google/fonts/tree/main/ofl/bevietnampro) (Be Vietnam Pro Project Authors) | nhánh main, lấy ngày 10/10/2026 | SIL OFL 1.1 | Không sửa |
 | `templates/fonts/JetBrainsMono-Variable.ttf` | [google/fonts](https://github.com/google/fonts/tree/main/ofl/jetbrainsmono) (JetBrains Mono Project Authors) | nhánh main, lấy ngày 10/10/2026 | SIL OFL 1.1 | Đổi tên file |

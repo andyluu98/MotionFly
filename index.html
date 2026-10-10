@@ -158,6 +158,19 @@ h2 { font-size: clamp(34px, 5vw, 54px); line-height: 1.08; margin: 0 0 18px; let
 .pv-pp .sun { position: absolute; top: 22px; right: 40px; width: 54px; height: 54px; border-radius: 50%; background: #f6d06b; box-shadow: 0 6px 14px rgba(80,50,20,.2); }
 @keyframes rise { from { translate: 0 18px; } to { translate: 0 0; } }
 
+
+.toolbar { display: flex; gap: 14px; align-items: center; margin: -24px 0 16px; flex-wrap: wrap; }
+.toolbar input { flex: 1; min-width: 220px; max-width: 460px; background: var(--card); border: 1px solid var(--line); color: var(--ink); padding: 12px 16px; border-radius: 12px; font: 500 15px "Be Vietnam Pro", sans-serif; }
+.toolbar input:focus { outline: 2px solid rgba(183,243,74,.5); }
+.count { color: var(--ink3); font-size: 14px; font-family: var(--mono); }
+.filters { margin: 0 0 30px; }
+.pv img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .5s; }
+.sc:hover .pv img { transform: scale(1.05); }
+.pv .num { position: absolute; left: 12px; top: 10px; font: 600 12px var(--mono); color: #fff; background: rgba(0,0,0,.55); padding: 3px 8px; border-radius: 8px; }
+.tag.gpu { background: rgba(255,138,61,.15); color: var(--orange); }
+.cat { font-size: 12px; color: var(--blue); font-weight: 600; }
+.empty { color: var(--ink3); padding: 30px 0; }
+
 /* features */
 .feats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
 @media (max-width: 900px) { .feats { grid-template-columns: 1fr; } }
@@ -226,7 +239,7 @@ footer .wrap { display: flex; justify-content: space-between; flex-wrap: wrap; g
       <p class="lead">Gõ <code>/video-moi</code> kèm một câu yêu cầu. Claude đi hết quy trình làm phim: lên ý tưởng, viết kịch bản, đọc bằng giọng Việt, phân cảnh, chọn nhạc, dựng hình chuyển động bằng code, trộn âm, gắn phụ đề, xuất MP4.</p>
       <div class="cta">
         <a class="btn btn-primary" href="#cai-dat">Cài đặt ngay</a>
-        <a class="btn btn-ghost" href="#style">Xem 6 style</a>
+        <a class="btn btn-ghost" href="#style">Xem 43 style</a>
       </div>
       <div class="pills">
         <span>Miễn phí, giấy phép MIT</span>
@@ -267,99 +280,14 @@ footer .wrap { display: flex; justify-content: space-between; flex-wrap: wrap; g
 <section id="style" style="background: var(--bg2);">
   <div class="wrap">
     <p class="kicker">Thư viện style</p>
-    <h2>6 style dựng sẵn.<br />Chọn một, gõ một dòng.</h2>
-    <p class="sub">Mỗi style là một bản luật riêng về màu, chữ, chất liệu và cách chuyển động. Bấm "Dùng style này" để chép sẵn câu lệnh, dán vào Claude Code và thay chủ đề của anh.</p>
-    <div class="filters" role="group" aria-label="Lọc style">
-      <button class="on" data-f="all">Tất cả</button>
-      <button data-f="dao-tao">Đào tạo</button>
-      <button data-f="so-lieu">Số liệu, tin tức</button>
-      <button data-f="marketing">Marketing</button>
-      <button data-f="san-pham">Sản phẩm, công nghệ</button>
+    <h2>43 style dựng sẵn.<br />Chọn một, gõ một dòng.</h2>
+    <p class="sub">Từ bảng trắng, thủy mặc, cắt giấy đỏ ngày Tết tới keynote công nghệ, pixel game, phim câm. Mỗi style là một bản luật riêng về màu, chữ, chất liệu và cách chuyển động. Bấm "Dùng style này" để chép sẵn câu lệnh, dán vào Claude Code và thay chủ đề của anh. Ảnh xem trước: khung hình demo của <a href="https://github.com/lemomo-ai/lemo-opuscar">lemo-opuscar</a> (MIT).</p>
+    <div class="toolbar">
+      <input id="q" type="search" placeholder="Tìm style: thủy mặc, game, sản phẩm, Tết..." aria-label="Tìm style" />
+      <span id="count" class="count"></span>
     </div>
-    <div class="gallery">
-
-      <article class="sc reveal" data-f="dao-tao">
-        <div class="pv pv-wb">
-          <svg viewBox="0 0 320 200" aria-hidden="true">
-            <circle class="stroke" cx="80" cy="62" r="18" stroke="#23262c" stroke-width="4"/>
-            <path class="stroke" d="M80 80 v46 M80 92 l-22 18 M80 92 l22 18 M80 126 l-18 30 M80 126 l18 30" stroke="#23262c" stroke-width="4"/>
-            <rect class="stroke" x="150" y="46" width="120" height="74" rx="10" stroke="#2a5cb3" stroke-width="4"/>
-            <path class="stroke" d="M164 70 h80 M164 90 h60" stroke="#2a5cb3" stroke-width="4"/>
-            <path class="stroke" d="M150 150 q60 -10 120 2" stroke="#d97757" stroke-width="5"/>
-          </svg>
-        </div>
-        <div class="body">
-          <h3>Whiteboard <span class="tag">Có video mẫu</span></h3>
-          <div class="slug">whiteboard</div>
-          <p>Bảng trắng, nét bút lông vẽ dần, ba màu bút có nghĩa riêng. Hợp đào tạo, giải thích khái niệm, quy trình.</p>
-          <div class="meta"><span>Nhạc: calm</span><span>60 đến 120 giây</span></div>
-          <div class="use"><button data-cmd="/video-moi Làm video 1 phút giải thích [chủ đề], style whiteboard">Dùng style này</button><a href="https://github.com/andyluu98/MotionFly/blob/main/styles/whiteboard/STYLE.md">Luật style</a></div>
-        </div>
-      </article>
-
-      <article class="sc reveal" data-f="dao-tao san-pham">
-        <div class="pv pv-iso">
-          <div class="cube" style="left: 70px; top: 40px;"><i class="t"></i></div>
-          <div class="cube" style="left: 150px; top: 70px; animation-delay: .4s;"><i class="t" style="background:#7bd3c4"></i></div>
-          <div class="cube" style="left: 230px; top: 40px; animation-delay: .8s;"><i class="t" style="background:#f2a65a"></i></div>
-        </div>
-        <div class="body">
-          <h3>Iso infographic</h3>
-          <div class="slug">iso-infographic</div>
-          <p>Khối isometric gọn gàng, mũi tên luồng dữ liệu. Hợp giải thích hệ thống, kiến trúc, quy trình nhiều thành phần.</p>
-          <div class="meta"><span>Nhạc: inspiring</span><span>Nhiều thành phần</span></div>
-          <div class="use"><button data-cmd="/video-moi Làm video giải thích [hệ thống] gồm những thành phần nào, style iso-infographic">Dùng style này</button><a href="https://github.com/andyluu98/MotionFly/blob/main/styles/iso-infographic/STYLE.md">Luật style</a></div>
-        </div>
-      </article>
-
-      <article class="sc reveal" data-f="so-lieu">
-        <div class="pv pv-dv">
-          <div class="big">+46%</div><div class="lab">TĂNG TRƯỞNG / NĂM</div>
-          <div class="bar" style="height:40%"></div><div class="bar" style="height:58%; animation-delay:.2s"></div><div class="bar" style="height:50%; animation-delay:.4s"></div><div class="bar hl" style="height:92%; animation-delay:.6s"></div><div class="bar" style="height:66%; animation-delay:.8s"></div>
-        </div>
-        <div class="body">
-          <h3>Dataviz</h3>
-          <div class="slug">dataviz</div>
-          <p>Biểu đồ động, số lớn đếm nhảy, một màu nhấn cho con số quan trọng. Hợp báo cáo, bản tin có số liệu.</p>
-          <div class="meta"><span>Nhạc: tech</span><span>Có con số</span></div>
-          <div class="use"><button data-cmd="/video-moi Làm video bản tin số liệu về [chủ đề], style dataviz">Dùng style này</button><a href="https://github.com/andyluu98/MotionFly/blob/main/styles/dataviz/STYLE.md">Luật style</a></div>
-        </div>
-      </article>
-
-      <article class="sc reveal" data-f="marketing so-lieu">
-        <div class="pv pv-sw"><div class="w w1">CHỮ</div><div class="w w2">ĐỘNG.</div><div class="dot"></div></div>
-        <div class="body">
-          <h3>Swiss motion</h3>
-          <div class="slug">swiss-motion</div>
-          <p>Chữ to chạy theo lưới, đỏ đen kiểu Thụy Sĩ, nhịp cắt nhanh. Hợp tin nhanh, trích dẫn, thông điệp thương hiệu.</p>
-          <div class="meta"><span>Nhạc: upbeat</span><span>15 đến 45 giây</span></div>
-          <div class="use"><button data-cmd="/video-moi Làm video 30 giây truyền tải thông điệp [thông điệp], style swiss-motion">Dùng style này</button><a href="https://github.com/andyluu98/MotionFly/blob/main/styles/swiss-motion/STYLE.md">Luật style</a></div>
-        </div>
-      </article>
-
-      <article class="sc reveal" data-f="san-pham marketing">
-        <div class="pv pv-dk"><div class="sweep"></div><div class="win"><b>andyluu98/MotionFly</b><span>★ 8.319</span></div><div class="rk">#1</div><div class="chips"><i></i><i></i><i></i></div></div>
-        <div class="body">
-          <h3>Dark keynote <span class="tag">Có video mẫu</span></h3>
-          <div class="slug">dark-keynote</div>
-          <p>Sân khấu tối, lưới mảnh, ánh sáng quét, giao diện bật ra đúng nhịp, một màu nhấn phát sáng. Hợp ra mắt sản phẩm, tin công nghệ.</p>
-          <div class="meta"><span>Nhạc: tech</span><span>Nhiều chuyển động</span></div>
-          <div class="use"><button data-cmd="/video-moi Làm video giới thiệu [sản phẩm hoặc tính năng], style dark-keynote">Dùng style này</button><a href="https://github.com/andyluu98/MotionFly/blob/main/styles/dark-keynote/STYLE.md">Luật style</a></div>
-        </div>
-      </article>
-
-      <article class="sc reveal" data-f="marketing">
-        <div class="pv pv-pp"><div class="sun"></div><div class="layer l1"></div><div class="layer l2"></div><div class="layer l3"></div></div>
-        <div class="body">
-          <h3>Paper popup</h3>
-          <div class="slug">paper-popup</div>
-          <p>Giấy cắt nhiều lớp, đổ bóng thật, cảnh bật lên như sách pop-up. Hợp kể chuyện, marketing, chủ đề xã hội.</p>
-          <div class="meta"><span>Nhạc: inspiring</span><span>Kể chuyện</span></div>
-          <div class="use"><button data-cmd="/video-moi Làm video kể câu chuyện [chủ đề], style paper-popup">Dùng style này</button><a href="https://github.com/andyluu98/MotionFly/blob/main/styles/paper-popup/STYLE.md">Luật style</a></div>
-        </div>
-      </article>
-
-    </div>
+    <div class="filters" id="filters" role="group" aria-label="Lọc theo nhóm"></div>
+    <div class="gallery" id="gallery"></div>
     <p class="note">Muốn style riêng? Thêm thư mục <code>styles/ten-style/STYLE.md</code> theo khuôn có sẵn, không cần sửa code. Yêu cầu của anh luôn được ưu tiên hơn luật style.</p>
   </div>
 </section>
@@ -458,11 +386,55 @@ và Agent trong Claude Code, style whiteboard
     video.play().catch(() => {});
   }));
 
-  document.querySelectorAll(".filters button").forEach((b) => b.addEventListener("click", () => {
-    document.querySelectorAll(".filters button").forEach((x) => x.classList.toggle("on", x === b));
-    const f = b.dataset.f;
-    document.querySelectorAll(".sc").forEach((c) => c.classList.toggle("hide", f !== "all" && !c.dataset.f.split(" ").includes(f)));
-  }));
+
+  // ---------- style gallery from styles/index.json ----------
+  const gal = document.getElementById("gallery"), fil = document.getElementById("filters"), q = document.getElementById("q"), cnt = document.getElementById("count");
+  let styles = [], cat = "all";
+  const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  const norm = (s) => s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/đ/g, "d");
+  function render() {
+    const k = norm(q.value.trim());
+    const list = styles.filter((s) => (cat === "all" || s.category_vi === cat) && (!k || norm([s.vi, s.en, s.slug, s.dung_cho, s.category_vi].join(" ")).includes(k)));
+    cnt.textContent = list.length + " / " + styles.length + " style";
+    gal.innerHTML = list.length ? list.map((s) => `
+      <article class="sc">
+        <div class="pv"><img loading="lazy" src="${esc(s.preview)}" alt="Khung hình mẫu style ${esc(s.vi)}" /><span class="num">${esc(s.num || "")}</span></div>
+        <div class="body">
+          <div class="cat">${esc(s.category_vi)}</div>
+          <h3>${esc(s.vi)} ${s.demo ? '<span class="tag">Có video mẫu</span>' : ""} ${s.gpu ? '<span class="tag gpu">3D, nên có GPU</span>' : ""}</h3>
+          <div class="slug">${esc(s.slug)} · ${esc(s.en)}</div>
+          <p>Hợp với: ${esc(s.dung_cho)}.</p>
+          <div class="meta"><span>Nhạc: ${esc(s.mood)}</span></div>
+          <div class="use">
+            <button data-slug="${esc(s.slug)}">Dùng style này</button>
+            ${s.demo ? `<a href="#" data-demo="${esc(s.demo.replace(/\.mp4$/, ""))}">Xem video</a>` : `<a href="https://github.com/andyluu98/MotionFly/blob/main/styles/${esc(s.slug)}/STYLE.md">Luật style</a>`}
+          </div>
+        </div>
+      </article>`).join("") : '<p class="empty">Chưa có style khớp từ khóa. Thử "giấy", "game", "tối" hoặc "Tết".</p>';
+  }
+  gal.addEventListener("click", (e) => {
+    const b = e.target.closest("button[data-slug]");
+    if (b) copy(`/video-moi Làm video về [chủ đề của anh], style ${b.dataset.slug}`, "Đã chép lệnh, dán vào Claude Code và thay phần trong ngoặc vuông");
+    const d = e.target.closest("a[data-demo]");
+    if (d) {
+      e.preventDefault();
+      const tab = [...document.querySelectorAll(".tabs button")].find((x) => x.dataset.src === d.dataset.demo);
+      if (tab) { tab.click(); window.scrollTo({ top: 0, behavior: "smooth" }); }
+    }
+  });
+  q.addEventListener("input", render);
+  fetch("styles/index.json").then((r) => r.json()).then((data) => {
+    // styles with a demo video first, then the original numbering
+    styles = data.styles.slice().sort((a, b) => (!!b.demo - !!a.demo) || String(a.num).localeCompare(String(b.num)));
+    const cats = [...new Set(styles.map((s) => s.category_vi))];
+    fil.innerHTML = ['<button class="on" data-f="all">Tất cả</button>', ...cats.map((c) => `<button data-f="${esc(c)}">${esc(c)}</button>`)].join("");
+    fil.addEventListener("click", (e) => {
+      const b = e.target.closest("button[data-f]"); if (!b) return;
+      cat = b.dataset.f; fil.querySelectorAll("button").forEach((x) => x.classList.toggle("on", x === b)); render();
+    });
+    render();
+  }).catch(() => { gal.innerHTML = '<p class="empty">Không tải được danh sách style.</p>'; });
+
 
   const io = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); } }), { threshold: 0.12 });
   document.querySelectorAll(".reveal").forEach((el, i) => { el.style.transitionDelay = (i % 7) * 60 + "ms"; io.observe(el); });

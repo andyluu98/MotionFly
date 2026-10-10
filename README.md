@@ -24,7 +24,9 @@ Nói "tự làm hết" để bỏ các bước duyệt.
 
 ## Style dựng sẵn
 
-`whiteboard`, `iso-infographic`, `dataviz`, `swiss-motion`, `dark-keynote`, `paper-popup`. Mỗi style là một file `styles/<tên>/STYLE.md`; thêm style mới chỉ cần thêm thư mục, không sửa code.
+**43 style**, chia 9 nhóm: vẽ tay và hội họa (bảng trắng, màu nước, thủy mặc, sáp màu, sơn dầu, vẽ một nét, ký họa), đồ họa và chữ (Swiss, Art Deco, bản vẽ kỹ thuật, terminal CRT, kính màu, mở đầu phim điệp viên, pictogram), thông tin và keynote (keynote nền tối, kể chuyện số liệu, infographic isometric, quay màn hình, HUD hologram), chất liệu và 3D (pop-up giấy, đồ chơi lắp ghép, kính, đảo low-poly, tilt-shift), hoạt hình và anime, phong cách game, in ấn và khắc, truyền thống Á Đông (cắt giấy đỏ, đèn lồng giấy, múa rối bóng, Ukiyo-e), điện ảnh và thời kỳ.
+
+Danh mục đầy đủ có tên tiếng Việt, nhu cầu phù hợp và ảnh xem trước: `styles/index.json` và trang giới thiệu. Mỗi style là một file `styles/<tên>/STYLE.md`; thêm style mới chỉ cần thêm thư mục và một dòng trong `index.json`, không sửa code.
 
 ## Cài đặt
 

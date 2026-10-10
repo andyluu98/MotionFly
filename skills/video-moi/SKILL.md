@@ -21,16 +21,18 @@ Ghi `brief.json`:
 
 Chỉ hỏi khi thiếu thứ không đoán được, mỗi lần một câu, có phương án đề xuất đặt đầu. Mặc định: 9:16, 60 giây, giọng Ngọc Huyền, nhạc tổng hợp theo mood của style. Người dùng nói "tự làm hết" thì `auto: true`: bỏ các cổng duyệt, chỉ báo cáo cuối.
 
-Chọn style (đọc `$VV/styles/*/STYLE.md` khi cần chi tiết):
+Chọn style: có 43 style, danh mục ở `$VV/styles/index.json` (mỗi mục có `slug`, tên tiếng Việt `vi`, nhóm `category_vi`, `dung_cho`, `mood` nhạc, `gpu`, `demo`). Đọc danh mục, chọn style có `dung_cho` khớp nội dung và đối tượng; người dùng nêu tên style (tiếng Việt hay tiếng Anh) thì tra theo `vi`, `en`, `slug`. Đọc `$VV/styles/<slug>/STYLE.md` của style đã chọn trước khi phân cảnh. Gợi ý nhanh khi người dùng chưa chọn:
 
-| Style | Hợp với | mood nhạc |
-|---|---|---|
-| whiteboard | đào tạo, giải thích khái niệm, quy trình | calm |
-| iso-infographic | hệ thống, kiến trúc, nhiều thành phần | inspiring |
-| dataviz | số liệu, báo cáo, tin có con số | tech |
-| swiss-motion | chữ động, tin nhanh, trích dẫn, thông điệp | upbeat |
-| dark-keynote | ra mắt sản phẩm, tính năng, công nghệ | tech |
-| paper-popup | kể chuyện, marketing, xã hội | inspiring |
+| Nhu cầu | Style gợi ý |
+|---|---|
+| Đào tạo, giải thích khái niệm | whiteboard, iso-infographic, midcentury-toon, blueprint |
+| Số liệu, báo cáo, tin tức | dataviz, swiss-motion, game-show |
+| Sản phẩm, công nghệ | dark-keynote, living-screencast, hologram-hud, glass-product |
+| Marketing, kể chuyện | paper-popup, risograph, crayon-book, watercolor, one-line |
+| Văn hóa, lễ hội Á Đông | ink-wash, papercut-red, paper-lantern, shadow-puppet, ukiyoe |
+| Giải trí, game, hoài niệm | pixel-rpg, cel-anime-80s, rubber-hose, silent-film, microgame |
+
+Style có `gpu: true` (glass-product, lowpoly-island, brick-toy, tilt-shift) dựng 3D bằng WebGL: báo người dùng máy không có card đồ họa sẽ render chậm. Mood nhạc lấy từ trường `mood` của style.
 
 Yêu cầu riêng của người dùng thắng luật style, trừ luật cấm của style (mâu thuẫn thật thì hỏi).
 

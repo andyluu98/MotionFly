@@ -12,6 +12,6 @@ Thiết kế: [docs/01_thiet-ke.md](../../docs/01_thiet-ke.md). Anh duyệt và 
 | 6 | Style: chép 6 STYLE.md từ lemo-opuscar kèm khối nguồn; font Be Vietnam Pro (OFL) | NOTICE liệt kê đủ | [x] |
 | 7 | Skills `video-moi`, `giong-doc`, `nhac-nen`, `dung-video`; agents `dung-canh`, `nguoi-cham`; mẫu composition | Đọc lại đủ luồng 7 bước | [x] |
 | 8 | Video mẫu 1 phút "Skill, MCP, Agent" chạy bằng chính plugin | ffprobe, ebur128 đạt; tờ tĩnh không lỗi | [x] |
-| 9 | Push GitHub riêng tư `andyluu98/Video-ai-claude` (quét file nhạy cảm trước) | Push xong | [ ] |
+| 9 | Push GitHub riêng tư `andyluu98/Video-ai-claude` (quét file nhạy cảm trước) | Push xong | [x] |
 
 Sau bản đầu: ACE-Step, MV khớp lời bài hát, ảnh ChatGPT qua trình duyệt.

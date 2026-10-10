@@ -1,17 +1,54 @@
-{"topic": "5 repo GitHub hot nhất tuần (tới 10/10/2026) và ứng dụng cho người đi làm",
+{
+ "topic": "5 repo GitHub hot nhất tuần (tới 10/10/2026) và ứng dụng cho người đi làm",
  "audience": "người đi làm quan tâm AI, dân văn phòng và lập trình viên",
  "message": "5 repo, 5 cách làm việc nhanh hơn với AI",
- "aspect": "9:16", "duration_s": 70, "style": "dark-keynote", "voice": "Mai Anh",
- "music": "synth:tech", "brand": {"colors": ["#B7F34A"], "name": ""},
- "sources": ["https://github.com/trending?since=weekly",
-  "https://github.com/DietrichGebert/ponytail", "https://github.com/Panniantong/Agent-Reach",
-  "https://github.com/tester-army/e2e", "https://github.com/heygen-com/hyperframes",
-  "https://github.com/anthropics/knowledge-work-plugins"],
- "facts": {"tra_luc": "10/10/2026 18:19",
-  "ponytail": {"week": 8319, "total": 160063, "readme": "-53% code, -45% tokens (benchmark của tác giả)"},
-  "agent-reach": {"week": 7084, "total": 95266},
-  "e2e": {"week": 6566, "total": 8554},
-  "hyperframes": {"week": 4003, "total": 60072},
-  "knowledge-work-plugins": {"week": 2601, "total": 28565, "readme": "11 plugin"},
-  "tong_sao_tuan": "8319+7084+6566+4003+2601 = 28573"},
- "auto": true}
+ "aspect": "9:16",
+ "duration_s": 70,
+ "style": "dark-keynote",
+ "voice": "Mai Anh",
+ "music": "synth:tech",
+ "brand": {
+  "colors": [
+   "#B7F34A"
+  ],
+  "name": ""
+ },
+ "sources": [
+  "https://github.com/trending?since=weekly",
+  "https://github.com/DietrichGebert/ponytail",
+  "https://github.com/Panniantong/Agent-Reach",
+  "https://github.com/tester-army/e2e",
+  "https://github.com/heygen-com/hyperframes",
+  "https://github.com/anthropics/knowledge-work-plugins"
+ ],
+ "facts": {
+  "tra_luc": "10/10/2026 18:19",
+  "ponytail": {
+   "week": 8319,
+   "total": 160063,
+   "readme": "-53% code, -45% tokens (benchmark của tác giả)",
+   "readme_vidu": "Ví dụ date picker: cách thường 335 dòng (README); video đếm 0 lên 335 dòng rồi kẹp lại"
+  },
+  "agent-reach": {
+   "week": 7084,
+   "total": 95266,
+   "readme": "Liệt kê 10 nền tảng: Twitter/X, Reddit, YouTube, Bilibili, XiaoHongShu, Facebook, Instagram, web, RSS, GitHub; video hiện 3 và ghi +7"
+  },
+  "e2e": {
+   "week": 6566,
+   "total": 8554
+  },
+  "hyperframes": {
+   "week": 4003,
+   "total": 60072
+  },
+  "knowledge-work-plugins": {
+   "week": 2601,
+   "total": 28565,
+   "readme": "11 plugin"
+  },
+  "tong_sao_tuan": "8319+7084+6566+4003+2601 = 28573",
+  "khoang_thoi_gian": "GitHub Trending tuần, 03/10 đến 10/10/2026"
+ },
+ "auto": true
+}

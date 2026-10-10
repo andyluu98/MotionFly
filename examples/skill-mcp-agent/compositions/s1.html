@@ -1,0 +1,154 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <!-- Scene s1: Skill / MCP / Agent viet tay tren bang trang, dau hoi cam va gach chan cam. Runtime keeps only <template>. -->
+  </head>
+  <body>
+    <template>
+      <style>
+        /* Each scene declares its fonts (HyperFrames lint: font_family_without_font_face). Paths are relative to index.html. */
+        @font-face { font-family: "Be Vietnam Pro"; src: url("fonts/BeVietnamPro-Regular.ttf"); font-weight: 400; }
+        @font-face { font-family: "Be Vietnam Pro"; src: url("fonts/BeVietnamPro-Medium.ttf"); font-weight: 500; }
+        @font-face { font-family: "Be Vietnam Pro"; src: url("fonts/BeVietnamPro-Bold.ttf"); font-weight: 700; }
+        @font-face { font-family: "Be Vietnam Pro"; src: url("fonts/BeVietnamPro-ExtraBold.ttf"); font-weight: 800; }
+        #s1-root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          background: transparent;
+          color: var(--ink);
+          font-family: "Be Vietnam Pro", sans-serif;
+        }
+        #s1-root .s1-fill { position: absolute; inset: 0; }
+        #s1-root .s1-word {
+          position: absolute;
+          left: 130px;
+          height: 200px;
+          line-height: 200px;
+          font-size: 128px;
+          font-weight: 700;
+          white-space: nowrap;
+          transform-origin: 0% 60%;
+        }
+        #s1-root .s1-label {
+          position: absolute;
+          font-weight: 700;
+          white-space: nowrap;
+          color: var(--ink);
+          transform-origin: 0% 60%;
+        }
+        #s1-root #s1-w1 { top: 520px; color: var(--blue); }
+        #s1-root #s1-w2 { top: 850px; color: var(--blue); }
+        #s1-root #s1-w3 { top: 1180px; color: var(--ink); }
+        #s1-root #s1-l3 { left: 760px; top: 902px; height: 100px; line-height: 100px; font-size: 68px; }
+        #s1-root #s1-lc { left: 815px; top: 1060px; height: 80px; line-height: 80px; font-size: 48px; }
+        #s1-root svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+        #s1-root .s1-ln {
+          fill: none;
+          stroke-linecap: round;
+          stroke-linejoin: round;
+          stroke-width: var(--stroke);
+        }
+        #s1-root .s1-blue { stroke: var(--blue); }
+        #s1-root .s1-ink { stroke: var(--ink); }
+        #s1-root .s1-acc { stroke: var(--accent); stroke-width: 9px; }
+      </style>
+
+      <div id="s1-root" data-composition-id="s1" data-width="1080" data-height="1920">
+        <div id="s1-stage" class="s1-fill">
+          <div id="s1-float" class="s1-fill">
+            <div id="s1-w1" class="s1-word">Skill</div>
+            <div id="s1-w2" class="s1-word">MCP</div>
+            <div id="s1-w3" class="s1-word">Agent</div>
+
+            <svg id="s1-svg" viewBox="0 0 1080 1920" preserveAspectRatio="none">
+              <g id="s1-sideg">
+                <path id="s1-brace" class="s1-ln s1-blue" d="M 640 545 C 680 543 691 561 689 612 L 691 898 C 690 941 706 949 732 953 C 706 956 691 966 690 1006 L 689 1288 C 691 1340 679 1357 640 1354" />
+                <path id="s1-burst" class="s1-ln s1-ink" d="M 784 1100 L 800 1100 M 779.5 1089.5 L 790.8 1078.2 M 770 1085 L 770 1069 M 760.5 1089.5 L 749.2 1078.2 M 756 1100 L 740 1100 M 760.5 1110.5 L 749.2 1121.8 M 770 1115 L 770 1131 M 779.5 1110.5 L 790.8 1121.8" />
+              </g>
+              <g id="s1-qg">
+                <path id="s1-q" class="s1-ln s1-acc" d="M 745 762 C 743 641 821 576 876 575 C 951 576 986 641 975 706 C 964 771 881 800 863 881 C 856 915 859 946 861 976" />
+                <circle id="s1-qdot" cx="862" cy="1092" r="12" style="fill: var(--accent); stroke: none" />
+              </g>
+              <path id="s1-u1" class="s1-ln s1-acc" d="M 108 1446 C 200 1432 301 1459 402 1443 C 480 1432 561 1438 652 1451" />
+              <path id="s1-u2" class="s1-ln s1-acc" d="M 170 1484 C 300 1474 452 1489 606 1477" />
+            </svg>
+
+            <div id="s1-side" class="s1-fill">
+              <div id="s1-l3" class="s1-label">3 từ</div>
+              <div id="s1-lc" class="s1-label">Claude</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <script>
+        (() => {
+          // A("key") = local time (s) of an anchor from timeline.json; never hard-code word times.
+          const A = (key) => window.__vv.local("s1", key);
+          const DUR = 7.44; // scene length from the work packet
+          const tl = gsap.timeline({ paused: true });
+          const q = (sel) => document.querySelector(sel);
+
+          // Write a text label left to right (clip-path inset) with a slight tilt that settles.
+          const write = (sel, t, d, rot) => {
+            tl.fromTo(
+              sel,
+              { clipPath: "inset(-15% 100% -15% -3%)", rotation: rot },
+              { clipPath: "inset(-15% -3% -15% -3%)", rotation: 0, duration: d, ease: "power1.inOut" },
+              t
+            );
+          };
+
+          // Draw a stroke by dashoffset, slow-fast-slow.
+          const draw = (sel, t, d) => {
+            const el = q(sel);
+            let L = 1000;
+            try { L = Math.ceil(el.getTotalLength()) + 2; } catch (e) {}
+            el.style.strokeDasharray = L + " " + L;
+            tl.fromTo(el, { opacity: 0 }, { opacity: 1, duration: 0.01 }, t);
+            tl.fromTo(el, { strokeDashoffset: L }, { strokeDashoffset: 0, duration: d, ease: "power2.inOut" }, t);
+          };
+
+          // Enter: slide up (0.45s). Exit: slide up and fade (last 0.35s).
+          tl.fromTo("#s1-stage", { y: 120, opacity: 0 }, { y: 0, opacity: 1, duration: 0.45, ease: "power2.out" }, 0);
+          tl.fromTo("#s1-stage", { y: 0, opacity: 1 }, { y: -120, opacity: 0, duration: 0.35, ease: "power2.in", immediateRender: false }, DUR - 0.35);
+
+          // Gentle drift of the whole board content so nothing sits dead still.
+          tl.fromTo("#s1-float", { y: 0 }, { y: -12, duration: DUR - 0.8, ease: "sine.inOut" }, 0.4);
+
+          // Three words, written in turn on their keywords.
+          write("#s1-w1", A("skill"), 0.5, -1.2);
+          write("#s1-w2", A("mcp"), 0.5, 1.0);
+          write("#s1-w3", A("agent"), 0.54, -0.8);
+
+          // "ba tu": blue brace around the three words and a label.
+          draw("#s1-brace", A("agent") + 0.5, 0.8);
+          write("#s1-l3", A("agent") + 0.56, 0.4, 1.0);
+
+          // "Claude": small burst and label.
+          draw("#s1-burst", A("claude") - 0.05, 0.3);
+          write("#s1-lc", A("claude"), 0.4, -0.8);
+
+          // Clear the side column before the question mark.
+          tl.fromTo("#s1-sideg", { opacity: 1 }, { opacity: 0, duration: 0.3, ease: "power1.in", immediateRender: false }, A("claude") + 0.55);
+          tl.fromTo("#s1-side", { opacity: 1 }, { opacity: 0, duration: 0.3, ease: "power1.in", immediateRender: false }, A("claude") + 0.55);
+
+          // Orange question mark, big, then its dot.
+          draw("#s1-q", A("ro") - 0.98, 0.8);
+          tl.fromTo("#s1-qdot", { scale: 0, opacity: 0, svgOrigin: "862 1092" }, { scale: 1, opacity: 1, svgOrigin: "862 1092", duration: 0.18, ease: "back.out(2)" }, A("ro") - 0.18);
+
+          // Orange underline under all three, finishing just after the "ro" anchor.
+          draw("#s1-u1", A("ro") - 0.5, 0.6);
+          draw("#s1-u2", A("ro") + 0.12, 0.35);
+
+          // Small pulse on the question mark, then rest until the exit.
+          tl.fromTo("#s1-qg", { scale: 1, svgOrigin: "862 830" }, { scale: 1.05, svgOrigin: "862 830", duration: 0.4, ease: "sine.inOut", yoyo: true, repeat: 1, immediateRender: false }, A("ro") + 0.32);
+
+          window.__timelines["s1"] = tl;
+        })();
+      </script>
+    </template>
+  </body>
+</html>

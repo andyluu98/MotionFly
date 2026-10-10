@@ -1,0 +1,13 @@
+/* whiteboard: one dark ink for structure, blue for process/signals, orange accent for the thing that matters */
+:root {
+  --bg: #f6f5f0;
+  --ink: #23262c;
+  --blue: #2a5cb3;
+  --accent: #d97757;
+  --accent-text: #b04a26; /* darker orange for text on white: >= 4.5:1 */
+  --ghost: rgba(35, 38, 44, 0.045);
+  --ghost-blue: rgba(42, 92, 179, 0.05);
+  --cap-bg: rgba(255, 255, 255, 0.94);
+  --cap-ink: #23262c;
+  --stroke: 7px;
+}

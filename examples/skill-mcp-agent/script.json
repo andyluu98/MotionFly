@@ -1,0 +1,11 @@
+{"title": "Skill, MCP và Agent trong một phút", "voice": "Ngọc Huyền", "aspect": "9:16",
+ "scenes": [
+  {"id": "s1", "say": "Skill, MCP và Agent là ba từ bạn nghe mỗi ngày khi dùng Claude. | Một phút này giúp bạn phân biệt thật rõ.", "intent": "hook: ba từ khóa xuất hiện"},
+  {"id": "s2", "say": "Hãy hình dung Agent là một nhân viên AI. | Bạn giao mục tiêu, nhân viên này tự lên kế hoạch, làm từng bước và tự kiểm tra kết quả.", "intent": "agent = nhân viên, vòng lặp kế hoạch làm kiểm tra"},
+  {"id": "s3", "say": "Skill là cuốn sổ tay quy trình của nhân viên đó. | Mỗi skill là một thư mục, gồm file hướng dẫn và các công cụ đi kèm.", "intent": "skill = sổ tay, cấu trúc thư mục"},
+  {"id": "s4", "say": "Điểm hay là Claude chỉ đọc tên và mô tả trước. | Khi công việc cần đến, nó mới mở toàn bộ sổ tay, nên rất tiết kiệm bộ nhớ.", "intent": "nạp dần: chỉ đọc tên mô tả, cần mới mở"},
+  {"id": "s5", "say": "Còn MCP là chuẩn kết nối, giống như cổng USB-C dành cho AI. | Qua MCP, nhân viên AI dùng được Google Drive, Slack, cơ sở dữ liệu và trình duyệt.", "intent": "MCP = cổng cắm chuẩn nối tới công cụ"},
+  {"id": "s6", "say": "Ví dụ, Agent dùng MCP lấy số liệu bán hàng, rồi làm theo Skill để xuất báo cáo đúng mẫu công ty.", "intent": "ghép ba thứ trong một luồng việc"},
+  {"id": "s7", "say": "Nhớ nhanh ba chữ: người làm, cách làm, công cụ. | Nắm vững ba thứ này, bạn đã sẵn sàng tự động hóa công việc cùng Claude.", "intent": "chốt: ba nhãn"}
+ ],
+ "pron": {"USB-C": "iu ét bi xi"}}

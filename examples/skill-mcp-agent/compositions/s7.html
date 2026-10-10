@@ -1,0 +1,324 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <!-- Scene s7. Runtime keeps only <template>; put style, markup and script inside it. -->
+  </head>
+  <body>
+    <template>
+      <style>
+        /* Each scene declares its fonts (HyperFrames lint: font_family_without_font_face). Paths are relative to index.html. */
+        @font-face { font-family: "Be Vietnam Pro"; src: url("fonts/BeVietnamPro-Regular.ttf"); font-weight: 400; }
+        @font-face { font-family: "Be Vietnam Pro"; src: url("fonts/BeVietnamPro-Medium.ttf"); font-weight: 500; }
+        @font-face { font-family: "Be Vietnam Pro"; src: url("fonts/BeVietnamPro-Bold.ttf"); font-weight: 700; }
+        @font-face { font-family: "Be Vietnam Pro"; src: url("fonts/BeVietnamPro-ExtraBold.ttf"); font-weight: 800; }
+        #s7-root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          background: transparent;
+          color: var(--ink);
+          font-family: "Be Vietnam Pro", sans-serif;
+        }
+        #s7-root #s7-stage { position: absolute; inset: 0; }
+        #s7-root #s7-svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+        #s7-root .st,
+        #s7-root .sb,
+        #s7-root .sa {
+          fill: none;
+          stroke-width: var(--stroke);
+          stroke-linecap: round;
+          stroke-linejoin: round;
+        }
+        #s7-root .st { stroke: var(--ink); }
+        #s7-root .sb { stroke: var(--blue); }
+        #s7-root .sa { stroke: var(--accent); stroke-width: 9px; }
+        #s7-root .dr { opacity: 0; }
+        #s7-root .badge { fill: var(--accent); fill-opacity: 0.16; stroke: var(--accent); stroke-width: 4px; }
+        #s7-root .badge-tx {
+          fill: var(--accent-text);
+          font-family: "Be Vietnam Pro", sans-serif;
+          font-weight: 800;
+          font-size: 26px;
+          text-anchor: middle;
+          opacity: 0;
+        }
+        #s7-root .tx {
+          position: absolute;
+          margin: 0;
+          white-space: nowrap;
+          font-weight: 700;
+          line-height: 1;
+          color: var(--ink);
+          clip-path: inset(-80% 100% -80% -5%);
+        }
+        #s7-root .lab { left: 450px; font-size: 112px; transform-origin: 0% 50%; }
+        #s7-root .sub { left: 454px; width: max-content; font-size: 58px; transform-origin: 0% 50%; }
+        #s7-root .ul {
+          position: absolute;
+          left: 0;
+          bottom: -26px;
+          width: 100%;
+          height: 16px;
+          overflow: visible;
+          clip-path: inset(-50% 100% -50% -5%);
+        }
+        #s7-root .ul path {
+          fill: none;
+          stroke: var(--blue);
+          stroke-width: 6px;
+          stroke-linecap: round;
+          stroke-linejoin: round;
+        }
+        #s7-root #s7-claude {
+          left: 0;
+          right: 0;
+          margin: 0 auto;
+          width: max-content;
+          top: 1308px;
+          font-size: 124px;
+          transform-origin: 50% 50%;
+        }
+      </style>
+
+      <div id="s7-root" data-composition-id="s7" data-width="1080" data-height="1920">
+        <div id="s7-stage">
+          <svg id="s7-svg" viewBox="0 0 1080 1920" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+            <path id="s7-ringfill" d="" style="fill: var(--accent); fill-opacity: 0; stroke: none" />
+
+            <!-- Hang 1: Agent = nguoi lam -->
+            <g id="s7-g1">
+              <circle id="s7-disc1" cx="300" cy="567" r="122" style="fill: var(--ghost-blue)" opacity="0" />
+              <path id="s7-head" class="st dr" d="" />
+              <path id="s7-body" class="st dr" d="M300 551 C 302 575 298 612 301 642" />
+              <path id="s7-arms" class="st dr" d="M236 607 C 256 592 278 581 300 575 C 322 580 345 592 364 605" />
+              <path id="s7-legs" class="st dr" d="M266 703 C 278 681 292 661 300 642 C 309 662 322 683 336 701" />
+              <rect id="s7-badge" class="badge" x="270" y="592" width="60" height="38" rx="9" opacity="0" />
+              <text id="s7-badge-tx" class="badge-tx" x="300" y="620">AI</text>
+            </g>
+
+            <!-- Hang 2: Skill = cach lam -->
+            <g id="s7-g2">
+              <circle id="s7-disc2" cx="300" cy="865" r="122" style="fill: var(--ghost-blue)" opacity="0" />
+              <path id="s7-cover" class="st dr" d="M246 766 L354 764 Q376 764 376 786 L377 944 Q377 966 355 966 L247 967 Q225 967 225 945 L224 788 Q224 767 244 765 L264 765" />
+              <path id="s7-rings" class="st dr" d="M216 797 a9 9 0 1 1 18 0 a9 9 0 1 1 -18 0 M216 831 a9 9 0 1 1 18 0 a9 9 0 1 1 -18 0 M216 865 a9 9 0 1 1 18 0 a9 9 0 1 1 -18 0 M216 899 a9 9 0 1 1 18 0 a9 9 0 1 1 -18 0 M216 933 a9 9 0 1 1 18 0 a9 9 0 1 1 -18 0" />
+              <path id="s7-lines" class="st dr" d="M262 820 L350 818 M262 862 L350 864 M262 904 L322 903" />
+            </g>
+
+            <!-- Hang 3: MCP = cong cu -->
+            <g id="s7-g3">
+              <circle id="s7-disc3" cx="300" cy="1165" r="122" style="fill: var(--ghost-blue)" opacity="0" />
+              <path id="s7-cable" class="sb dr" d="M272 1165 C 246 1165 234 1180 224 1200 C 214 1222 198 1236 178 1238" />
+              <path id="s7-plugbody" class="st dr" d="M299 1138 L339 1137 Q366 1138 366 1165 Q366 1192 339 1192 L299 1193 Q272 1192 272 1165 Q272 1138 299 1139" />
+              <path id="s7-plughead" class="st dr" d="M366 1151 L404 1151 Q418 1151 418 1165 Q418 1179 404 1179 L366 1179" />
+              <circle id="s7-spark" cx="178" cy="1238" r="9" style="fill: var(--blue)" opacity="0" />
+            </g>
+
+            <path id="s7-ring" class="sa dr" d="" />
+            <circle id="s7-runner" cx="0" cy="0" r="12" style="fill: var(--blue)" opacity="0" />
+          </svg>
+
+          <div id="s7-lab1" class="tx lab" style="top: 462px">Agent</div>
+          <div id="s7-sub1" class="tx sub" style="top: 591px">= người làm<svg id="s7-ul1" class="ul" viewBox="0 0 100 16" preserveAspectRatio="none"><path d="M1 9 C 20 4 40 13 62 8 S 90 6 99 9" /></svg></div>
+
+          <div id="s7-lab2" class="tx lab" style="top: 762px">Skill</div>
+          <div id="s7-sub2" class="tx sub" style="top: 891px">= cách làm<svg id="s7-ul2" class="ul" viewBox="0 0 100 16" preserveAspectRatio="none"><path d="M1 8 C 22 13 42 4 65 9 S 90 11 99 8" /></svg></div>
+
+          <div id="s7-lab3" class="tx lab" style="top: 1062px">MCP</div>
+          <div id="s7-sub3" class="tx sub" style="top: 1191px">= công cụ<svg id="s7-ul3" class="ul" viewBox="0 0 100 16" preserveAspectRatio="none"><path d="M1 9 C 18 5 40 12 60 8 S 88 7 99 9" /></svg></div>
+
+          <div id="s7-claude" class="tx">Claude</div>
+        </div>
+      </div>
+
+      <script>
+        (() => {
+          // A("key") = local time (s) of an anchor from timeline.json; never hard-code word times.
+          const A = (key) => window.__vv.local("s7", key);
+          const root = document.querySelector("#s7-root");
+          const $ = (id) => root.querySelector("#" + id);
+          const tl = gsap.timeline({ paused: true });
+          const END = 8.3;
+
+          // Hand-wobbled superellipse as a polyline (pure function of its arguments).
+          function sup(cx, cy, a, b, n, deg0, sweep, wob, over) {
+            const steps = Math.ceil(sweep / 3);
+            let d = "";
+            for (let i = 0; i <= steps; i++) {
+              const deg = deg0 + (sweep * i) / steps;
+              const th = (deg * Math.PI) / 180;
+              const c = Math.cos(th);
+              const s = Math.sin(th);
+              const px = Math.sign(c) * Math.pow(Math.abs(c), 2 / n);
+              const py = Math.sign(s) * Math.pow(Math.abs(s), 2 / n);
+              let k = 1 + wob * (0.6 * Math.sin(2 * th + 0.7) + 0.25 * Math.sin(5 * th + 1.3));
+              if (sweep > 360 && deg - deg0 > 360) k += (over * (deg - deg0 - 360)) / (sweep - 360);
+              d += (i === 0 ? "M" : "L") + (cx + a * px * k).toFixed(1) + " " + (cy + b * py * k).toFixed(1) + " ";
+            }
+            return d;
+          }
+
+          $("s7-head").setAttribute("d", sup(300, 495, 56, 56, 2, -110, 385, 0.035, 0.05));
+          const RING = { cx: 540, cy: 930, a: 455, b: 620, n: 3 };
+          $("s7-ring").setAttribute("d", sup(RING.cx, RING.cy, RING.a, RING.b, RING.n, -100, 372, 0.006, 0.012));
+          $("s7-ringfill").setAttribute("d", sup(RING.cx, RING.cy, RING.a, RING.b, RING.n, -100, 360, 0.006, 0) + "Z");
+
+          // Draw strokes one after another inside a time window, slow-fast-slow each.
+          function drawSeq(ids, t0, t1) {
+            const items = ids.map((id) => {
+              const el = $(id);
+              const len = el.getTotalLength();
+              el.style.strokeDasharray = len + " " + len;
+              return { el, len };
+            });
+            const total = items.reduce((s, it) => s + it.len, 0);
+            let t = t0;
+            items.forEach((it) => {
+              const dur = ((t1 - t0) * it.len) / total;
+              tl.fromTo(it.el, { opacity: 0 }, { opacity: 1, duration: 0.01 }, t);
+              tl.fromTo(it.el, { strokeDashoffset: it.len }, { strokeDashoffset: 0, duration: dur, ease: "power2.inOut" }, t);
+              t += dur;
+            });
+          }
+
+          // Handwriting reveal: clip-path inset left to right, slight tilt.
+          function write(id, t0, t1, rot) {
+            tl.fromTo(
+              $(id),
+              { clipPath: "inset(-80% 100% -80% -5%)", rotation: rot[0] },
+              { clipPath: "inset(-80% -5% -80% -5%)", rotation: rot[1], duration: t1 - t0, ease: "power1.inOut" },
+              t0
+            );
+          }
+
+          function underline(id, t0, t1) {
+            tl.fromTo(
+              $(id),
+              { clipPath: "inset(-50% 100% -50% -5%)" },
+              { clipPath: "inset(-50% -5% -50% -5%)", duration: t1 - t0, ease: "power2.inOut" },
+              t0
+            );
+          }
+
+          // Gentle float that always ends back at rest before 8.0 s.
+          function floatY(sel, s, amp, seg) {
+            let n = Math.floor((8.0 - s) / seg);
+            if (n % 2) n--;
+            if (n < 2) return;
+            tl.fromTo(sel, { y: 0 }, { y: amp, duration: seg, ease: "sine.inOut", yoyo: true, repeat: n - 1 }, s);
+          }
+
+          // Entrance: whole stage slides up.
+          tl.fromTo("#s7-stage", { y: 120, opacity: 0 }, { y: 0, opacity: 1, duration: 0.45, ease: "power2.out" }, 0);
+
+          // Sentence 1 ("Nho nhanh ba chu"): three ghost slots appear one by one.
+          const discT = [0.25, 0.5, A("nguoi") - 0.42];
+          ["s7-disc1", "s7-disc2", "s7-disc3"].forEach((id, i) => {
+            tl.fromTo(
+              $(id),
+              { scale: 0.3, opacity: 0, transformOrigin: "50% 50%" },
+              { scale: 1, opacity: 1, duration: 0.35, ease: "back.out(2)" },
+              discT[i]
+            );
+          });
+
+          // Row 1: Agent = nguoi lam
+          const n1 = A("nguoi");
+          drawSeq(["s7-head", "s7-body", "s7-arms", "s7-legs"], n1 - 0.7, n1 - 0.08);
+          tl.fromTo($("s7-badge"), { opacity: 0, scale: 0.6, transformOrigin: "50% 50%" }, { opacity: 1, scale: 1, duration: 0.2, ease: "back.out(2)" }, n1 - 0.12);
+          tl.fromTo($("s7-badge-tx"), { opacity: 0 }, { opacity: 1, duration: 0.15 }, n1 - 0.02);
+          write("s7-lab1", n1 - 0.3, n1 + 0.1, [-0.8, -0.4]);
+          write("s7-sub1", n1 + 0.05, n1 + 0.55, [0.6, 0.3]);
+
+          // Row 2: Skill = cach lam
+          const n2 = A("cach");
+          drawSeq(["s7-cover", "s7-rings", "s7-lines"], n2 - 0.65, n2);
+          write("s7-lab2", n2 - 0.3, n2 + 0.1, [0.7, 0.3]);
+          write("s7-sub2", n2 + 0.05, n2 + 0.5, [-0.6, -0.3]);
+
+          // Row 3: MCP = cong cu
+          const n3 = A("cong");
+          drawSeq(["s7-plugbody", "s7-plughead", "s7-cable"], n3 - 0.6, n3);
+          write("s7-lab3", n3 - 0.3, n3 + 0.1, [-0.6, -0.3]);
+          write("s7-sub3", n3 + 0.05, n3 + 0.45, [0.5, 0.25]);
+
+          // Living motion: icons float; a blue signal runs along the MCP cable.
+          floatY("#s7-g1", n1 + 0.1, -6, 0.75);
+          floatY("#s7-g2", n2 + 0.1, 5, 0.8);
+          floatY("#s7-g3", n3 + 0.1, -7, 0.7);
+
+          const cable = $("s7-cable");
+          const cableLen = cable.getTotalLength();
+          const spark = $("s7-spark");
+          const so = { p: 0 };
+          const sparkT = n3 + 0.5;
+          tl.fromTo(spark, { opacity: 0 }, { opacity: 1, duration: 0.2 }, sparkT);
+          tl.fromTo(
+            so,
+            { p: 0 },
+            {
+              p: 1,
+              duration: 0.8,
+              ease: "none",
+              repeat: 2,
+              onUpdate: () => {
+                const pt = cable.getPointAtLength((1 - so.p) * cableLen);
+                spark.setAttribute("cx", pt.x.toFixed(1));
+                spark.setAttribute("cy", pt.y.toFixed(1));
+              },
+            },
+            sparkT
+          );
+          tl.to(spark, { opacity: 0, duration: 0.2 }, sparkT + 2.4);
+
+          // Sentence 2 ("Nam vung ba thu nay"): a blue underline under each meaning.
+          const U = n3 + 1.12;
+          underline("s7-ul1", U, U + 0.3);
+          underline("s7-ul2", U + 0.28, U + 0.58);
+          underline("s7-ul3", U + 0.56, U + 0.86);
+
+          // Sentence 3: orange loop around all three, ends just after "ready".
+          const r = A("ready");
+          drawSeq(["s7-ring"], r - 0.7, r + 0.07);
+          tl.to($("s7-ringfill"), { fillOpacity: 0.1, duration: 0.4, ease: "power1.out" }, r + 0.05);
+
+          // Blue signal circles the loop while "tu dong hoa cong viec" is read.
+          const ring = $("s7-ring");
+          const ringLen = ring.getTotalLength();
+          const runner = $("s7-runner");
+          const ro = { p: 0 };
+          const c = A("claude");
+          tl.fromTo(runner, { opacity: 0 }, { opacity: 1, duration: 0.15 }, r + 0.25);
+          tl.fromTo(
+            ro,
+            { p: 0 },
+            {
+              p: 1,
+              duration: c - 0.1 - (r + 0.25),
+              ease: "power1.inOut",
+              onUpdate: () => {
+                const pt = ring.getPointAtLength(ro.p * ringLen);
+                runner.setAttribute("cx", pt.x.toFixed(1));
+                runner.setAttribute("cy", pt.y.toFixed(1));
+              },
+            },
+            r + 0.25
+          );
+          tl.to(runner, { opacity: 0, duration: 0.2 }, c - 0.25);
+
+          // "Claude" written on the word, then one soft pulse of the loop.
+          write("s7-claude", c - 0.5, c + 0.12, [-1.2, 0.5]);
+          tl.to($("s7-claude"), { scale: 1.06, duration: 0.15, ease: "power2.out" }, c + 0.12);
+          tl.to($("s7-claude"), { scale: 1, duration: 0.25, ease: "power2.inOut" }, c + 0.27);
+          tl.to(ring, { strokeWidth: 12, duration: 0.15, ease: "power2.out" }, c + 0.12);
+          tl.to(ring, { strokeWidth: 9, duration: 0.25, ease: "power2.inOut" }, c + 0.27);
+
+          // Final scene: hold the picture to the end, no slide-out.
+          tl.to({}, { duration: 0.001 }, END - 0.001);
+
+          window.__timelines["s7"] = tl;
+        })();
+      </script>
+    </template>
+  </body>
+</html>

@@ -1,0 +1,9 @@
+{"topic": "Skill, MCP và Agent trong Claude là gì, khác nhau thế nào",
+ "audience": "người đi làm mới dùng AI, không chuyên kỹ thuật",
+ "message": "Agent là người làm, Skill là cách làm, MCP là công cụ để làm",
+ "aspect": "9:16", "duration_s": 60, "style": "whiteboard", "voice": "Ngọc Huyền",
+ "music": "synth:calm", "brand": {"colors": [], "name": ""},
+ "sources": ["https://www.anthropic.com/news/model-context-protocol",
+             "https://www.anthropic.com/news/skills",
+             "https://modelcontextprotocol.io/introduction"],
+ "auto": true}

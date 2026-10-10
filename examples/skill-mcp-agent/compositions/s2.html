@@ -1,0 +1,285 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <!-- Scene s2. Runtime keeps only <template>; put style, markup and script inside it. -->
+  </head>
+  <body>
+    <template>
+      <style>
+        /* Each scene declares its fonts (HyperFrames lint: font_family_without_font_face). Paths are relative to index.html. */
+        @font-face { font-family: "Be Vietnam Pro"; src: url("fonts/BeVietnamPro-Regular.ttf"); font-weight: 400; }
+        @font-face { font-family: "Be Vietnam Pro"; src: url("fonts/BeVietnamPro-Medium.ttf"); font-weight: 500; }
+        @font-face { font-family: "Be Vietnam Pro"; src: url("fonts/BeVietnamPro-Bold.ttf"); font-weight: 700; }
+        @font-face { font-family: "Be Vietnam Pro"; src: url("fonts/BeVietnamPro-ExtraBold.ttf"); font-weight: 800; }
+        #s2-root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          background: transparent;
+          color: var(--ink);
+          font-family: "Be Vietnam Pro", sans-serif;
+        }
+        #s2-stage { position: absolute; inset: 0; }
+        #s2-svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+
+        /* Marker strokes: hidden until their draw time, then revealed by dashoffset. */
+        #s2-root path.draw {
+          fill: none;
+          stroke-width: var(--stroke, 7px);
+          stroke-linecap: round;
+          stroke-linejoin: round;
+          opacity: 0;
+        }
+        #s2-root path.draw.w8 { stroke-width: 8px; }
+        #s2-root path.draw.w9 { stroke-width: 9px; }
+        #s2-root path.draw.thin { stroke-width: 4px; }
+        #s2-root .ink { stroke: var(--ink); }
+        #s2-root .blue { stroke: var(--blue); }
+        #s2-root .acc { stroke: var(--accent); }
+
+        /* Badge on the AI employee: paper under, light orange tint, orange outline, ink outline for later. */
+        #s2-root .bpaper { fill: var(--bg); stroke: none; opacity: 0; }
+        #s2-root .btint { fill: var(--accent); fill-opacity: 0.14; stroke: none; opacity: 0; }
+        #s2-root .bk { fill: none; stroke: var(--ink); stroke-width: 6px; stroke-linejoin: round; opacity: 0; }
+        #s2-root .ai {
+          font-family: "Be Vietnam Pro", sans-serif;
+          font-weight: 800;
+          font-size: 30px;
+          fill: var(--ink);
+          opacity: 0;
+        }
+        #s2-root .flagfill { fill: var(--accent); fill-opacity: 0.14; stroke: none; opacity: 0; }
+        #s2-root .dot { fill: var(--blue); stroke: none; }
+
+        /* Labels: .pt is a zero size anchor, its child is centered on the anchor point. */
+        #s2-root .pt {
+          position: absolute;
+          width: 0;
+          height: 0;
+          display: flex;
+          justify-content: center;
+          align-items: flex-start;
+        }
+        #s2-root .pt.c { align-items: center; }
+        #s2-root .lr { display: block; }
+        #s2-root .lt {
+          display: block;
+          white-space: nowrap;
+          font-weight: 700;
+          line-height: 1.25;
+          color: var(--ink);
+          clip-path: inset(-15% 100% -15% -2%);
+        }
+        #s2-root .lt.big { font-size: 52px; }
+        #s2-root .lt.mid { font-size: 50px; }
+
+        #s2-ring { position: absolute; left: 540px; top: 1320px; width: 0; height: 0; }
+        #s2-ringsvg { position: absolute; left: -300px; top: -300px; width: 600px; height: 600px; overflow: visible; }
+      </style>
+
+      <div id="s2-root" data-composition-id="s2" data-width="1080" data-height="1920">
+        <div id="s2-stage">
+          <svg id="s2-svg" viewBox="0 0 1080 1920" xmlns="http://www.w3.org/2000/svg">
+            <!-- AI employee (stick figure with badge) -->
+            <g id="s2-fig">
+              <path id="s2-head" class="draw ink w8" d="" />
+              <path id="s2-body" class="draw ink w8" d="M250 487 C 253 545, 247 620, 251 702" />
+              <path id="s2-arms" class="draw ink w8" d="M168 670 C 186 622, 216 580, 249 549 C 285 574, 318 606, 340 654" />
+              <path id="s2-legs" class="draw ink w8" d="M203 838 C 222 792, 238 748, 251 702 C 268 748, 290 792, 308 838" />
+              <rect id="s2-bpaper" class="bpaper" x="210" y="578" width="80" height="52" rx="11" />
+              <rect id="s2-btint" class="btint" x="210" y="578" width="80" height="52" rx="11" />
+              <path id="s2-bo" class="draw acc" d="M221 579 C 240 577, 262 580, 279 578 C 288 578, 290 584, 290 593 C 291 606, 289 618, 289 620 C 288 629, 283 630, 276 630 C 258 632, 238 629, 221 631 C 212 630, 210 625, 210 617 C 211 606, 209 594, 211 588 C 212 581, 216 579, 223 578 L 232 579" />
+              <rect id="s2-bk" class="bk" x="210" y="578" width="80" height="52" rx="11" />
+              <text id="s2-ai" class="ai" x="250" y="615" text-anchor="middle">AI</text>
+            </g>
+
+            <!-- Goal flag -->
+            <path id="s2-pole" class="draw ink w9" d="M763 842 C 761 760, 765 620, 761 520 C 759 470, 764 420, 762 380" />
+            <g id="s2-flag">
+              <path id="s2-flagfill" class="flagfill" d="M762 386 C 812 360, 868 414, 946 390 C 932 416, 934 440, 948 468 C 872 492, 818 438, 762 462 Z" />
+              <path id="s2-flagline" class="draw acc w9" d="M762 386 C 812 360, 868 414, 946 390 C 932 416, 934 440, 948 468 C 872 492, 818 438, 762 462 L 762 384" />
+            </g>
+
+            <!-- Handing the goal to the employee -->
+            <path id="s2-garrow" class="draw blue" d="M735 642 C 650 612, 560 668, 468 636 C 430 622, 398 640, 374 646" />
+            <path id="s2-garrowhead" class="draw blue" d="M398 624 L372 646 L405 655" />
+
+            <!-- Check mark in the centre of the loop -->
+            <g transform="translate(540 1320)">
+              <path id="s2-tick" class="draw blue w9" d="M-44 4 L-13 38 C -2 12, 22 -14, 50 -36" />
+            </g>
+          </svg>
+
+          <!-- Labels for the figure and the flag -->
+          <div class="pt" style="left: 255px; top: 884px;"><span id="s2-lab-nv" class="lt big">Nhân viên AI</span></div>
+          <div class="pt" style="left: 800px; top: 884px;"><span id="s2-lab-goal" class="lt big">Mục tiêu</span></div>
+
+          <!-- Plan, Do, Check loop. Everything inside rotates about the loop centre; labels counter-rotate. -->
+          <div id="s2-ring">
+            <svg id="s2-ringsvg" viewBox="-300 -300 600 600" xmlns="http://www.w3.org/2000/svg">
+              <path id="s2-guide" class="draw blue thin" d="" />
+              <path id="s2-arc1" class="draw blue w8" d="" />
+              <path id="s2-ah1" class="draw blue w8" d="" />
+              <path id="s2-arc2" class="draw blue w8" d="" />
+              <path id="s2-ah2" class="draw blue w8" d="" />
+              <path id="s2-arc3" class="draw blue w8" d="" />
+              <path id="s2-ah3" class="draw blue w8" d="" />
+              <circle id="s2-dot1" class="dot" cx="0" cy="-190" r="0" />
+              <circle id="s2-dot2" class="dot" cx="164.5" cy="95" r="0" />
+              <circle id="s2-dot3" class="dot" cx="-164.5" cy="95" r="0" />
+            </svg>
+            <div class="pt c" style="left: 0px; top: -265px;"><div class="lr"><span id="s2-lab-plan" class="lt mid">Kế hoạch</span></div></div>
+            <div class="pt c" style="left: 300px; top: 150px;"><div class="lr"><span id="s2-lab-do" class="lt mid">Làm</span></div></div>
+            <div class="pt c" style="left: -300px; top: 150px;"><div class="lr"><span id="s2-lab-check" class="lt mid">Kiểm tra</span></div></div>
+          </div>
+        </div>
+      </div>
+
+      <script>
+        (() => {
+          // A("key") = local time (s) of an anchor from timeline.json; never hard-code word times.
+          const A = (key) => window.__vv.local("s2", key);
+          const DUR = 8.31; // scene length from the work packet
+          const $ = (id) => document.getElementById("s2-" + id);
+          const f = (n) => n.toFixed(1);
+
+          // ---- Hand-drawn geometry (deterministic wobble, no randomness) ----
+          const wob = (a, ph) => 2.2 * Math.sin(a * 0.09 + ph) + 1.2 * Math.sin(a * 0.31 + 2 * ph);
+          const arcD = (cx, cy, r, a0, a1, ph, sp) => {
+            const n = Math.max(8, Math.ceil(Math.abs(a1 - a0) / 3));
+            const pts = [];
+            for (let i = 0; i <= n; i++) {
+              const a = a0 + ((a1 - a0) * i) / n;
+              const rr = r + wob(a, ph) + (sp || 0) * (i / n);
+              const rad = (a * Math.PI) / 180;
+              pts.push(f(cx + rr * Math.cos(rad)) + " " + f(cy + rr * Math.sin(rad)));
+            }
+            return "M" + pts.join(" L");
+          };
+          const headD = (cx, cy, r, a, ph) => {
+            const rr = r + wob(a, ph);
+            const rad = (a * Math.PI) / 180;
+            const x = cx + rr * Math.cos(rad);
+            const y = cy + rr * Math.sin(rad);
+            const bx = Math.sin(rad);
+            const by = -Math.cos(rad);
+            const o = (s) => {
+              const c = Math.cos(s * 0.49);
+              const sn = Math.sin(s * 0.49);
+              return [x + 34 * (bx * c - by * sn), y + 34 * (bx * sn + by * c)];
+            };
+            const e1 = o(1);
+            const e2 = o(-1);
+            return "M" + f(e1[0]) + " " + f(e1[1]) + " L" + f(x) + " " + f(y) + " L" + f(e2[0]) + " " + f(e2[1]);
+          };
+
+          const R = 190;
+          $("head").setAttribute("d", arcD(250, 430, 56, -130, 242, 0.7, 3));
+          $("guide").setAttribute("d", arcD(0, 0, R, -90, 282, 2.1, 2));
+          const arcs = [
+            { a0: -78, a1: 18, ph: 1.3 },
+            { a0: 42, a1: 138, ph: 2.6 },
+            { a0: 162, a1: 258, ph: 4.0 }
+          ];
+          arcs.forEach((s, i) => {
+            $("arc" + (i + 1)).setAttribute("d", arcD(0, 0, R, s.a0, s.a1, s.ph));
+            $("ah" + (i + 1)).setAttribute("d", headD(0, 0, R, s.a1, s.ph));
+          });
+
+          // Rotating frame for the loop; its labels counter-rotate so they stay upright.
+          const ring = $("ring");
+          const lrs = Array.from(document.querySelectorAll("#s2-ring .lr"));
+          const flag = $("flag");
+          gsap.set(flag, { svgOrigin: "762 386" });
+
+          const tl = gsap.timeline({ paused: true });
+
+          // Draw a stroke with a slow-fast-slow curve; the path is hidden until its start time.
+          const draw = (el, t, dur, op) => {
+            let len = 0;
+            try { len = el.getTotalLength(); } catch (e) { len = 0; }
+            if (!len) len = 2500;
+            el.style.strokeDasharray = len + " " + len;
+            tl.set(el, { opacity: op === undefined ? 1 : op }, t);
+            tl.fromTo(el, { strokeDashoffset: len }, { strokeDashoffset: 0, duration: dur, ease: "power2.inOut" }, t);
+          };
+          // Write a label left to right with a small tilt, like a marker.
+          const write = (el, t, dur, rot) => {
+            tl.fromTo(
+              el,
+              { clipPath: "inset(-15% 100% -15% -2%)", rotation: rot === undefined ? -1 : rot },
+              { clipPath: "inset(-15% -2% -15% -2%)", rotation: 0, duration: dur, ease: "power2.inOut" },
+              t
+            );
+          };
+
+          const tA = A("agent");
+          const tN = A("nv");
+          const tG = A("goal");
+          const tP = A("plan");
+          const tD = A("do");
+          const tC = A("check");
+
+          // ---- Slide up in, slide up out ----
+          const stage = $("stage");
+          tl.fromTo(stage, { y: 120, opacity: 0 }, { y: 0, opacity: 1, duration: 0.45, ease: "power2.out" }, 0);
+          tl.to(stage, { y: -120, opacity: 0, duration: 0.35, ease: "power2.in" }, DUR - 0.35);
+
+          // ---- Sentence 1: Agent is an AI employee ----
+          draw($("head"), tA - 0.36, 0.5);
+          draw($("body"), tA + 0.1, 0.35);
+          draw($("arms"), tA + 0.3, 0.4);
+          draw($("legs"), tA + 0.4, 0.45);
+          draw($("bo"), tN, 0.4);
+          tl.to($("bpaper"), { opacity: 1, duration: 0.2 }, tN + 0.3);
+          tl.to($("btint"), { opacity: 1, duration: 0.2 }, tN + 0.3);
+          tl.to($("ai"), { opacity: 1, duration: 0.2 }, tN + 0.5);
+          write($("lab-nv"), tN + 0.05, 0.6);
+          // The figure breathes: a gentle bob until just before the exit.
+          tl.fromTo($("fig"), { y: 0 }, { y: -8, duration: 0.85, ease: "sine.inOut", repeat: 5, yoyo: true }, tN + 0.7);
+
+          // ---- Sentence 2: you hand over a goal ----
+          draw($("pole"), tG - 0.35, 0.5);
+          draw($("flagline"), tG + 0.1, 0.65);
+          tl.to($("flagfill"), { opacity: 1, duration: 0.3 }, tG + 0.5);
+          write($("lab-goal"), tG + 0.3, 0.5, 1);
+          // Only one orange area at a time: the badge goes back to ink when the flag arrives.
+          tl.to($("bo"), { opacity: 0, duration: 0.4, ease: "power1.inOut" }, tG + 0.1);
+          tl.to($("btint"), { opacity: 0, duration: 0.4, ease: "power1.inOut" }, tG + 0.1);
+          tl.to($("bk"), { opacity: 1, duration: 0.4, ease: "power1.inOut" }, tG + 0.1);
+          draw($("garrow"), tG + 0.85, 0.5);
+          draw($("garrowhead"), tG + 1.35, 0.15);
+          // The flag waves a little.
+          tl.fromTo(flag, { rotation: 0 }, { rotation: 3, duration: 0.85, ease: "sine.inOut", repeat: 3, yoyo: true }, tG + 0.8);
+
+          // ---- Sentence 3: plan, do, check loop ----
+          draw($("guide"), tP - 0.7, 0.65, 0.22);
+          const pop = (el, t) => tl.fromTo(el, { attr: { r: 0 } }, { attr: { r: 13 }, duration: 0.25, ease: "back.out(2)" }, t);
+          pop($("dot1"), tP - 0.1);
+          draw($("arc1"), tP, 0.5);
+          draw($("ah1"), tP + 0.5, 0.15);
+          write($("lab-plan"), tP + 0.1, 0.5);
+
+          pop($("dot2"), tD - 0.1);
+          draw($("arc2"), tD, 0.5);
+          draw($("ah2"), tD + 0.5, 0.15);
+          write($("lab-do"), tD, 0.3);
+
+          pop($("dot3"), tC - 0.1);
+          draw($("arc3"), tC, 0.55);
+          draw($("ah3"), tC + 0.55, 0.15);
+          write($("lab-check"), tC + 0.05, 0.5);
+          draw($("tick"), tC + 0.5, 0.4);
+
+          // The loop turns slowly about its centre; labels counter-rotate by the same amount.
+          const spin = 7.6 - tP;
+          tl.fromTo(ring, { rotation: 0 }, { rotation: 20, duration: spin, ease: "none" }, tP);
+          tl.fromTo(lrs, { rotation: 0 }, { rotation: -20, duration: spin, ease: "none" }, tP);
+
+          window.__timelines["s2"] = tl;
+        })();
+      </script>
+    </template>
+  </body>
+</html>

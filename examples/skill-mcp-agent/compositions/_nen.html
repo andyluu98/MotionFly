@@ -1,0 +1,58 @@
+<!doctype html>
+<html>
+  <head><meta charset="UTF-8" /></head>
+  <body>
+    <template>
+      <style>
+        #_nen-root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          background: radial-gradient(120% 80% at 50% 40%, #fbfaf6 0%, var(--bg) 60%, #ecebe4 100%);
+        }
+        #_nen-board { position: absolute; left: -10%; top: -10%; width: 120%; height: 160%; }
+        #_nen-sheen {
+          position: absolute;
+          left: -60%;
+          top: -20%;
+          width: 60%;
+          height: 140%;
+          background: linear-gradient(100deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.55) 50%, rgba(255, 255, 255, 0) 100%);
+          opacity: 0.5;
+        }
+      </style>
+
+      <div id="_nen-root" data-composition-id="_nen" data-width="1080" data-height="1920">
+        <svg id="_nen-board" viewBox="0 0 1296 3072" fill="none" stroke-linecap="round" stroke-linejoin="round">
+          <!-- ghost marks of old lessons: faint, never compete with live ink -->
+          <g stroke="var(--ghost)" stroke-width="6">
+            <path d="M120 260 q90 -40 180 0 t180 0" />
+            <circle cx="1010" cy="420" r="70" />
+            <path d="M180 900 l220 0 m-30 -24 l30 24 l-30 24" />
+            <path d="M860 1180 q120 60 240 -10" />
+            <path d="M940 1820 l120 -90 l90 120" />
+            <path d="M220 2300 q80 -60 160 0 q80 60 160 0" />
+            <circle cx="980" cy="2600" r="54" />
+          </g>
+          <g stroke="var(--ghost-blue)" stroke-width="5">
+            <path d="M700 620 l160 0" />
+            <path d="M300 2050 l0 120 l140 0" />
+            <path d="M820 2850 q60 -80 160 -20" />
+          </g>
+        </svg>
+        <div id="_nen-sheen"></div>
+      </div>
+
+      <script>
+        (() => {
+          const tl = gsap.timeline({ paused: true });
+          const dur = window.__vv ? Math.max(...Object.values(window.__vv.scenes).map((s) => s.end)) : 60;
+          // the board drifts up slowly as the "camera" travels down the board; sheen moves at a slower rate
+          tl.fromTo("#_nen-board", { y: 0 }, { y: -900, duration: dur, ease: "none" }, 0);
+          tl.fromTo("#_nen-sheen", { x: 0 }, { x: 1500, duration: dur, ease: "none" }, 0);
+          window.__timelines["_nen"] = tl;
+        })();
+      </script>
+    </template>
+  </body>
+</html>

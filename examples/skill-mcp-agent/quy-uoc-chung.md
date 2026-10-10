@@ -1,0 +1,13 @@
+## Bộ nét vẽ chung (bắt buộc, để 7 cảnh liền một tấm bảng)
+- Nền: KHÔNG vẽ nền. `#<id>-root` để `background: transparent`; tấm bảng trắng, vết mờ và vệt bóng đã có ở lớp `_nen` chạy dưới mọi cảnh.
+- Mọi hình là SVG nét bút lông: `stroke-width: var(--stroke)` (7px; chữ to và hình chính có thể 9px), `stroke-linecap: round`, `stroke-linejoin: round`, `fill: none` (tô chỉ dùng màu nhạt 10 đến 15 phần trăm của màu nét khi cần). Nét hơi lệch tay: thêm 1 đến 3px gợn sóng trong path, đường tròn vẽ vượt qua điểm đầu một chút.
+- Vẽ nét bằng stroke-dasharray/dashoffset: đo `getTotalLength()` lúc dựng timeline, tween dashoffset từ độ dài về 0 với ease kiểu chậm nhanh chậm (`power2.inOut`); nhãn 0,3 đến 0,8 giây, hình lớn 0,8 đến 1,6 giây; nét phải vẽ xong đúng hoặc ngay sau neo của từ.
+- Ba màu bút, nghĩa giữ suốt video: `var(--ink)` cho vật và cấu trúc; `var(--blue)` cho quá trình, luồng, tín hiệu; `var(--accent)` (cam) chỉ cho điều quan trọng nhất của cảnh, tối đa một vùng cam mỗi lúc.
+- Chữ trên bảng: Be Vietnam Pro 700, màu mực, xuất hiện kiểu viết: dùng clip-path inset từ trái sang phải (0 đến 100 phần trăm) trong 0,3 đến 0,8 giây, kèm xoay nhẹ -1 đến 1 độ. Tiêu đề 96 đến 130px, nhãn 44 đến 64px. Nhãn 1 đến 5 từ.
+- Hình mẫu dùng chung (vẽ giống nhau ở mọi cảnh):
+  - Nhân viên AI (Agent): người que, đầu tròn r=56, thân và tay chân nét đơn, trên ngực thẻ chữ nhật nhỏ bo góc ghi "AI" (thẻ màu cam nhạt viền cam).
+  - Sổ tay (Skill): chữ nhật bo góc 18px, tỉ lệ 3:4, gáy bên trái có 5 vòng lò xo tròn nhỏ, trên bìa 2 đến 3 đường kẻ ngang.
+  - Phích MCP (USB-C): thân chữ nhật bo tròn hai đầu (dạng viên thuốc nằm ngang) nối với đầu cắm nhỏ hình viên thuốc dẹt, dây nét xanh ra từ đuôi.
+- Chuyển cảnh "trượt lên": khi vào, toàn bộ nội dung cảnh từ y=+120px, opacity 0 tới y=0, opacity 1 trong 0,45 giây (ease power2.out), tween trên một div bọc `#<id>-stage`, không tween phần tử clip. 0,35 giây cuối cảnh: nội dung trượt lên y=-120px và mờ dần về 0 (cảnh "ra").
+- Khung 1080x1920: vùng an toàn x 72 đến 1008; chừa đáy từ y=1650 trở xuống cho phụ đề; nội dung chính đặt khoảng y 260 đến 1560.
+- Không có thẻ audio, không đặt data-start, không Math.random (cần ngẫu nhiên thì hàm hash theo chỉ số).

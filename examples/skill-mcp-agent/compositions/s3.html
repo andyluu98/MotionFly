@@ -1,0 +1,292 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <!-- Scene s3. Runtime keeps only <template>; put style, markup and script inside it. -->
+  </head>
+  <body>
+    <template>
+      <style>
+        /* Each scene declares its fonts (HyperFrames lint: font_family_without_font_face). Paths are relative to index.html. */
+        @font-face { font-family: "Be Vietnam Pro"; src: url("fonts/BeVietnamPro-Regular.ttf"); font-weight: 400; }
+        @font-face { font-family: "Be Vietnam Pro"; src: url("fonts/BeVietnamPro-Medium.ttf"); font-weight: 500; }
+        @font-face { font-family: "Be Vietnam Pro"; src: url("fonts/BeVietnamPro-Bold.ttf"); font-weight: 700; }
+        @font-face { font-family: "Be Vietnam Pro"; src: url("fonts/BeVietnamPro-ExtraBold.ttf"); font-weight: 800; }
+
+        #s3-root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          background: transparent;
+          color: var(--ink, #23262c);
+          font-family: "Be Vietnam Pro", sans-serif;
+        }
+        #s3-stage { position: absolute; inset: 0; }
+        #s3-svg { position: absolute; left: 0; top: 0; width: 100%; height: 100%; overflow: visible; }
+
+        /* marker strokes: one weight, round caps, no fill */
+        #s3-root path {
+          fill: none;
+          stroke-width: var(--stroke, 7px);
+          stroke-linecap: round;
+          stroke-linejoin: round;
+        }
+        #s3-root path.s3-bold { stroke-width: 9px; }
+        #s3-root path.s3-ink { stroke: var(--ink, #23262c); }
+        #s3-root path.s3-blue { stroke: var(--blue, #2a5cb3); }
+        #s3-root path.s3-acc { stroke: var(--accent, #d97757); }
+        #s3-root .s3-fill { fill: var(--accent, #d97757); opacity: 0; }
+
+        /* notebook (scales down into the folder later) */
+        #s3-nb { position: absolute; left: 110px; top: 540px; width: 420px; height: 560px; transform-origin: 0 0; }
+        #s3-nb-in { position: absolute; inset: 0; }
+        #s3-nb-svg { position: absolute; left: 0; top: 0; width: 420px; height: 560px; overflow: visible; }
+
+        /* handwritten labels, revealed left to right with clip-path */
+        #s3-root .s3-lbl {
+          position: absolute;
+          margin: 0;
+          white-space: nowrap;
+          font-weight: 700;
+          line-height: 1.3;
+          transform-origin: 0% 60%;
+          clip-path: inset(-25% 100% -25% 0%);
+        }
+        #s3-root .s3-c-ink { color: var(--ink, #23262c); }
+        #s3-root .s3-c-blue { color: var(--blue, #2a5cb3); }
+        #s3-root .s3-c-acc { color: var(--accent-text, #b04a26); }
+      </style>
+
+      <div id="s3-root" data-composition-id="s3" data-width="1080" data-height="1920">
+        <div id="s3-stage">
+          <svg id="s3-svg" viewBox="0 0 1080 1920" xmlns="http://www.w3.org/2000/svg">
+            <!-- phase 1: arrow + AI employee -->
+            <g id="s3-p1">
+              <path id="s3-arrow" class="s3-blue" />
+              <path id="s3-arrowhead" class="s3-blue" />
+              <g id="s3-agent-in">
+                <path id="s3-ag-head" class="s3-ink" />
+                <path id="s3-ag-t1" class="s3-ink" />
+                <path id="s3-ag-t2" class="s3-ink" />
+                <path id="s3-ag-arms" class="s3-ink" />
+                <path id="s3-ag-legs" class="s3-ink" />
+                <rect id="s3-ag-fill" class="s3-fill" x="774" y="810" width="72" height="50" rx="10" />
+                <path id="s3-ag-badge" class="s3-acc" />
+                <text id="s3-ag-ai" x="810" y="847" text-anchor="middle" font-size="30" font-weight="800" style="fill: var(--accent-text, #b04a26); opacity: 0; font-family: 'Be Vietnam Pro', sans-serif;">AI</text>
+              </g>
+            </g>
+            <!-- phase 2: folder tree -->
+            <path id="s3-folder" class="s3-ink s3-bold" />
+            <path id="s3-e1" class="s3-ink" />
+            <path id="s3-e2" class="s3-ink" />
+            <path id="s3-e3" class="s3-ink" />
+            <rect id="s3-sk-fill" class="s3-fill" x="250" y="835" width="390" height="110" rx="16" />
+            <path id="s3-sk-box" class="s3-acc" />
+            <path id="s3-br" class="s3-blue" />
+          </svg>
+
+          <div id="s3-nb">
+            <div id="s3-nb-in">
+              <svg id="s3-nb-svg" viewBox="0 0 420 560" xmlns="http://www.w3.org/2000/svg">
+                <path id="s3-nb-cover" class="s3-ink s3-bold s3-nbp" />
+                <path id="s3-nb-r0" class="s3-ink s3-nbp" />
+                <path id="s3-nb-r1" class="s3-ink s3-nbp" />
+                <path id="s3-nb-r2" class="s3-ink s3-nbp" />
+                <path id="s3-nb-r3" class="s3-ink s3-nbp" />
+                <path id="s3-nb-r4" class="s3-ink s3-nbp" />
+                <path id="s3-nb-l0" class="s3-ink s3-nbp s3-nbfade" />
+                <path id="s3-nb-l1" class="s3-ink s3-nbp s3-nbfade" />
+                <path id="s3-nb-l2" class="s3-ink s3-nbp s3-nbfade" />
+              </svg>
+              <div id="s3-nb-t1" class="s3-lbl s3-c-ink s3-nbfade" style="left: 80px; top: 110px; font-size: 52px;">Sổ tay</div>
+              <div id="s3-nb-t2" class="s3-lbl s3-c-ink s3-nbfade" style="left: 80px; top: 185px; font-size: 52px;">quy trình</div>
+            </div>
+          </div>
+
+          <div id="s3-skill" class="s3-lbl s3-c-ink" style="left: 110px; top: 370px; font-size: 110px;">Skill</div>
+          <div id="s3-folder-lbl" class="s3-lbl s3-c-ink" style="left: 465px; top: 521px; font-size: 64px;">bao-cao/</div>
+          <div id="s3-c1" class="s3-lbl s3-c-acc" style="left: 272px; top: 848px; font-size: 64px;">SKILL.md</div>
+          <div id="s3-tag" class="s3-lbl s3-c-acc" style="left: 665px; top: 861px; font-size: 44px;">Hướng dẫn</div>
+          <div id="s3-c2" class="s3-lbl s3-c-ink" style="left: 272px; top: 1058px; font-size: 64px;">scripts/</div>
+          <div id="s3-c3" class="s3-lbl s3-c-ink" style="left: 272px; top: 1268px; font-size: 64px;">templates/</div>
+          <div id="s3-b1" class="s3-lbl s3-c-blue" style="left: 790px; top: 1148px; font-size: 48px;">Công cụ</div>
+          <div id="s3-b2" class="s3-lbl s3-c-blue" style="left: 790px; top: 1204px; font-size: 48px;">đi kèm</div>
+        </div>
+      </div>
+
+      <script>
+        (() => {
+          // A("key") = local time (s) of an anchor from timeline.json; never hard-code word times.
+          const A = (key) => window.__vv.local("s3", key);
+          const DUR = 7.39; // scene length from the work packet, used only for the exit slide
+          const tl = gsap.timeline({ paused: true });
+          const $ = (id) => document.getElementById(id);
+          const f = (v) => v.toFixed(1);
+
+          /* ---------- deterministic hand-drawn path helpers ---------- */
+          const hs = (i, s) => {
+            const x = Math.sin(i * 12.9898 + s * 78.233) * 43758.5453;
+            return (x - Math.floor(x)) * 2 - 1;
+          };
+          // Catmull-Rom through points -> cubic bezier path
+          const smooth = (p) => {
+            let d = "M" + f(p[0][0]) + " " + f(p[0][1]);
+            for (let i = 0; i < p.length - 1; i++) {
+              const p0 = p[i - 1] || p[i], p1 = p[i], p2 = p[i + 1], p3 = p[i + 2] || p2;
+              const c1 = [p1[0] + (p2[0] - p0[0]) / 6, p1[1] + (p2[1] - p0[1]) / 6];
+              const c2 = [p2[0] - (p3[0] - p1[0]) / 6, p2[1] - (p3[1] - p1[1]) / 6];
+              d += " C" + f(c1[0]) + " " + f(c1[1]) + " " + f(c2[0]) + " " + f(c2[1]) + " " + f(p2[0]) + " " + f(p2[1]);
+            }
+            return d;
+          };
+          const poly = (p) => "M" + p.map((q) => f(q[0]) + " " + f(q[1])).join(" L");
+          // waypoints -> subdivided points with a low-frequency wobble along the normal
+          const wob = (way, seed, amp = 2.5, step = 70) => {
+            const out = [];
+            for (let k = 0; k < way.length - 1; k++) {
+              const a = way[k], b = way[k + 1];
+              const dx = b[0] - a[0], dy = b[1] - a[1], L = Math.hypot(dx, dy) || 1;
+              const n = Math.max(1, Math.round(L / step));
+              const am = amp * Math.min(1, L / 60);
+              for (let i = k === 0 ? 0 : 1; i <= n; i++) {
+                const t = i / n;
+                const edge = (k === 0 && i === 0) || (k === way.length - 2 && i === n);
+                const j = edge ? 0 : hs(k * 31 + i, seed) * am;
+                out.push([a[0] + dx * t - (dy / L) * j, a[1] + dy * t + (dx / L) * j]);
+              }
+            }
+            return out;
+          };
+          // rounded rectangle, clockwise from the top-right, overshooting past closure
+          const rr = (x, y, w, h, r, seed, amp = 2.5) => {
+            const way = [];
+            const arc = (cx, cy, a0) => [0, 30, 60, 90].forEach((da) => {
+              const a = ((a0 + da) * Math.PI) / 180;
+              way.push([cx + r * Math.cos(a), cy + r * Math.sin(a)]);
+            });
+            arc(x + w - r, y + r, -90);
+            arc(x + w - r, y + h - r, 0);
+            arc(x + r, y + h - r, 90);
+            arc(x + r, y + r, 180);
+            way.push([way[0][0], way[0][1]]);
+            way.push([way[1][0] + 2, way[1][1] - 3]);
+            return smooth(wob(way, seed, amp));
+          };
+          // circle drawn past its start point, radius creeping out a little
+          const circ = (cx, cy, r, seed, amp = 2, start = -120, over = 28, n = 22) => {
+            const p = [];
+            for (let i = 0; i <= n; i++) {
+              const a = ((start + (i / n) * (360 + over)) * Math.PI) / 180;
+              const rad = r + hs(i, seed) * amp + (i / n) * 4;
+              p.push([cx + rad * Math.cos(a), cy + rad * Math.sin(a)]);
+            }
+            return smooth(p);
+          };
+          const quad = (p0, c, p1, n, seed, amp) => {
+            const p = [];
+            for (let i = 0; i <= n; i++) {
+              const t = i / n, u = 1 - t;
+              const j = i === 0 || i === n ? 0 : hs(i, seed) * amp;
+              p.push([u * u * p0[0] + 2 * u * t * c[0] + t * t * p1[0], u * u * p0[1] + 2 * u * t * c[1] + t * t * p1[1] + j]);
+            }
+            return smooth(p);
+          };
+
+          /* ---------- geometry ---------- */
+          const cy1 = 890, cy2 = 1100, cy3 = 1310; // tree rows
+          $("s3-nb-cover").setAttribute("d", rr(0, 0, 420, 560, 18, 1, 2.5));
+          [70, 175, 280, 385, 490].forEach((y, i) => $("s3-nb-r" + i).setAttribute("d", circ(0, y, 17, 10 + i, 1.2, -100 + i * 25, 30, 14)));
+          [310, 380, 450].forEach((y, i) => $("s3-nb-l" + i).setAttribute("d", poly(wob([[84, y], [i === 2 ? 290 : 360, y]], 20 + i, 1.8, 60))));
+
+          $("s3-arrow").setAttribute("d", quad([565, 825], [622, 775], [692, 826], 7, 30, 2));
+          $("s3-arrowhead").setAttribute("d", poly([[660, 802], [692, 826], [656, 845]]));
+
+          $("s3-ag-head").setAttribute("d", circ(810, 680, 56, 40, 2, -110, 28, 24));
+          $("s3-ag-t1").setAttribute("d", poly(wob([[810, 736], [810, 808]], 41, 1.5, 70)));
+          $("s3-ag-t2").setAttribute("d", poly(wob([[810, 862], [810, 940]], 42, 1.5, 70)));
+          $("s3-ag-arms").setAttribute("d", poly(wob([[715, 855], [810, 768], [905, 855]], 43, 2, 70)));
+          $("s3-ag-legs").setAttribute("d", poly(wob([[745, 1100], [810, 940], [875, 1100]], 44, 2, 70)));
+          $("s3-ag-badge").setAttribute("d", rr(774, 810, 72, 50, 10, 45, 1.2));
+
+          $("s3-folder").setAttribute("d", poly(wob([[80, 690], [80, 425], [96, 402], [212, 402], [246, 436], [404, 436], [430, 462], [430, 690], [84, 686]], 50, 2.5, 70)));
+          $("s3-e1").setAttribute("d", poly(wob([[170, 690], [170, cy1], [250, cy1]], 51, 2.2, 70)));
+          $("s3-e2").setAttribute("d", poly(wob([[170, cy1], [170, cy2], [250, cy2]], 52, 2.2, 70)));
+          $("s3-e3").setAttribute("d", poly(wob([[170, cy2], [170, cy3], [250, cy3]], 53, 2.2, 70)));
+          $("s3-sk-box").setAttribute("d", rr(250, cy1 - 55, 390, 110, 16, 54, 2));
+          $("s3-br").setAttribute("d", poly(wob([[705, 1060], [745, 1060], [745, 1350], [705, 1350]], 55, 2, 70)) + " M745 1205 L768 1205");
+
+          /* ---------- tween helpers ---------- */
+          const draw = (id, t, dur) => {
+            const el = $(id);
+            const L = Math.ceil(el.getTotalLength()) + 2;
+            el.style.strokeDasharray = L + " " + L;
+            tl.fromTo(el, { strokeDashoffset: L }, { strokeDashoffset: 0, duration: dur, ease: "power2.inOut" }, t);
+          };
+          const write = (id, t, dur, rot) => {
+            tl.fromTo($(id),
+              { clipPath: "inset(-25% 100% -25% 0%)", rotation: rot === undefined ? -1 : rot },
+              { clipPath: "inset(-25% -4% -25% 0%)", rotation: 0, duration: dur, ease: "power1.inOut" }, t);
+          };
+
+          // anchors
+          const S = A("skill"), B = A("book"), F = A("folder"), Fi = A("file"), T = A("tools");
+          const stage = $("s3-stage");
+
+          // enter: slide up / exit: slide up
+          tl.fromTo(stage, { y: 120, opacity: 0 }, { y: 0, opacity: 1, duration: 0.45, ease: "power2.out" }, 0);
+          tl.fromTo(stage, { y: 0, opacity: 1 }, { y: -120, opacity: 0, duration: 0.35, ease: "power2.in", immediateRender: false }, DUR - 0.35);
+
+          /* ---- sentence 1: Skill = process notebook of that employee ---- */
+          write("s3-skill", S, 0.4, -1.2);
+          draw("s3-nb-cover", S, B - S + 0.06);
+          for (let i = 0; i < 5; i++) draw("s3-nb-r" + i, S + 0.35 + i * 0.06, 0.3);
+          write("s3-nb-t1", B + 0.1, 0.4, -1);
+          write("s3-nb-t2", B + 0.5, 0.38, 0.8);
+          for (let i = 0; i < 3; i++) draw("s3-nb-l" + i, B + 0.55 + i * 0.1, 0.4);
+
+          draw("s3-arrow", B + 0.8, 0.25);
+          draw("s3-arrowhead", B + 1.02, 0.15);
+          draw("s3-ag-head", B + 0.95, 0.3);
+          draw("s3-ag-t1", B + 1.05, 0.2);
+          draw("s3-ag-arms", B + 1.1, 0.3);
+          draw("s3-ag-t2", B + 1.2, 0.2);
+          draw("s3-ag-legs", B + 1.2, 0.3);
+          draw("s3-ag-badge", B + 1.3, 0.25);
+          tl.to($("s3-ag-fill"), { opacity: 0.15, duration: 0.2 }, B + 1.5);
+          tl.to($("s3-ag-ai"), { opacity: 1, duration: 0.15 }, B + 1.5);
+
+          // living motion while the idea sits
+          tl.to($("s3-nb-in"), { y: -8, duration: 0.8, ease: "sine.inOut", yoyo: true, repeat: 5 }, B + 0.15);
+          tl.to($("s3-agent-in"), { y: -7, duration: 0.7, ease: "sine.inOut", yoyo: true, repeat: 1 }, B + 1.55);
+
+          /* ---- sentence 2: each skill is a folder ---- */
+          const T1 = F - 0.8; // start of "Mỗi skill"
+          tl.to($("s3-p1"), { opacity: 0, x: 50, duration: 0.4, ease: "power2.in" }, T1);
+          tl.to($("s3-skill"), { opacity: 0, duration: 0.3, ease: "power1.in" }, T1);
+          tl.to(gsap.utils.toArray("#s3-nb .s3-nbfade"), { opacity: 0, duration: 0.25 }, T1);
+          tl.to($("s3-nb"), { x: 74, y: -75, scale: 0.34, duration: 0.55, ease: "power2.inOut" }, T1 + 0.05);
+          tl.to(gsap.utils.toArray("#s3-nb .s3-nbp"), { strokeWidth: 12, duration: 0.55, ease: "power2.inOut" }, T1 + 0.05);
+          draw("s3-folder", F - 0.5, 0.65);
+          write("s3-folder-lbl", F + 0.05, 0.45, -0.8);
+
+          /* ---- sentence 3: instructions file + tools ---- */
+          draw("s3-e1", Fi - 0.55, 0.45);
+          write("s3-c1", Fi - 0.15, 0.45, -0.8);
+          draw("s3-sk-box", Fi, 0.4);
+          tl.to($("s3-sk-fill"), { opacity: 0.14, duration: 0.3 }, Fi + 0.25);
+          write("s3-tag", Fi + 0.3, 0.35, 0.8);
+
+          draw("s3-e2", T - 0.55, 0.4);
+          write("s3-c2", T - 0.4, 0.4, -0.8);
+          draw("s3-e3", T - 0.4, 0.4);
+          write("s3-c3", T - 0.2, 0.5, 0.6);
+          draw("s3-br", T + 0.05, 0.55);
+          write("s3-b1", T + 0.2, 0.4, -0.8);
+          write("s3-b2", T + 0.55, 0.35, 0.8);
+
+          window.__timelines["s3"] = tl;
+        })();
+      </script>
+    </template>
+  </body>
+</html>

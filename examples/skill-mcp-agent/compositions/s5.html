@@ -1,0 +1,246 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <!-- Scene s5: phích MCP (USB-C) ở giữa, bốn dây nối ra Google Drive, Slack, Cơ sở dữ liệu, Trình duyệt. Runtime keeps only <template>. -->
+  </head>
+  <body>
+    <template>
+      <style>
+        /* Each scene declares its fonts (HyperFrames lint: font_family_without_font_face). Paths are relative to index.html. */
+        @font-face { font-family: "Be Vietnam Pro"; src: url("fonts/BeVietnamPro-Regular.ttf"); font-weight: 400; }
+        @font-face { font-family: "Be Vietnam Pro"; src: url("fonts/BeVietnamPro-Medium.ttf"); font-weight: 500; }
+        @font-face { font-family: "Be Vietnam Pro"; src: url("fonts/BeVietnamPro-Bold.ttf"); font-weight: 700; }
+        @font-face { font-family: "Be Vietnam Pro"; src: url("fonts/BeVietnamPro-ExtraBold.ttf"); font-weight: 800; }
+        #s5-root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          background: transparent;
+          color: var(--ink);
+          font-family: "Be Vietnam Pro", sans-serif;
+        }
+        #s5-stage { position: absolute; inset: 0; }
+        #s5-svg { position: absolute; left: 0; top: 0; width: 100%; height: 100%; overflow: visible; }
+        #s5-root .ink {
+          fill: none;
+          stroke-width: var(--stroke);
+          stroke-linecap: round;
+          stroke-linejoin: round;
+          opacity: 0;
+        }
+        #s5-root .ink-i { stroke: var(--ink); }
+        #s5-root .ink-b { stroke: var(--blue); }
+        #s5-root .ink-a { stroke: var(--accent); }
+        #s5-root .thick { stroke-width: 9px; }
+        #s5-root .thin { stroke-width: 6px; }
+        #s5-root .lab {
+          position: absolute;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          margin: 0;
+          font-weight: 700;
+          line-height: 1;
+          white-space: nowrap;
+          color: var(--ink);
+        }
+        #s5-mcp-l { left: 350px; top: 475px; width: 480px; height: 170px; font-size: 104px; font-weight: 800; color: var(--accent-text); }
+        #s5-usb-l { left: 200px; top: 385px; width: 260px; height: 66px; font-size: 52px; color: var(--blue); }
+        #s5-ai-l { left: 80px; top: 662px; width: 220px; height: 70px; font-size: 56px; }
+        #s5-drive-l { left: 72px; top: 1095px; width: 380px; height: 70px; font-size: 42px; }
+        #s5-slack-l { left: 628px; top: 1095px; width: 380px; height: 70px; font-size: 42px; }
+        #s5-db-l { left: 72px; top: 1395px; width: 380px; height: 70px; font-size: 42px; }
+        #s5-web-l { left: 628px; top: 1395px; width: 380px; height: 70px; font-size: 42px; }
+      </style>
+
+      <div id="s5-root" data-composition-id="s5" data-width="1080" data-height="1920">
+        <div id="s5-stage">
+          <svg id="s5-svg" viewBox="0 0 1080 1920" xmlns="http://www.w3.org/2000/svg">
+            <!-- Phích MCP + cổng AI -->
+            <g id="s5-plug">
+              <path id="s5-bracket" class="ink ink-i" d="M300 482 H122 Q80 482 80 524 V598 Q80 640 122 640 H300" />
+              <path id="s5-tip" class="ink ink-i thick" d="M242 519 Q300 515 313 518 A42 42 0 0 1 313 602 Q280 605 242 601 A42 42 0 0 1 242 519 L262 517" />
+              <path id="s5-slot" class="ink ink-i thin" d="M238 560 Q275 557 318 560" />
+              <path id="s5-body-fill" d="M435 475 H745 A85 85 0 0 1 745 645 H435 A85 85 0 0 1 435 475 Z" fill="var(--accent)" opacity="0" />
+              <path id="s5-body" class="ink ink-a thick" d="M440 476 Q590 471 745 475 A85 85 0 0 1 748 645 Q590 649 435 646 A85 85 0 0 1 438 474 L475 476" />
+              <path id="s5-arrow" class="ink ink-b thin" d="M330 456 Q342 480 331 506 M312 488 L331 508 L350 490" />
+            </g>
+
+            <!-- Dây xanh ra từ đuôi phích, đi tới nút chia -->
+            <path id="s5-cable" class="ink ink-b" d="M830 560 C940 560 960 790 760 790 L540 790 L540 1090" />
+            <circle id="s5-hub" cx="540" cy="790" r="0" fill="var(--blue)" />
+
+            <!-- Các nhánh -->
+            <path id="s5-br-drive" class="ink ink-b" d="M540 1090 Q500 1086 455 1091" />
+            <path id="s5-br-slack" class="ink ink-b" d="M540 1090 Q580 1094 625 1089" />
+            <path id="s5-trunk2" class="ink ink-b" d="M540 1090 Q536 1240 540 1390" />
+            <path id="s5-br-db" class="ink ink-b" d="M540 1390 Q500 1394 455 1389" />
+            <path id="s5-br-web" class="ink ink-b" d="M540 1390 Q580 1386 625 1391" />
+            <path id="s5-h-db" d="M540 1090 Q536 1240 540 1390 Q500 1394 455 1389" fill="none" stroke="none" />
+
+            <!-- Bốn hộp -->
+            <rect id="s5-drive-fill" x="72" y="990" width="380" height="200" rx="24" fill="var(--ghost-blue)" />
+            <path id="s5-drive-box" class="ink ink-i" d="" />
+            <rect id="s5-slack-fill" x="628" y="990" width="380" height="200" rx="24" fill="var(--ghost-blue)" />
+            <path id="s5-slack-box" class="ink ink-i" d="" />
+            <rect id="s5-db-fill" x="72" y="1290" width="380" height="200" rx="24" fill="var(--ghost-blue)" />
+            <path id="s5-db-box" class="ink ink-i" d="" />
+            <rect id="s5-web-fill" x="628" y="1290" width="380" height="200" rx="24" fill="var(--ghost-blue)" />
+            <path id="s5-web-box" class="ink ink-i" d="" />
+
+            <!-- Biểu tượng nhỏ trong hộp -->
+            <g transform="translate(262 1052)"><path id="s5-drive-ic" class="ink ink-i thin" d="M0 -32 L34 26 Q0 29 -34 26 Z M-17 -3 Q0 -5 17 -3" /></g>
+            <g transform="translate(818 1052)"><path id="s5-slack-ic" class="ink ink-i thin" d="M-12 -32 L-20 32 M20 -32 L12 32 M-32 -10 Q0 -13 34 -10 M-34 12 Q0 15 32 12" /></g>
+            <g transform="translate(262 1352)"><path id="s5-db-ic" class="ink ink-i thin" d="M-30 -22 C-30 -38 30 -38 30 -22 C30 -6 -30 -6 -30 -22 M-30 -22 V24 C-30 40 30 40 30 24 V-22 M-30 1 C-30 17 30 17 30 1" /></g>
+            <g transform="translate(818 1352)"><path id="s5-web-ic" class="ink ink-i thin" d="M-30 -28 Q0 -31 30 -28 Q38 -28 38 -20 V20 Q38 28 30 28 Q0 31 -30 28 Q-38 28 -38 20 V-20 Q-38 -28 -30 -28 Z M-38 -10 Q0 -13 38 -10 M-26 -19 h0.1 M-14 -19 h0.1" /></g>
+
+            <!-- Hạt tín hiệu chạy trên dây -->
+            <circle id="s5-dot-main" r="11" cx="830" cy="560" fill="var(--blue)" opacity="0" />
+            <circle id="s5-dot-drive" r="10" cx="540" cy="1090" fill="var(--blue)" opacity="0" />
+            <circle id="s5-dot-slack" r="10" cx="540" cy="1090" fill="var(--blue)" opacity="0" />
+            <circle id="s5-dot-db" r="10" cx="540" cy="1090" fill="var(--blue)" opacity="0" />
+          </svg>
+
+          <div id="s5-mcp-l" class="lab">MCP</div>
+          <div id="s5-usb-l" class="lab">USB-C</div>
+          <div id="s5-ai-l" class="lab">AI</div>
+          <div id="s5-drive-l" class="lab">Google Drive</div>
+          <div id="s5-slack-l" class="lab">Slack</div>
+          <div id="s5-db-l" class="lab">Cơ sở dữ liệu</div>
+          <div id="s5-web-l" class="lab">Trình duyệt</div>
+        </div>
+      </div>
+
+      <script>
+        (() => {
+          // A("key") = local time (s) of an anchor from timeline.json; never hard-code word times.
+          const A = (key) => window.__vv.local("s5", key);
+          const tl = gsap.timeline({ paused: true });
+          const q = (id) => document.getElementById(id);
+          const D = 10.75; // độ dài cảnh theo gói giao việc
+          const END = D - 0.45; // hạt tín hiệu dừng trước khi cảnh trượt ra
+
+          // Hộp chữ nhật nét bút lông, hơi lệch tay (hash theo chỉ số, không ngẫu nhiên), vẽ vượt qua điểm đầu.
+          const rr = (x, y, w, h, r, seed) => {
+            const j = (i) => (((i + seed) * 53 + 7) % 5) - 2;
+            return `M${x + r + j(0)} ${y + j(1)} Q${x + w / 2} ${y + j(2) * 1.5} ${x + w - r} ${y + j(3)} ` +
+              `Q${x + w} ${y} ${x + w + j(4)} ${y + r} Q${x + w + j(5) * 1.5} ${y + h / 2} ${x + w} ${y + h - r} ` +
+              `Q${x + w} ${y + h} ${x + w - r} ${y + h + j(6)} Q${x + w / 2} ${y + h + j(7) * 1.5} ${x + r} ${y + h} ` +
+              `Q${x} ${y + h} ${x + j(8)} ${y + h - r} Q${x + j(9) * 1.5} ${y + h / 2} ${x} ${y + r} ` +
+              `Q${x} ${y} ${x + r + 3} ${y + j(1)} L${x + r + 26} ${y + j(0)}`;
+          };
+          q("s5-drive-box").setAttribute("d", rr(72, 990, 380, 200, 24, 1));
+          q("s5-slack-box").setAttribute("d", rr(628, 990, 380, 200, 24, 2));
+          q("s5-db-box").setAttribute("d", rr(72, 1290, 380, 200, 24, 3));
+          q("s5-web-box").setAttribute("d", rr(628, 1290, 380, 200, 24, 4));
+
+          // Vẽ nét: dasharray/dashoffset theo độ dài thật, hiện nét đúng lúc bắt đầu vẽ.
+          const draw = (id, start, dur, ease) => {
+            const el = q(id);
+            let L = 0;
+            try { L = el.getTotalLength(); } catch (e) { L = 0; }
+            if (!L) L = 1000;
+            el.style.strokeDasharray = L + " " + (L + 4);
+            tl.set(el, { opacity: 1 }, start);
+            tl.fromTo(el, { strokeDashoffset: L }, { strokeDashoffset: 0, duration: dur, ease: ease || "power2.inOut" }, start);
+          };
+
+          // Chữ kiểu viết: clip-path từ trái sang phải, xoay nhẹ.
+          const write = (id, start, dur, r0, r1) => {
+            tl.fromTo("#" + id,
+              { clipPath: "inset(-20px 100% -20px -12px)", rotation: r0 },
+              { clipPath: "inset(-20px -12px -20px -12px)", rotation: r1, duration: dur, ease: "power1.inOut" }, start);
+          };
+
+          // Hạt tín hiệu chạy lặp trên một đường (hữu hạn lần), mờ ở hai đầu để không thấy mối nối.
+          const pulse = (dotId, pathEl, start, dur) => {
+            const n = Math.floor((END - start) / dur);
+            if (n < 1) return;
+            const dot = q(dotId);
+            const len = pathEl.getTotalLength();
+            const proxy = { p: 0 };
+            tl.fromTo(proxy, { p: 0 }, {
+              p: 1, duration: dur, ease: "none", repeat: n - 1,
+              onUpdate: () => {
+                const pt = pathEl.getPointAtLength(proxy.p * len);
+                dot.setAttribute("cx", pt.x);
+                dot.setAttribute("cy", pt.y);
+                dot.setAttribute("opacity", Math.sin(Math.PI * proxy.p).toFixed(3));
+              }
+            }, start);
+          };
+
+          // ---- Vào / ra: trượt lên ----
+          tl.fromTo("#s5-stage", { y: 120, opacity: 0 }, { y: 0, opacity: 1, duration: 0.45, ease: "power2.out" }, 0);
+          tl.to("#s5-stage", { y: -120, opacity: 0, duration: 0.35, ease: "power2.in" }, D - 0.35);
+
+          // ---- Câu 1: "Còn MCP là chuẩn kết nối" ----
+          draw("s5-body", 0.05, 1.0);
+          tl.fromTo("#s5-body-fill", { opacity: 0 }, { opacity: 0.14, duration: 0.5, ease: "power1.out" }, 0.9);
+          draw("s5-tip", 0.7, 0.5);
+          draw("s5-slot", 1.15, 0.3, "power1.inOut");
+          write("s5-mcp-l", A("mcp"), 0.6, -1, 0.6);
+
+          // Sống: cả cụm phích nhấp nhô nhẹ, trả về 0 trước khi dây vẽ (4 lượt, đuôi về 0).
+          tl.to(["#s5-plug", "#s5-mcp-l", "#s5-usb-l", "#s5-ai-l"],
+            { y: -6, duration: 0.9, ease: "sine.inOut", repeat: 3, yoyo: true }, 1.5);
+
+          // ---- Câu 2: "giống như cổng USB-C dành cho AI" ----
+          draw("s5-bracket", A("usb") - 1.0, 0.7);                 // "cổng" hiện dần
+          write("s5-usb-l", A("usb"), 0.45, 0.8, -0.6);            // nhãn USB-C đúng lúc đọc
+          draw("s5-arrow", A("usb") + 0.05, 0.35, "power1.inOut");
+          tl.fromTo("#s5-tip", { strokeWidth: 9 }, { strokeWidth: 14, duration: 0.18, ease: "power2.out", yoyo: true, repeat: 1 }, A("usb") + 0.45);
+          write("s5-ai-l", A("usb") + 1.15, 0.4, 0.7, -0.5);       // "AI"
+          tl.fromTo("#s5-bracket", { strokeWidth: 7 }, { strokeWidth: 12, duration: 0.2, ease: "power2.out", yoyo: true, repeat: 1 }, A("usb") + 1.15);
+
+          // ---- Câu 3: "Qua MCP nhân viên AI dùng được ..." ----
+          const QUA = A("drive") - 1.88; // nhịp phụ: chữ "Qua" bắt đầu câu
+          tl.fromTo("#s5-mcp-l", { scale: 1 }, { scale: 1.1, duration: 0.18, ease: "power2.out", yoyo: true, repeat: 1 }, QUA + 0.24);
+          tl.fromTo("#s5-body", { strokeWidth: 9 }, { strokeWidth: 14, duration: 0.18, ease: "power2.out", yoyo: true, repeat: 1 }, QUA + 0.24);
+          draw("s5-cable", QUA, 1.35);
+          tl.fromTo("#s5-hub", { attr: { r: 0 } }, { attr: { r: 16 }, duration: 0.3, ease: "back.out(2)" }, QUA + 1.0);
+          pulse("s5-dot-main", q("s5-cable"), QUA + 1.4, 1.1);
+
+          // ---- Google Drive ----
+          const dr = A("drive");
+          draw("s5-br-drive", dr - 0.43, 0.4, "power1.inOut");
+          draw("s5-drive-box", dr - 0.2, 0.8);
+          tl.fromTo("#s5-drive-fill", { opacity: 0 }, { opacity: 1, duration: 0.4 }, dr);
+          draw("s5-drive-ic", dr + 0.05, 0.45);
+          write("s5-drive-l", dr + 0.05, 0.6, -0.8, 0.5);
+          pulse("s5-dot-drive", q("s5-br-drive"), dr + 0.6, 0.55);
+
+          // ---- Slack ----
+          const sl = A("slack");
+          draw("s5-br-slack", sl - 0.45, 0.4, "power1.inOut");
+          draw("s5-slack-box", sl - 0.2, 0.8);
+          tl.fromTo("#s5-slack-fill", { opacity: 0 }, { opacity: 1, duration: 0.4 }, sl);
+          draw("s5-slack-ic", sl + 0.05, 0.45);
+          write("s5-slack-l", sl, 0.5, 0.7, -0.6);
+          pulse("s5-dot-slack", q("s5-br-slack"), sl + 0.6, 0.55);
+
+          // ---- Cơ sở dữ liệu ----
+          const db = A("db");
+          draw("s5-trunk2", db - 0.55, 0.35, "power1.inOut");
+          draw("s5-br-db", db - 0.3, 0.35, "power1.inOut");
+          draw("s5-db-box", db - 0.15, 0.7);
+          tl.fromTo("#s5-db-fill", { opacity: 0 }, { opacity: 1, duration: 0.4 }, db);
+          draw("s5-db-ic", db + 0.05, 0.45);
+          write("s5-db-l", db, 0.55, -0.7, 0.6);
+          pulse("s5-dot-db", q("s5-h-db"), db + 0.7, 1.0);
+
+          // ---- Trình duyệt ----
+          const wb = A("web");
+          draw("s5-br-web", wb - 0.4, 0.35, "power1.inOut");
+          draw("s5-web-box", wb - 0.2, 0.65);
+          tl.fromTo("#s5-web-fill", { opacity: 0 }, { opacity: 1, duration: 0.35 }, wb);
+          draw("s5-web-ic", wb + 0.05, 0.4);
+          write("s5-web-l", wb, 0.45, 0.6, -0.5);
+
+          window.__timelines["s5"] = tl;
+        })();
+      </script>
+    </template>
+  </body>
+</html>

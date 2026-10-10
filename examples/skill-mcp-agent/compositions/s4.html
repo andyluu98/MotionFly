@@ -1,0 +1,328 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <!-- Scene s4: ba so tay dong, cuon giua mo ra khi can, thanh bo nho chi day mot phan nho. Runtime keeps only <template>. -->
+  </head>
+  <body>
+    <template>
+      <style>
+        /* Each scene declares its fonts (HyperFrames lint: font_family_without_font_face). Paths are relative to index.html. */
+        @font-face { font-family: "Be Vietnam Pro"; src: url("fonts/BeVietnamPro-Regular.ttf"); font-weight: 400; }
+        @font-face { font-family: "Be Vietnam Pro"; src: url("fonts/BeVietnamPro-Medium.ttf"); font-weight: 500; }
+        @font-face { font-family: "Be Vietnam Pro"; src: url("fonts/BeVietnamPro-Bold.ttf"); font-weight: 700; }
+        @font-face { font-family: "Be Vietnam Pro"; src: url("fonts/BeVietnamPro-ExtraBold.ttf"); font-weight: 800; }
+
+        #s4-root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          background: transparent;
+          color: var(--ink, #23262c);
+          font-family: "Be Vietnam Pro", sans-serif;
+        }
+        #s4-root * { box-sizing: border-box; }
+        #s4-stage { position: absolute; inset: 0; }
+
+        /* svg layers */
+        #s4-root .sv { position: absolute; left: 0; top: 0; overflow: visible; }
+        #s4-root .st {
+          fill: none;
+          stroke-linecap: round;
+          stroke-linejoin: round;
+          stroke-width: var(--stroke, 7px);
+        }
+        #s4-root .ink { stroke: var(--ink, #23262c); }
+        #s4-root .blue { stroke: var(--blue, #2a5cb3); }
+        #s4-root .acc { stroke: var(--accent, #d97757); }
+        #s4-root .thin { stroke-width: 5px; }
+        #s4-root .faint { opacity: 0.3; }
+        #s4-root .f-ink { fill: var(--ink, #23262c); fill-opacity: 0.06; stroke: none; }
+        #s4-root .f-acc { fill: var(--accent, #d97757); fill-opacity: 0.12; stroke: none; }
+        #s4-root .f-blue { fill: var(--blue, #2a5cb3); fill-opacity: 0.1; stroke: none; }
+        #s4-root .f-paper { fill: var(--cap-bg, rgba(255, 255, 255, 0.94)); stroke: none; }
+        #s4-root .f-meter { fill: var(--accent, #d97757); fill-opacity: 0.5; stroke: none; }
+
+        /* notebooks */
+        #s4-root .nb { position: absolute; top: 500px; width: 290px; height: 387px; }
+        #s4-root .cv { position: absolute; left: 0; top: 0; width: 290px; height: 387px; }
+
+        /* handwritten text (HTML so clip-path wipe is reliable) */
+        #s4-root .tx {
+          position: absolute;
+          white-space: nowrap;
+          font-weight: 700;
+          line-height: 1.3;
+          padding: 0.12em 0.12em;
+          color: var(--ink, #23262c);
+        }
+        #s4-root .tag { left: 44px; top: 44px; width: 226px; height: 60px; padding: 0; display: flex; align-items: center; justify-content: center; font-size: 34px; }
+        #s4-root .desc { left: 44px; top: 140px; width: 226px; font-size: 30px; font-weight: 600; padding-left: 0; }
+        #s4-root .row { position: absolute; left: 0; width: 100%; display: flex; justify-content: center; }
+        #s4-root .lab { position: relative; font-size: 56px; }
+        #s4-root .lab.b { color: var(--blue, #2a5cb3); }
+        #s4-root .mem { position: absolute; left: 120px; top: 1128px; font-size: 48px; }
+        #s4-root .save { position: relative; font-size: 64px; font-weight: 800; color: var(--accent-text, #b04a26); }
+      </style>
+
+      <div id="s4-root" data-composition-id="s4" data-width="1080" data-height="1920">
+        <div id="s4-stage">
+
+          <!-- labels (one slot, swapped) -->
+          <div class="row" style="top: 330px"><span class="tx lab b" id="s4-labA">Tên và mô tả</span></div>
+          <div class="row" style="top: 330px"><span class="tx lab b" id="s4-labB">Khi cần đến</span></div>
+          <div class="row" style="top: 330px"><span class="tx lab b" id="s4-labC">Toàn bộ hướng dẫn</span></div>
+
+          <!-- notebook 1 -->
+          <div class="nb" id="s4-nb1" style="left: 72px">
+            <div class="cv" id="s4-cv1">
+              <svg class="sv" width="290" height="387" viewBox="0 0 290 387">
+                <rect id="s4-cf1" class="f-ink" x="0" y="0" width="290" height="387" rx="18" />
+                <path id="s4-co1" class="st ink" />
+                <path id="s4-cla1" class="st ink thin faint" />
+                <path id="s4-clb1" class="st ink thin faint" />
+                <rect id="s4-tf1" class="f-blue" x="44" y="44" width="226" height="60" rx="10" />
+                <path id="s4-tp1" class="st ink thin" />
+              </svg>
+              <div class="tx tag" id="s4-tn1">bao-cao</div>
+              <div class="tx desc" id="s4-td1">Viết báo cáo</div>
+            </div>
+            <svg class="sv" width="290" height="387" viewBox="0 0 290 387">
+              <path id="s4-rg10" class="st ink thin" /><path id="s4-rg11" class="st ink thin" /><path id="s4-rg12" class="st ink thin" /><path id="s4-rg13" class="st ink thin" /><path id="s4-rg14" class="st ink thin" />
+            </svg>
+          </div>
+
+          <!-- notebook 2 (the one that opens) -->
+          <div class="nb" id="s4-nb2" style="left: 395px">
+            <svg class="sv" id="s4-pg" width="290" height="387" viewBox="0 0 290 387">
+              <rect class="f-paper" x="0" y="0" width="290" height="387" rx="18" />
+              <path id="s4-po" class="st ink" />
+              <g id="s4-pag"><path id="s4-pa" class="st acc" /></g>
+              <path id="s4-ph" class="st ink" />
+              <path id="s4-pl0" class="st blue thin" /><path id="s4-pl1" class="st blue thin" /><path id="s4-pl2" class="st blue thin" /><path id="s4-pl3" class="st blue thin" /><path id="s4-pl4" class="st blue thin" /><path id="s4-pl5" class="st blue thin" /><path id="s4-pl6" class="st blue thin" />
+            </svg>
+            <div class="cv" id="s4-cv2">
+              <svg class="sv" width="290" height="387" viewBox="0 0 290 387">
+                <rect id="s4-cf2" class="f-ink" x="0" y="0" width="290" height="387" rx="18" />
+                <rect id="s4-caf" class="f-acc" x="0" y="0" width="290" height="387" rx="18" />
+                <path id="s4-co2" class="st ink" />
+                <path id="s4-ca" class="st acc" />
+                <path id="s4-cla2" class="st ink thin faint" />
+                <path id="s4-clb2" class="st ink thin faint" />
+                <rect id="s4-tf2" class="f-blue" x="44" y="44" width="226" height="60" rx="10" />
+                <path id="s4-tp2" class="st ink thin" />
+              </svg>
+              <div class="tx tag" id="s4-tn2">slide</div>
+              <div class="tx desc" id="s4-td2">Làm slide</div>
+            </div>
+            <svg class="sv" width="290" height="387" viewBox="0 0 290 387">
+              <path id="s4-rg20" class="st ink thin" /><path id="s4-rg21" class="st ink thin" /><path id="s4-rg22" class="st ink thin" /><path id="s4-rg23" class="st ink thin" /><path id="s4-rg24" class="st ink thin" />
+            </svg>
+            <svg class="sv" id="s4-tk" width="290" height="387" viewBox="0 0 290 387">
+              <g id="s4-tkg"><path id="s4-tk1" class="st acc" /><path id="s4-tk2" class="st acc" /><path id="s4-tk3" class="st acc" /></g>
+            </svg>
+          </div>
+
+          <!-- notebook 3 -->
+          <div class="nb" id="s4-nb3" style="left: 718px">
+            <div class="cv" id="s4-cv3">
+              <svg class="sv" width="290" height="387" viewBox="0 0 290 387">
+                <rect id="s4-cf3" class="f-ink" x="0" y="0" width="290" height="387" rx="18" />
+                <path id="s4-co3" class="st ink" />
+                <path id="s4-cla3" class="st ink thin faint" />
+                <path id="s4-clb3" class="st ink thin faint" />
+                <rect id="s4-tf3" class="f-blue" x="44" y="44" width="226" height="60" rx="10" />
+                <path id="s4-tp3" class="st ink thin" />
+              </svg>
+              <div class="tx tag" id="s4-tn3">hop-dong</div>
+              <div class="tx desc" id="s4-td3">Soạn hợp đồng</div>
+            </div>
+            <svg class="sv" width="290" height="387" viewBox="0 0 290 387">
+              <path id="s4-rg30" class="st ink thin" /><path id="s4-rg31" class="st ink thin" /><path id="s4-rg32" class="st ink thin" /><path id="s4-rg33" class="st ink thin" /><path id="s4-rg34" class="st ink thin" />
+            </svg>
+          </div>
+
+          <!-- memory bar -->
+          <svg class="sv" id="s4-msv" width="100%" height="100%" viewBox="0 0 1080 1920">
+            <rect id="s4-mf" class="f-meter" x="124" y="1219" width="0" height="76" rx="38" />
+            <path id="s4-mo" class="st ink" />
+            <path id="s4-mt1" class="st ink thin faint" />
+            <path id="s4-mt2" class="st ink thin faint" />
+            <path id="s4-mt3" class="st ink thin faint" />
+          </svg>
+          <div class="tx mem" id="s4-memlab">Bộ nhớ</div>
+          <div class="row" style="top: 1350px"><span class="tx save" id="s4-save">Tiết kiệm</span></div>
+        </div>
+      </div>
+
+      <script>
+        (() => {
+          // A("key") = local time (s) of an anchor from timeline.json; never hard-code word times.
+          const A = (key) => window.__vv.local("s4", key);
+          const N = A("name"), D = A("need"), O = A("open"), S = A("save");
+          const tl = gsap.timeline({ paused: true });
+          const q = (id) => document.getElementById("s4-" + id);
+
+          /* ---------- deterministic hand-drawn geometry ---------- */
+          const H = (n) => { const x = Math.sin(n * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); };
+          const wob = (i, seed) => 1.6 * Math.sin(i * 0.33 + seed) + 0.9 * Math.sin(i * 0.91 + seed * 1.7) + (H(i + seed * 13) - 0.5) * 0.8;
+          const f = (p) => p[0].toFixed(1) + " " + p[1].toFixed(1);
+          const mid = (a, b) => [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
+          const plen = (pts) => { let s = 0; for (let i = 1; i < pts.length; i++) s += Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]); return s; };
+          const dOf = (pts, smooth) => {
+            if (!smooth || pts.length < 3) return "M" + pts.map(f).join(" L");
+            let d = "M" + f(pts[0]) + " L" + f(mid(pts[0], pts[1]));
+            for (let i = 1; i < pts.length - 1; i++) d += " Q" + f(pts[i]) + " " + f(mid(pts[i], pts[i + 1]));
+            return d + " L" + f(pts[pts.length - 1]);
+          };
+          const rrPts = (x, y, w, h, r, seed, step) => {
+            const pts = []; let k = 0; const P = Math.PI;
+            const add = (px, py, nx, ny) => { const o = wob(k++, seed); pts.push([px + nx * o, py + ny * o]); };
+            const line = (x0, y0, x1, y1, nx, ny) => {
+              const L = Math.hypot(x1 - x0, y1 - y0); const n = Math.max(1, Math.round(L / step));
+              for (let i = 0; i < n; i++) { const t = i / n; add(x0 + (x1 - x0) * t, y0 + (y1 - y0) * t, nx, ny); }
+            };
+            const arc = (cx, cy, a0, a1) => {
+              const n = Math.max(2, Math.round(Math.abs(a1 - a0) * r / step));
+              for (let i = 0; i < n; i++) { const a = a0 + (a1 - a0) * i / n; add(cx + r * Math.cos(a), cy + r * Math.sin(a), Math.cos(a), Math.sin(a)); }
+            };
+            line(x + r, y, x + w - r, y, 0, -1);
+            arc(x + w - r, y + r, -P / 2, 0);
+            line(x + w, y + r, x + w, y + h - r, 1, 0);
+            arc(x + w - r, y + h - r, 0, P / 2);
+            line(x + w - r, y + h, x + r, y + h, 0, 1);
+            arc(x + r, y + h - r, P / 2, P);
+            line(x, y + h - r, x, y + r, -1, 0);
+            arc(x + r, y + r, P, 1.5 * P);
+            for (let i = 0; i <= 3; i++) add(x + r + step * i, y - 1.5, 0, -1); // overshoot past the start
+            return pts;
+          };
+          const ringP = (cx, cy, r, seed) => {
+            const p = []; const n = 24; const a0 = -1.1 + H(seed) * 0.5; const sw = Math.PI * 2 + 0.55;
+            for (let i = 0; i <= n; i++) { const a = a0 + sw * i / n; const rr = r + wob(i, seed) * 0.35; p.push([cx + rr * Math.cos(a), cy + rr * Math.sin(a)]); }
+            return p;
+          };
+          const lineP = (x0, y0, x1, y1, seed, amp) => {
+            const L = Math.hypot(x1 - x0, y1 - y0); const n = Math.max(2, Math.round(L / 16));
+            const nx = -(y1 - y0) / L, ny = (x1 - x0) / L; const a = amp || 0.6; const p = [];
+            for (let i = 0; i <= n; i++) { const t = i / n; const o = wob(i, seed) * a; p.push([x0 + (x1 - x0) * t + nx * o, y0 + (y1 - y0) * t + ny * o]); }
+            return p;
+          };
+
+          /* ---------- stroke drawing (dash trick, lengths measured from our own point lists) ---------- */
+          const reg = {};
+          const put = (id, pts, smooth) => {
+            const el = q(id); const L = plen(pts) * 1.03 + 4;
+            el.setAttribute("d", dOf(pts, smooth));
+            el.setAttribute("stroke-dasharray", L.toFixed(1) + " " + (2 * L).toFixed(1));
+            reg[id] = L;
+          };
+          const draw = (id, t, dur, ease) => {
+            const L = reg[id];
+            tl.fromTo(q(id), { strokeDashoffset: L + 6 }, { strokeDashoffset: 0, duration: dur, ease: ease || "power2.inOut" }, t);
+          };
+          const appear = (id, t, dur) => tl.fromTo(q(id), { opacity: 0 }, { opacity: 1, duration: dur, ease: "none" }, t);
+          let wi = 0;
+          const wipe = (id, t, dur) => {
+            const i = wi++;
+            const rot = (H(i * 3 + 7) < 0.5 ? -1 : 1) * (0.6 + H(i) * 0.5);
+            tl.fromTo(q(id), { clipPath: "inset(0% 100% 0% 0%)", rotation: rot }, { clipPath: "inset(0% 0% 0% 0%)", rotation: 0, duration: dur, ease: "power1.inOut" }, t);
+          };
+
+          /* ---------- geometry ---------- */
+          const seeds = [3, 11, 19];
+          for (let i = 1; i <= 3; i++) {
+            put("co" + i, rrPts(0, 0, 290, 387, 18, seeds[i - 1], 11), true);
+            put("cla" + i, lineP(44, 300, 270, 300, 5 + i, 0.8));
+            put("clb" + i, lineP(44, 338, 200, 338, 9 + i, 0.8));
+            put("tp" + i, rrPts(44, 44, 226, 60, 10, 30 + i, 10), true);
+            for (let k = 0; k < 5; k++) put("rg" + i + k, ringP(0, 64.5 * (k + 1), 11, 40 + i * 7 + k));
+          }
+          put("ca", rrPts(0, 0, 290, 387, 18, 27, 11), true);
+          put("po", rrPts(0, 0, 290, 387, 18, 41, 11), true);
+          put("pa", rrPts(0, 0, 290, 387, 18, 53, 11), true);
+          put("ph", lineP(44, 60, 190, 60, 71, 0.8));
+          const lens = [226, 206, 226, 176, 214, 192, 120];
+          for (let k = 0; k < 7; k++) put("pl" + k, lineP(44, 112 + 36 * k, 44 + lens[k], 112 + 36 * k, 80 + k, 0.8));
+          put("tk1", lineP(-14, -14, -34, -36, 91, 0.5));
+          put("tk2", lineP(145, -18, 145, -50, 92, 0.5));
+          put("tk3", lineP(304, -14, 324, -36, 93, 0.5));
+          put("mo", rrPts(120, 1215, 840, 84, 42, 61, 14), true);
+          [0.25, 0.5, 0.75].forEach((u, j) => put("mt" + (j + 1), lineP(120 + 840 * u, 1311, 120 + 840 * u, 1331, 100 + j, 0.5)));
+
+          /* ---------- initial states ---------- */
+          gsap.set("#s4-root .tx", { transformOrigin: "0% 50%" });
+          gsap.set(["#s4-cv1", "#s4-cv2", "#s4-cv3"], { transformOrigin: "0% 50%" });
+          gsap.set("#s4-nb1", { transformOrigin: "0% 0%" });
+          gsap.set("#s4-nb2", { transformOrigin: "50% 0%" });
+          gsap.set("#s4-nb3", { transformOrigin: "100% 0%" });
+
+          /* ---------- stage in / out (slide up) ---------- */
+          tl.fromTo("#s4-stage", { y: 120, opacity: 0 }, { y: 0, opacity: 1, duration: 0.45, ease: "power2.out" }, 0);
+          tl.fromTo("#s4-stage", { y: 0, opacity: 1 }, { y: -120, opacity: 0, duration: 0.35, ease: "power2.in", immediateRender: false }, 7.95 - 0.35);
+
+          /* ---------- idle drift (finite, keeps the board alive) ---------- */
+          tl.fromTo("#s4-nb1", { y: 0 }, { y: 6, duration: 1.5, ease: "sine.inOut", yoyo: true, repeat: 4 }, 0.3);
+          tl.fromTo("#s4-nb2", { y: 0 }, { y: -6, duration: 1.5, ease: "sine.inOut", yoyo: true, repeat: 4 }, 0.3);
+          tl.fromTo("#s4-nb3", { y: 0 }, { y: 6, duration: 1.5, ease: "sine.inOut", yoyo: true, repeat: 4 }, 0.6);
+
+          /* ---------- 1. three closed notebooks: only name tag + description ---------- */
+          for (let i = 0; i < 3; i++) {
+            const n = i + 1; const t0 = 0.3 + 0.1 * i;
+            draw("co" + n, t0, 0.95);
+            appear("cf" + n, t0 + 0.55, 0.4);
+            draw("cla" + n, t0 + 0.6, 0.35);
+            draw("clb" + n, t0 + 0.7, 0.3);
+            for (let k = 0; k < 5; k++) draw("rg" + n + k, t0 + 0.35 + 0.08 * k, 0.3);
+            // name tag lands on "tên"
+            draw("tp" + n, N - 0.6 + 0.05 * i, 0.4);
+            appear("tf" + n, N - 0.5 + 0.05 * i, 0.3);
+            wipe("tn" + n, N - 0.45 + 0.05 * i, 0.45);
+            // one description line lands on "mô tả"
+            wipe("td" + n, N + 0.15 + 0.1 * i, 0.5);
+          }
+          wipe("labA", N + 0.55, 0.5);
+
+          /* ---------- 2. "khi cong viec can den": middle notebook gets the orange border ---------- */
+          tl.fromTo("#s4-labA", { opacity: 1 }, { opacity: 0, duration: 0.25, ease: "power1.in" }, D - 0.25);
+          draw("ca", D - 0.1, 0.5);
+          appear("caf", D, 0.4);
+          tl.fromTo("#s4-nb2", { scale: 1 }, { scale: 1.05, duration: 0.2, ease: "power2.out" }, D + 0.05);
+          tl.fromTo("#s4-nb2", { scale: 1.05 }, { scale: 1, duration: 0.3, ease: "power2.inOut", immediateRender: false }, D + 0.25);
+          tl.fromTo(["#s4-nb1", "#s4-nb3"], { opacity: 1 }, { opacity: 0.35, duration: 0.4, ease: "power1.out" }, D);
+          wipe("labB", D + 0.1, 0.45);
+          draw("tk1", D + 0.2, 0.25, "power2.out");
+          draw("tk2", D + 0.26, 0.25, "power2.out");
+          draw("tk3", D + 0.32, 0.25, "power2.out");
+          tl.fromTo("#s4-tkg", { opacity: 1 }, { opacity: 0.35, duration: 0.22, ease: "sine.inOut", yoyo: true, repeat: 3 }, D + 0.55);
+          tl.fromTo("#s4-labB", { opacity: 1 }, { opacity: 0, duration: 0.2, ease: "power1.in" }, O - 0.15);
+          tl.fromTo("#s4-tk", { opacity: 1 }, { opacity: 0, duration: 0.2, ease: "power1.in" }, O - 0.2);
+
+          /* ---------- 3. "no moi mo toan bo": cover lifts, many instruction lines appear ---------- */
+          tl.fromTo("#s4-pg", { opacity: 0 }, { opacity: 1, duration: 0.05, ease: "none" }, O - 0.15);
+          tl.fromTo("#s4-pag", { opacity: 0 }, { opacity: 1, duration: 0.05, ease: "none" }, O - 0.15);
+          tl.fromTo("#s4-cv2", { scaleX: 1 }, { scaleX: 0, duration: 0.5, ease: "power2.inOut" }, O - 0.15);
+          tl.fromTo("#s4-nb2", { scale: 1 }, { scale: 1.35, duration: 0.6, ease: "power2.inOut", immediateRender: false }, O - 0.15);
+          tl.fromTo("#s4-nb1", { scale: 1 }, { scale: 0.92, duration: 0.6, ease: "power2.inOut" }, O - 0.15);
+          tl.fromTo("#s4-nb3", { scale: 1 }, { scale: 0.92, duration: 0.6, ease: "power2.inOut" }, O - 0.15);
+          draw("ph", O + 0.2, 0.3);
+          for (let k = 0; k < 7; k++) draw("pl" + k, O + 0.3 + 0.07 * k, 0.28);
+          wipe("labC", O + 0.3, 0.55);
+
+          /* ---------- 4. "tiet kiem bo nho": thin memory bar, only a small part used ---------- */
+          tl.fromTo("#s4-pag", { opacity: 1 }, { opacity: 0, duration: 0.3, ease: "power1.inOut", immediateRender: false }, S - 0.05);
+          draw("mo", S - 0.55, 0.55);
+          draw("mt1", S - 0.3, 0.25);
+          draw("mt2", S - 0.24, 0.25);
+          draw("mt3", S - 0.18, 0.25);
+          tl.fromTo("#s4-mf", { attr: { width: 0 } }, { attr: { width: 128 }, duration: 0.5, ease: "power2.out" }, S);
+          wipe("save", S + 0.05, 0.5);
+          wipe("memlab", S + 0.5, 0.4);
+
+          window.__timelines = window.__timelines || {};
+          window.__timelines["s4"] = tl;
+        })();
+      </script>
+    </template>
+  </body>
+</html>

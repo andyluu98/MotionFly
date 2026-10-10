@@ -1,7 +1,7 @@
-"""Check (and optionally install) everything vn-video-studio needs.
+"""Check (and optionally install) everything MotionFly needs.
 
   python doctor.py            check only, print a table and what to do
-  python doctor.py --install  also create ~/.vn-video-studio/venv, install the Python
+  python doctor.py --install  also create ~/.motionfly/venv, install the Python
                               packages, download VieNeu, fix HF symlinks, warm Whisper
 
 Runs with any Python 3.10+, standard library only.
@@ -17,7 +17,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-HOME = Path.home() / ".vn-video-studio"
+HOME = Path.home() / ".motionfly"
 VENV = HOME / "venv"
 PY = VENV / ("Scripts/python.exe" if os.name == "nt" else "bin/python")
 HYPERFRAMES = "hyperframes@0.8.145"
@@ -108,7 +108,7 @@ def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--install", action="store_true")
     a = ap.parse_args()
-    print(f"vn-video-studio doctor | {platform.system()} {platform.release()} | Python {platform.python_version()}")
+    print(f"MotionFly doctor | {platform.system()} {platform.release()} | Python {platform.python_version()}")
     if a.install:
         install()
         rows.clear()

@@ -4,7 +4,7 @@ dung-cho: Bản tin số liệu, báo cáo, tin AI có con số
 nguon: lemomo-ai/lemo-opuscar, styles/dataviz/STYLE.md
 phien-ban: commit a75e2b3 (a75e2b3384cded87955c8743b5a59db06ea491a8), lấy ngày 10/10/2026
 giay-phep: MIT (vendor/licenses/lemo-opuscar.LICENSE)
-da-sua: thêm khối nguồn này và mục "Bổ sung của vn-video-studio" ở cuối; thân style giữ nguyên văn tiếng Anh
+da-sua: thêm khối nguồn này và mục "Bổ sung của MotionFly" ở cuối; thân style giữ nguyên văn tiếng Anh
 ---
 
 # Data Storytelling — Style Prompt
@@ -131,7 +131,7 @@ How our demo was made (story, shots, score, end card, build): [DEMO.md](DEMO.md)
 
 ---
 
-## Bổ sung của vn-video-studio (bắt buộc, thắng các mục trên khi mâu thuẫn)
+## Bổ sung của MotionFly (bắt buộc, thắng các mục trên khi mâu thuẫn)
 
 - **Bộ máy dựng:** dựng bằng composition HyperFrames (HTML, SVG, Canvas, GSAP), không dùng engine gốc của lemo-opuscar. Mỗi cảnh là hàm thuần của thời gian, không `Math.random`, không `Date`.
 - **Chữ tiếng Việt:** mọi chữ có dấu dùng Be Vietnam Pro (`templates/fonts/`, khai báo `@font-face`). Font gốc trong style (kể cả font viết tay một nét) chỉ dùng cho chữ không dấu hoặc số; nếu font gốc thiếu dấu tiếng Việt thì thay bằng Be Vietnam Pro.

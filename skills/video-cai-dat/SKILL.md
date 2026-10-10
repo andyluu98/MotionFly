@@ -1,15 +1,15 @@
 ---
 name: video-cai-dat
-description: Kiểm tra và cài đặt mọi thứ vn-video-studio cần (Node.js, ffmpeg, HyperFrames, môi trường Python, giọng VieNeu, Whisper). Dùng khi người dùng mới cài plugin, gõ "/video-cai-dat", "cài đặt video", "kiểm tra máy làm video", hoặc khi một bước làm video báo thiếu công cụ.
+description: Kiểm tra và cài đặt mọi thứ MotionFly cần (Node.js, ffmpeg, HyperFrames, môi trường Python, giọng VieNeu, Whisper). Dùng khi người dùng mới cài plugin, gõ "/video-cai-dat", "cài đặt video", "kiểm tra máy làm video", hoặc khi một bước làm video báo thiếu công cụ.
 ---
 
-# Cài đặt vn-video-studio
+# Cài đặt MotionFly
 
 Biến dùng chung cho mọi skill của plugin (chạy trong Bash):
 
 ```bash
 VV="${CLAUDE_PLUGIN_ROOT}"
-PY="$HOME/.vn-video-studio/venv/Scripts/python.exe"; [ -x "$PY" ] || PY="$HOME/.vn-video-studio/venv/bin/python"
+PY="$HOME/.motionfly/venv/Scripts/python.exe"; [ -x "$PY" ] || PY="$HOME/.motionfly/venv/bin/python"
 export PYTHONUTF8=1 HF_HUB_DISABLE_PROGRESS_BARS=1
 ```
 
@@ -28,10 +28,10 @@ python "$VV/tools/setup/doctor.py"
 Nếu thiếu "Môi trường Python" hoặc "Giọng VieNeu", hỏi người dùng một câu xác nhận (sẽ tải khoảng 2 đến 3 GB: gói Python, model VieNeu, model Whisper large-v3-turbo), rồi chạy nền:
 
 ```bash
-python "$VV/tools/setup/doctor.py" --install > "$HOME/.vn-video-studio/install.log" 2>&1
+python "$VV/tools/setup/doctor.py" --install > "$HOME/.motionfly/install.log" 2>&1
 ```
 
-Lệnh này tạo venv ở `~/.vn-video-studio/venv` (dùng `uv` nếu có), cài `vieneu`, `faster-whisper`, `soundfile`, `numpy`, `scipy`, tải model, và tự sửa lỗi symlink của bộ đệm Hugging Face (ONNX Runtime báo "External data path escapes model directory").
+Lệnh này tạo venv ở `~/.motionfly/venv` (dùng `uv` nếu có), cài `vieneu`, `faster-whisper`, `soundfile`, `numpy`, `scipy`, tải model, và tự sửa lỗi symlink của bộ đệm Hugging Face (ONNX Runtime báo "External data path escapes model directory").
 
 ## Bước 3. Skill HyperFrames cho Claude
 

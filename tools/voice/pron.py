@@ -15,7 +15,7 @@ import json
 import re
 from pathlib import Path
 
-GLOBAL_OVERRIDES = Path.home() / ".vn-video-studio" / "pron.json"
+GLOBAL_OVERRIDES = Path.home() / ".motionfly" / "pron.json"
 
 _UNITS = {"T": "nghìn tỷ", "B": "tỷ", "M": "triệu", "K": "nghìn"}
 

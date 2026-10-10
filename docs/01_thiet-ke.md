@@ -1,4 +1,4 @@
-# Thiết kế: vn-video-studio
+# Thiết kế: MotionFly
 
 Ngày: 10/10/2026. Trạng thái: anh duyệt hướng "lắp ghép" trong phiên ngày 10/10/2026.
 
@@ -15,7 +15,7 @@ Tiêu chí xong của bản đầu: từ một câu yêu cầu, ra video 1080x19
 | Nhóm | Gồm | Cách có |
 |---|---|---|
 | A. Trong repo | skills, agents, style card, script Python, mẫu HTML, NOTICE, file giấy phép | Cài plugin là có |
-| B. Tự tải bằng `/video-cai-dat` | HyperFrames (npx, ghim phiên bản), venv Python ở `~/.vn-video-studio/venv` có `vieneu`, `faster-whisper`, `soundfile`, `numpy`; model VieNeu và Whisper từ Hugging Face | Một lệnh, nguồn chính thức |
+| B. Tự tải bằng `/video-cai-dat` | HyperFrames (npx, ghim phiên bản), venv Python ở `~/.motionfly/venv` có `vieneu`, `faster-whisper`, `soundfile`, `numpy`; model VieNeu và Whisper từ Hugging Face | Một lệnh, nguồn chính thức |
 | C. Người dùng tự có | Claude Code, Node.js 22 trở lên, Python 3.10 trở lên (hoặc `uv`), ffmpeg | `/video-cai-dat` kiểm và báo thiếu |
 | Tùy chọn | Card NVIDIA (ACE-Step sinh nhạc), Claude in Chrome và tài khoản ChatGPT (tạo ảnh) | Không có vẫn chạy |
 

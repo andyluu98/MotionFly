@@ -1,10 +1,10 @@
 {
-  "name": "vn-video-studio",
+  "name": "motionfly",
   "owner": { "name": "andyluu98" },
   "description": "Plugin Claude Code làm video tiếng Việt trọn gói (VieNeu, HyperFrames).",
   "plugins": [
     {
-      "name": "vn-video-studio",
+      "name": "motionfly",
       "source": "./",
       "description": "Làm video tiếng Việt trọn gói bằng Claude Code: kịch bản, giọng VieNeu, nhạc nền, dựng HyperFrames, phụ đề."
     }

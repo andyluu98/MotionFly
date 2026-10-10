@@ -11,7 +11,7 @@ Biến `VV`, `PY` như trong skill `video-cai-dat`. HF là `npx -y hyperframes@0
 
 ## 1. Chuẩn bị theo style
 
-1. Đọc `$VV/styles/<style>/STYLE.md` (style trong `storyboard.json`). Đọc cả mục "Bổ sung của vn-video-studio" ở cuối: mục đó thắng phần trên.
+1. Đọc `$VV/styles/<style>/STYLE.md` (style trong `storyboard.json`). Đọc cả mục "Bổ sung của MotionFly" ở cuối: mục đó thắng phần trên.
 2. Viết `<du-an>/theme.css` với biến `:root` lấy từ color logic của style (và màu thương hiệu nếu brief có): `--bg`, `--ink`, `--accent`, các màu phụ, `--cap-bg`, `--cap-ink` (phụ đề phải đạt tương phản WCAG AA).
 3. Viết `<du-an>/quy-uoc-chung.md`: bộ nét vẽ mọi cảnh phải dùng chung để video liền một khối (độ dày nét, cách vẽ nét xuất hiện, nghĩa của từng màu, cỡ chữ, hình mẫu lặp lại như nhân vật hay đồ vật, chuyển động vào và ra cảnh, vùng an toàn chừa phụ đề). Không có file này thì mỗi agent vẽ một kiểu.
 4. Nếu style có nền liền suốt video (bảng trắng, giấy, lưới), viết `compositions/_nen.html` (sub-composition id `_nen`): bộ ghép tự đặt nó dưới mọi cảnh từ đầu tới cuối, và các cảnh để nền trong suốt.

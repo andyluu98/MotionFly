@@ -1,4 +1,6 @@
-# vn-video-studio
+# MotionFly: video biết kể chuyện
+
+Trang giới thiệu, video mẫu và thư viện style: **https://andyluu98.github.io/MotionFly/**
 
 Plugin Claude Code làm video tiếng Việt trọn gói. Anh nhập một yêu cầu, Claude đi hết quy trình làm phim: ý tưởng, kịch bản, giọng đọc, phân cảnh, nhạc nền, dựng hình, trộn âm, phụ đề, xuất MP4.
 
@@ -29,12 +31,12 @@ Nói "tự làm hết" để bỏ các bước duyệt.
 Cần có sẵn: [Claude Code](https://claude.com/claude-code), [Node.js](https://nodejs.org) 22 trở lên, Python 3.10 trở lên, [ffmpeg](https://ffmpeg.org/download.html) trong PATH. Nên có [uv](https://docs.astral.sh/uv/).
 
 ```
-/plugin marketplace add andyluu98/Video-ai-claude
-/plugin install vn-video-studio@vn-video-studio
+/plugin marketplace add andyluu98/MotionFly
+/plugin install motionfly@motionfly
 /video-cai-dat
 ```
 
-`/video-cai-dat` kiểm máy, báo thiếu gì, rồi tự tải phần còn lại (khoảng 2 đến 3 GB): môi trường Python ở `~/.vn-video-studio/venv`, giọng VieNeu, model Whisper.
+`/video-cai-dat` kiểm máy, báo thiếu gì, rồi tự tải phần còn lại (khoảng 2 đến 3 GB): môi trường Python ở `~/.motionfly/venv`, giọng VieNeu, model Whisper.
 
 Không có card NVIDIA vẫn chạy: giọng dùng CPU, nhạc dùng file anh đưa hoặc nhạc tổng hợp bằng code. Repo không kèm file nhạc của bên thứ ba vì điều khoản các kho nhạc miễn phí cấm phân phối lại.
 

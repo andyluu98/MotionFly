@@ -10,7 +10,7 @@ Steps (all cached, so re-running after editing one sentence only redoes that one
 
 Usage:
   python voice.py <project_dir> [--candidates 2] [--asr large-v3-turbo] [--device cpu]
-Run with the plugin venv (~/.vn-video-studio/venv). Pure helpers import no
+Run with the plugin venv (~/.motionfly/venv). Pure helpers import no
 heavy libraries so tests can load this module.
 
 Candidate scoring and silence trimming follow the CES AI News kit
@@ -198,7 +198,10 @@ def score(project: Path, segments: list[dict], model_name: str, device: str) -> 
                 words = [{"w": w.word.strip(), "start": w.start, "end": w.end}
                          for p in parts for w in (p.words or [])]
                 heard = " ".join(w["w"] for w in words)
-                cached[rel] = {"heard": heard, "words": words, "score": round(similarity(heard, seg["spoken"]), 3)}
+                # Whisper writes what it hears in normal spelling ("E2E"), not our phonetic respelling
+                # ("i tu i"), so score against both and keep the better match.
+                best_sim = max(similarity(heard, seg["spoken"]), similarity(heard, seg["text"]))
+                cached[rel] = {"heard": heard, "words": words, "score": round(best_sim, 3)}
                 scores_path.write_text(json.dumps(cached, ensure_ascii=False, indent=1), encoding="utf-8")
             if best is None or cached[rel]["score"] > cached[best]["score"]:
                 best = rel

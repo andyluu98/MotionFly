@@ -1,0 +1,472 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>MotionFly: video biết kể chuyện</title>
+<meta name="description" content="Plugin Claude Code làm video tiếng Việt trọn gói: kịch bản, giọng đọc VieNeu, nhạc nền, dựng hình bằng code, phụ đề. 6 style dựng sẵn." />
+<meta property="og:title" content="MotionFly: video biết kể chuyện" />
+<meta property="og:description" content="Gõ /video-moi kèm một câu yêu cầu, nhận về video hoàn chỉnh có giọng Việt, nhạc nền và chuyển động." />
+<meta property="og:image" content="site/media/skill-mcp-agent.jpg" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
+<style>
+:root {
+  --bg: #0a0f1c; --bg2: #0f1628; --card: #131b30; --line: rgba(255,255,255,.08);
+  --ink: #eef2fa; --ink2: #aab3c7; --ink3: #6f7a92;
+  --lime: #b7f34a; --blue: #5b8cff; --orange: #ff8a3d;
+  --r: 18px; --mono: "JetBrains Mono", ui-monospace, monospace;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { margin: 0; background: var(--bg); color: var(--ink); font-family: "Be Vietnam Pro", system-ui, sans-serif; line-height: 1.6; overflow-x: hidden; }
+a { color: inherit; }
+.wrap { max-width: 1160px; margin: 0 auto; padding: 0 24px; }
+@media (max-width: 640px) { .wrap { padding: 0 16px; } }
+
+/* nav */
+nav { position: sticky; top: 0; z-index: 20; backdrop-filter: blur(12px); background: rgba(10,15,28,.72); border-bottom: 1px solid var(--line); }
+nav .wrap { display: flex; align-items: center; justify-content: space-between; height: 68px; }
+.logo { display: flex; align-items: center; gap: 12px; font-weight: 800; font-size: 22px; text-decoration: none; }
+.logo svg { width: 34px; height: 34px; }
+.nav-links { display: flex; gap: 28px; align-items: center; }
+.nav-links a { text-decoration: none; color: var(--ink2); font-size: 15px; font-weight: 500; }
+.nav-links a:hover { color: var(--ink); }
+.btn-gh { display: inline-flex; gap: 8px; align-items: center; padding: 9px 18px; border-radius: 999px; background: var(--ink); color: var(--bg) !important; font-weight: 700; }
+@media (max-width: 760px) { .nav-links a:not(.btn-gh) { display: none; } }
+
+/* hero */
+.hero { padding: 72px 0 40px; position: relative; overflow-x: clip; }
+.hero::before { content: ""; position: absolute; inset: -200px 0 auto; height: 700px; background: radial-gradient(closest-side, rgba(91,140,255,.18), transparent 70%); pointer-events: none; }
+.hero-grid { display: grid; grid-template-columns: 1.15fr .85fr; gap: 56px; align-items: center; position: relative; }
+@media (max-width: 920px) { .hero-grid { grid-template-columns: 1fr; gap: 40px; } }
+.eyebrow { font-family: var(--mono); color: var(--blue); letter-spacing: .14em; font-size: 14px; text-transform: uppercase; margin: 0 0 18px; }
+h1 { font-size: clamp(48px, 8vw, 96px); line-height: 1.02; margin: 0 0 24px; font-weight: 800; letter-spacing: -.03em; }
+h1 .mark { color: var(--lime); position: relative; display: inline-block; }
+h1 .mark::after { content: ""; position: absolute; left: 0; right: 0; bottom: .02em; height: .14em; background: var(--orange); border-radius: 4px; transform-origin: left; animation: draw 1.1s .5s cubic-bezier(.6,0,.2,1) both; z-index: -1; }
+@keyframes draw { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+.lead { font-size: 19px; color: var(--ink2); max-width: 600px; margin: 0 0 30px; }
+.lead code, p code, li code { font-family: var(--mono); font-size: .9em; background: rgba(255,255,255,.07); padding: 2px 7px; border-radius: 6px; color: var(--ink); }
+.cta { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 28px; }
+.btn { display: inline-flex; align-items: center; gap: 10px; padding: 15px 26px; border-radius: 14px; font-weight: 700; text-decoration: none; font-size: 16px; border: 0; cursor: pointer; font-family: inherit; }
+.btn-primary { background: var(--lime); color: #0a0f1c; box-shadow: 0 10px 30px rgba(183,243,74,.25); }
+.btn-primary:hover { transform: translateY(-2px); }
+.btn-ghost { background: transparent; color: var(--ink); border: 1px solid rgba(255,255,255,.18); }
+.btn-ghost:hover { background: rgba(255,255,255,.06); }
+.pills { display: flex; flex-wrap: wrap; gap: 10px 22px; color: var(--ink2); font-size: 15px; }
+.pills span::before { content: "✓"; color: var(--lime); font-weight: 800; margin-right: 8px; }
+
+/* phone demo */
+.demo { display: flex; flex-direction: column; align-items: center; gap: 16px; }
+.phone { width: min(340px, 82vw); aspect-ratio: 9/16; border-radius: 38px; padding: 10px; background: linear-gradient(160deg, #26314d, #0d1324); box-shadow: 0 40px 80px rgba(0,0,0,.55), inset 0 0 0 1px rgba(255,255,255,.12); position: relative; }
+.phone video { width: 100%; height: 100%; object-fit: cover; border-radius: 30px; background: #000; display: block; }
+.tabs { display: flex; gap: 8px; background: var(--bg2); border: 1px solid var(--line); padding: 5px; border-radius: 999px; }
+.tabs button { border: 0; background: transparent; color: var(--ink2); padding: 8px 16px; border-radius: 999px; font: 600 14px "Be Vietnam Pro", sans-serif; cursor: pointer; }
+.tabs button.on { background: var(--ink); color: var(--bg); }
+.demo-note { font-size: 13px; color: var(--ink3); text-align: center; max-width: 340px; }
+
+/* sections */
+section { padding: 96px 0; }
+.kicker { font-family: var(--mono); color: var(--lime); letter-spacing: .14em; font-size: 13px; text-transform: uppercase; margin: 0 0 14px; }
+h2 { font-size: clamp(34px, 5vw, 54px); line-height: 1.08; margin: 0 0 18px; letter-spacing: -.02em; font-weight: 800; }
+.sub { color: var(--ink2); font-size: 18px; max-width: 720px; margin: 0 0 48px; }
+
+/* pipeline */
+.pipe { display: grid; grid-template-columns: repeat(7, 1fr); gap: 14px; counter-reset: s; }
+@media (max-width: 1000px) { .pipe { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 480px) { .pipe { grid-template-columns: 1fr; } }
+.step { background: var(--card); border: 1px solid var(--line); border-radius: var(--r); padding: 20px 18px; position: relative; overflow: hidden; transition: transform .3s, border-color .3s; }
+.step:hover { transform: translateY(-4px); border-color: rgba(183,243,74,.4); }
+.step .n { font-family: var(--mono); font-size: 13px; color: var(--ink3); }
+.step .ic { font-size: 28px; margin: 10px 0 8px; }
+.step h3 { margin: 0 0 6px; font-size: 17px; }
+.step p { margin: 0 0 10px; color: var(--ink2); font-size: 14px; line-height: 1.5; }
+.step .file { font-family: var(--mono); font-size: 12px; color: var(--lime); }
+.step.gate::after { content: "Anh duyệt"; position: absolute; top: 14px; right: 14px; font-size: 11px; font-weight: 700; color: var(--orange); border: 1px solid rgba(255,138,61,.5); padding: 1px 8px; border-radius: 999px; }
+.note { color: var(--ink3); font-size: 14px; margin-top: 18px; }
+
+/* styles gallery */
+.filters { display: flex; gap: 8px; flex-wrap: wrap; margin: -24px 0 30px; }
+.filters button { background: var(--bg2); color: var(--ink2); border: 1px solid var(--line); padding: 8px 16px; border-radius: 999px; font: 600 14px "Be Vietnam Pro", sans-serif; cursor: pointer; }
+.filters button.on { background: var(--lime); color: #0a0f1c; border-color: var(--lime); }
+.gallery { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; }
+@media (max-width: 980px) { .gallery { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 620px) { .gallery { grid-template-columns: 1fr; } }
+.sc { background: var(--card); border: 1px solid var(--line); border-radius: 22px; overflow: hidden; display: flex; flex-direction: column; transition: transform .35s, box-shadow .35s; }
+.sc:hover { transform: translateY(-6px); box-shadow: 0 24px 50px rgba(0,0,0,.4); }
+.sc.hide { display: none; }
+.pv { aspect-ratio: 16/10; position: relative; overflow: hidden; }
+.sc .body { padding: 20px 22px 22px; display: flex; flex-direction: column; gap: 10px; flex: 1; }
+.sc h3 { margin: 0; font-size: 21px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.tag { font-size: 11px; font-weight: 700; padding: 2px 9px; border-radius: 999px; background: rgba(183,243,74,.14); color: var(--lime); letter-spacing: .02em; }
+.slug { font-family: var(--mono); font-size: 13px; color: var(--ink3); }
+.sc p { margin: 0; color: var(--ink2); font-size: 15px; line-height: 1.55; }
+.meta { display: flex; gap: 8px; flex-wrap: wrap; font-size: 12px; }
+.meta span { border: 1px solid var(--line); padding: 3px 10px; border-radius: 999px; color: var(--ink2); }
+.use { margin-top: auto; display: flex; gap: 8px; }
+.use button, .use a { flex: 1; text-align: center; padding: 11px; border-radius: 12px; font: 700 14px "Be Vietnam Pro", sans-serif; cursor: pointer; text-decoration: none; }
+.use button { background: var(--ink); color: var(--bg); border: 0; }
+.use a { border: 1px solid rgba(255,255,255,.16); color: var(--ink); }
+
+/* preview art: whiteboard */
+.pv-wb { background: #f6f5f0; }
+.pv-wb svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.pv-wb .stroke { fill: none; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 400; stroke-dashoffset: 400; animation: pen 2.4s ease-in-out infinite alternate; }
+@keyframes pen { 0%, 15% { stroke-dashoffset: 400; } 70%, 100% { stroke-dashoffset: 0; } }
+/* iso */
+.pv-iso { background: linear-gradient(160deg, #eaf3ff, #d7e6fb); }
+.cube { position: absolute; width: 70px; height: 70px; transform: rotateX(55deg) rotateZ(45deg); transform-style: preserve-3d; animation: bob 3s ease-in-out infinite; }
+.cube i { position: absolute; inset: 0; border-radius: 6px; }
+.cube .t { background: #5b8cff; }
+.cube .l { background: #3a63c9; transform: rotateX(-90deg) translateZ(35px) translateY(35px); transform-origin: bottom; height: 40px; top: 70px; }
+@keyframes bob { 50% { translate: 0 -8px; } }
+/* dataviz */
+.pv-dv { background: #0d1117; display: flex; align-items: flex-end; gap: 10px; padding: 26px 28px; }
+.pv-dv .big { position: absolute; top: 18px; left: 26px; font: 800 44px "Be Vietnam Pro", sans-serif; color: #f2c14e; letter-spacing: -.02em; }
+.pv-dv .lab { position: absolute; top: 74px; left: 28px; font: 500 12px var(--mono); color: #8b95a7; }
+.pv-dv .bar { flex: 1; background: #2a3344; border-radius: 6px 6px 0 0; animation: grow 2.6s ease-in-out infinite alternate; transform-origin: bottom; }
+.pv-dv .bar.hl { background: #f2c14e; }
+@keyframes grow { from { transform: scaleY(.25); } to { transform: scaleY(1); } }
+/* swiss */
+.pv-sw { background: #f1efe9; display: grid; grid-template-columns: repeat(6, 1fr); }
+.pv-sw::before { content: ""; position: absolute; inset: 0; background-image: linear-gradient(to right, rgba(0,0,0,.06) 1px, transparent 1px); background-size: 16.66% 100%; }
+.pv-sw .w { position: absolute; left: 22px; font: 800 64px/0.9 "Be Vietnam Pro", sans-serif; letter-spacing: -.04em; color: #111; }
+.pv-sw .w1 { top: 26px; animation: slide 3s cubic-bezier(.7,0,.2,1) infinite alternate; }
+.pv-sw .w2 { top: 88px; color: #e2231a; animation: slide 3s .25s cubic-bezier(.7,0,.2,1) infinite alternate-reverse; }
+.pv-sw .dot { position: absolute; right: 26px; bottom: 22px; width: 70px; height: 70px; border-radius: 50%; background: #e2231a; }
+@keyframes slide { from { translate: -14px 0; } to { translate: 34px 0; } }
+/* dark keynote */
+.pv-dk { background: radial-gradient(120% 90% at 50% 0%, #1a1f2b, #07080b 70%); }
+.pv-dk::before { content: ""; position: absolute; inset: 0; background-image: linear-gradient(rgba(255,255,255,.04) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.04) 1px, transparent 1px); background-size: 24px 24px; }
+.pv-dk .win { position: absolute; left: 24px; top: 26px; right: 90px; height: 92px; border-radius: 14px; background: #14171d; border: 1px solid rgba(255,255,255,.09); padding: 12px 14px; }
+.pv-dk .win b { display: block; font: 600 12px var(--mono); color: #8b93a3; }
+.pv-dk .win span { font: 800 40px "Be Vietnam Pro", sans-serif; color: #b7f34a; letter-spacing: -.03em; text-shadow: 0 0 24px rgba(183,243,74,.45); }
+.pv-dk .rk { position: absolute; right: 20px; top: 30px; font: 800 52px "Be Vietnam Pro", sans-serif; color: rgba(255,255,255,.9); }
+.pv-dk .sweep { position: absolute; top: 0; bottom: 0; width: 40%; background: linear-gradient(90deg, transparent, rgba(183,243,74,.12), transparent); animation: sweep 2.8s linear infinite; }
+@keyframes sweep { from { left: -40%; } to { left: 110%; } }
+.pv-dk .chips { position: absolute; left: 24px; bottom: 22px; display: flex; gap: 8px; }
+.pv-dk .chips i { width: 54px; height: 26px; border-radius: 8px; background: #1b1f27; border: 1px solid rgba(255,255,255,.08); animation: pop 2.4s ease-in-out infinite; }
+.pv-dk .chips i:nth-child(2) { animation-delay: .2s; } .pv-dk .chips i:nth-child(3) { animation-delay: .4s; }
+@keyframes pop { 0%, 60%, 100% { transform: translateY(0); } 30% { transform: translateY(-6px); } }
+/* paper popup */
+.pv-pp { background: #f4e9d8; }
+.pv-pp .layer { position: absolute; left: -10%; right: -10%; border-radius: 50% 50% 0 0; box-shadow: 0 -6px 14px rgba(80,50,20,.18); }
+.pv-pp .l1 { bottom: -40%; height: 90%; background: #e9b872; animation: rise 3.2s ease-in-out infinite alternate; }
+.pv-pp .l2 { bottom: -55%; height: 80%; background: #d9714e; animation: rise 3.2s .3s ease-in-out infinite alternate; }
+.pv-pp .l3 { bottom: -70%; height: 75%; background: #3f6b5c; animation: rise 3.2s .6s ease-in-out infinite alternate; }
+.pv-pp .sun { position: absolute; top: 22px; right: 40px; width: 54px; height: 54px; border-radius: 50%; background: #f6d06b; box-shadow: 0 6px 14px rgba(80,50,20,.2); }
+@keyframes rise { from { translate: 0 18px; } to { translate: 0 0; } }
+
+/* features */
+.feats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+@media (max-width: 900px) { .feats { grid-template-columns: 1fr; } }
+.feat { background: var(--card); border: 1px solid var(--line); border-radius: var(--r); padding: 26px; }
+.feat .ic { width: 44px; height: 44px; border-radius: 12px; display: grid; place-items: center; background: rgba(183,243,74,.12); font-size: 22px; margin-bottom: 14px; }
+.feat h3 { margin: 0 0 8px; font-size: 19px; }
+.feat p { margin: 0; color: var(--ink2); font-size: 15px; }
+
+/* install */
+.install { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; align-items: start; }
+@media (max-width: 900px) { .install { grid-template-columns: 1fr; } }
+.code { background: #070b14; border: 1px solid var(--line); border-radius: var(--r); overflow: hidden; }
+.code .bar { display: flex; justify-content: space-between; align-items: center; padding: 10px 16px; border-bottom: 1px solid var(--line); font: 600 13px var(--mono); color: var(--ink3); }
+.code .bar button { background: rgba(255,255,255,.08); border: 0; color: var(--ink); padding: 5px 12px; border-radius: 8px; font: 600 12px "Be Vietnam Pro", sans-serif; cursor: pointer; }
+.code pre { margin: 0; padding: 18px 20px; font: 14px/1.9 var(--mono); color: var(--ink); overflow-x: auto; }
+.code pre .c { color: var(--ink3); }
+.code pre .k { color: var(--lime); }
+.req { list-style: none; padding: 0; margin: 0; display: grid; gap: 12px; }
+.req li { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 14px 18px; color: var(--ink2); font-size: 15px; }
+.req li b { color: var(--ink); }
+
+/* credits */
+.credits { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; }
+@media (max-width: 900px) { .credits { grid-template-columns: repeat(2, 1fr); } }
+.cr { border: 1px solid var(--line); border-radius: 16px; padding: 18px; text-decoration: none; background: var(--bg2); transition: border-color .25s; }
+.cr:hover { border-color: rgba(183,243,74,.45); }
+.cr b { display: block; margin-bottom: 4px; }
+.cr span { color: var(--ink3); font-size: 13px; line-height: 1.45; display: block; }
+.cr em { font-style: normal; font-family: var(--mono); font-size: 11px; color: var(--lime); }
+
+footer { border-top: 1px solid var(--line); padding: 36px 0 60px; color: var(--ink3); font-size: 14px; }
+footer .wrap { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+
+.reveal { opacity: 0; transform: translateY(24px); transition: opacity .7s, transform .7s; }
+.reveal.in { opacity: 1; transform: none; }
+.toast { position: fixed; left: 50%; bottom: 28px; transform: translate(-50%, 30px); opacity: 0; background: var(--lime); color: #0a0f1c; font-weight: 700; padding: 12px 20px; border-radius: 12px; transition: .3s; z-index: 50; max-width: calc(100vw - 32px); }
+.toast.show { opacity: 1; transform: translate(-50%, 0); }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } .reveal { opacity: 1; transform: none; } }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="wrap">
+    <a class="logo" href="#">
+      <svg viewBox="0 0 40 40" aria-hidden="true"><rect x="4" y="8" width="26" height="24" rx="7" fill="#5b8cff"/><path d="M14 15 L23 20 L14 25 Z" fill="#0a0f1c"/><path d="M32 12 h5 M33 20 h6 M32 28 h5" stroke="#b7f34a" stroke-width="3" stroke-linecap="round"/></svg>
+      MotionFly
+    </a>
+    <div class="nav-links">
+      <a href="#quy-trinh">Quy trình</a>
+      <a href="#style">Style</a>
+      <a href="#cai-dat">Cài đặt</a>
+      <a class="btn-gh" href="https://github.com/andyluu98/MotionFly">
+        <svg width="18" height="18" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+        GitHub
+      </a>
+    </div>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="wrap hero-grid">
+    <div>
+      <p class="eyebrow">Plugin mã nguồn mở cho Claude Code</p>
+      <h1>Video biết<br /><span class="mark">kể chuyện.</span></h1>
+      <p class="lead">Gõ <code>/video-moi</code> kèm một câu yêu cầu. Claude đi hết quy trình làm phim: lên ý tưởng, viết kịch bản, đọc bằng giọng Việt, phân cảnh, chọn nhạc, dựng hình chuyển động bằng code, trộn âm, gắn phụ đề, xuất MP4.</p>
+      <div class="cta">
+        <a class="btn btn-primary" href="#cai-dat">Cài đặt ngay</a>
+        <a class="btn btn-ghost" href="#style">Xem 6 style</a>
+      </div>
+      <div class="pills">
+        <span>Miễn phí, giấy phép MIT</span>
+        <span>Giọng Việt VieNeu, 25 giọng</span>
+        <span>Chạy trên máy anh</span>
+        <span>Phụ đề đủ dấu</span>
+      </div>
+    </div>
+    <div class="demo">
+      <div class="phone"><video id="demo" src="site/media/skill-mcp-agent.mp4" poster="site/media/skill-mcp-agent.jpg" controls playsinline preload="metadata"></video></div>
+      <div class="tabs" role="tablist">
+        <button class="on" data-src="site/media/skill-mcp-agent" role="tab">Whiteboard</button>
+        <button data-src="site/media/top5-github-tuan" role="tab">Dark keynote</button>
+      </div>
+      <p class="demo-note" id="demo-note">"Skill, MCP và Agent trong một phút": 56 giây, giọng Ngọc Huyền, 7 cảnh do 7 agent dựng song song.</p>
+    </div>
+  </div>
+</header>
+
+<section id="quy-trinh">
+  <div class="wrap">
+    <p class="kicker">Cách hoạt động</p>
+    <h2>Một đoàn làm phim<br />nằm gọn trong một lệnh.</h2>
+    <p class="sub">Mỗi bước ghi ra một file, bước sau chỉ đọc file đó, nên sửa một câu thoại không phải làm lại từ đầu. Hình xuất hiện đúng lúc giọng đọc nói tới từ khóa, không đặt giây cứng.</p>
+    <div class="pipe">
+      <div class="step reveal"><div class="n">01</div><div class="ic">🎯</div><h3>Brief</h3><p>Chủ đề, khán giả, style, độ dài, giọng đọc.</p><div class="file">brief.json</div></div>
+      <div class="step gate reveal"><div class="n">02</div><div class="ic">✍️</div><h3>Kịch bản</h3><p>Câu móc 3 giây đầu, mạch truyện, ẩn dụ trung tâm.</p><div class="file">script.json</div></div>
+      <div class="step reveal"><div class="n">03</div><div class="ic">🎙️</div><h3>Giọng đọc</h3><p>VieNeu đọc, Whisper nghe lại chấm điểm, giữ bản hay nhất.</p><div class="file">voice.wav</div></div>
+      <div class="step reveal"><div class="n">04</div><div class="ic">🎬</div><h3>Phân cảnh</h3><p>Neo từng hình vào đúng từ trong lời đọc.</p><div class="file">storyboard.json</div></div>
+      <div class="step reveal"><div class="n">05</div><div class="ic">🎵</div><h3>Nhạc nền</h3><p>Nhạc tự hạ khi có lời, chuẩn -14 LUFS.</p><div class="file">mix.wav</div></div>
+      <div class="step gate reveal"><div class="n">06</div><div class="ic">🧩</div><h3>Dựng hình</h3><p>Mỗi cảnh một agent, chạy song song; người chấm độc lập soát lại.</p><div class="file">compositions/</div></div>
+      <div class="step reveal"><div class="n">07</div><div class="ic">🚀</div><h3>Xuất video</h3><p>MP4 dọc hoặc ngang, phụ đề, bản nhẹ để gửi.</p><div class="file">renders/*.mp4</div></div>
+    </div>
+    <p class="note">Hai bước có nhãn "Anh duyệt" sẽ dừng chờ anh xem. Nói "tự làm hết" để Claude chạy một mạch.</p>
+  </div>
+</section>
+
+<section id="style" style="background: var(--bg2);">
+  <div class="wrap">
+    <p class="kicker">Thư viện style</p>
+    <h2>6 style dựng sẵn.<br />Chọn một, gõ một dòng.</h2>
+    <p class="sub">Mỗi style là một bản luật riêng về màu, chữ, chất liệu và cách chuyển động. Bấm "Dùng style này" để chép sẵn câu lệnh, dán vào Claude Code và thay chủ đề của anh.</p>
+    <div class="filters" role="group" aria-label="Lọc style">
+      <button class="on" data-f="all">Tất cả</button>
+      <button data-f="dao-tao">Đào tạo</button>
+      <button data-f="so-lieu">Số liệu, tin tức</button>
+      <button data-f="marketing">Marketing</button>
+      <button data-f="san-pham">Sản phẩm, công nghệ</button>
+    </div>
+    <div class="gallery">
+
+      <article class="sc reveal" data-f="dao-tao">
+        <div class="pv pv-wb">
+          <svg viewBox="0 0 320 200" aria-hidden="true">
+            <circle class="stroke" cx="80" cy="62" r="18" stroke="#23262c" stroke-width="4"/>
+            <path class="stroke" d="M80 80 v46 M80 92 l-22 18 M80 92 l22 18 M80 126 l-18 30 M80 126 l18 30" stroke="#23262c" stroke-width="4"/>
+            <rect class="stroke" x="150" y="46" width="120" height="74" rx="10" stroke="#2a5cb3" stroke-width="4"/>
+            <path class="stroke" d="M164 70 h80 M164 90 h60" stroke="#2a5cb3" stroke-width="4"/>
+            <path class="stroke" d="M150 150 q60 -10 120 2" stroke="#d97757" stroke-width="5"/>
+          </svg>
+        </div>
+        <div class="body">
+          <h3>Whiteboard <span class="tag">Có video mẫu</span></h3>
+          <div class="slug">whiteboard</div>
+          <p>Bảng trắng, nét bút lông vẽ dần, ba màu bút có nghĩa riêng. Hợp đào tạo, giải thích khái niệm, quy trình.</p>
+          <div class="meta"><span>Nhạc: calm</span><span>60 đến 120 giây</span></div>
+          <div class="use"><button data-cmd="/video-moi Làm video 1 phút giải thích [chủ đề], style whiteboard">Dùng style này</button><a href="https://github.com/andyluu98/MotionFly/blob/main/styles/whiteboard/STYLE.md">Luật style</a></div>
+        </div>
+      </article>
+
+      <article class="sc reveal" data-f="dao-tao san-pham">
+        <div class="pv pv-iso">
+          <div class="cube" style="left: 70px; top: 40px;"><i class="t"></i></div>
+          <div class="cube" style="left: 150px; top: 70px; animation-delay: .4s;"><i class="t" style="background:#7bd3c4"></i></div>
+          <div class="cube" style="left: 230px; top: 40px; animation-delay: .8s;"><i class="t" style="background:#f2a65a"></i></div>
+        </div>
+        <div class="body">
+          <h3>Iso infographic</h3>
+          <div class="slug">iso-infographic</div>
+          <p>Khối isometric gọn gàng, mũi tên luồng dữ liệu. Hợp giải thích hệ thống, kiến trúc, quy trình nhiều thành phần.</p>
+          <div class="meta"><span>Nhạc: inspiring</span><span>Nhiều thành phần</span></div>
+          <div class="use"><button data-cmd="/video-moi Làm video giải thích [hệ thống] gồm những thành phần nào, style iso-infographic">Dùng style này</button><a href="https://github.com/andyluu98/MotionFly/blob/main/styles/iso-infographic/STYLE.md">Luật style</a></div>
+        </div>
+      </article>
+
+      <article class="sc reveal" data-f="so-lieu">
+        <div class="pv pv-dv">
+          <div class="big">+46%</div><div class="lab">TĂNG TRƯỞNG / NĂM</div>
+          <div class="bar" style="height:40%"></div><div class="bar" style="height:58%; animation-delay:.2s"></div><div class="bar" style="height:50%; animation-delay:.4s"></div><div class="bar hl" style="height:92%; animation-delay:.6s"></div><div class="bar" style="height:66%; animation-delay:.8s"></div>
+        </div>
+        <div class="body">
+          <h3>Dataviz</h3>
+          <div class="slug">dataviz</div>
+          <p>Biểu đồ động, số lớn đếm nhảy, một màu nhấn cho con số quan trọng. Hợp báo cáo, bản tin có số liệu.</p>
+          <div class="meta"><span>Nhạc: tech</span><span>Có con số</span></div>
+          <div class="use"><button data-cmd="/video-moi Làm video bản tin số liệu về [chủ đề], style dataviz">Dùng style này</button><a href="https://github.com/andyluu98/MotionFly/blob/main/styles/dataviz/STYLE.md">Luật style</a></div>
+        </div>
+      </article>
+
+      <article class="sc reveal" data-f="marketing so-lieu">
+        <div class="pv pv-sw"><div class="w w1">CHỮ</div><div class="w w2">ĐỘNG.</div><div class="dot"></div></div>
+        <div class="body">
+          <h3>Swiss motion</h3>
+          <div class="slug">swiss-motion</div>
+          <p>Chữ to chạy theo lưới, đỏ đen kiểu Thụy Sĩ, nhịp cắt nhanh. Hợp tin nhanh, trích dẫn, thông điệp thương hiệu.</p>
+          <div class="meta"><span>Nhạc: upbeat</span><span>15 đến 45 giây</span></div>
+          <div class="use"><button data-cmd="/video-moi Làm video 30 giây truyền tải thông điệp [thông điệp], style swiss-motion">Dùng style này</button><a href="https://github.com/andyluu98/MotionFly/blob/main/styles/swiss-motion/STYLE.md">Luật style</a></div>
+        </div>
+      </article>
+
+      <article class="sc reveal" data-f="san-pham marketing">
+        <div class="pv pv-dk"><div class="sweep"></div><div class="win"><b>andyluu98/MotionFly</b><span>★ 8.319</span></div><div class="rk">#1</div><div class="chips"><i></i><i></i><i></i></div></div>
+        <div class="body">
+          <h3>Dark keynote <span class="tag">Có video mẫu</span></h3>
+          <div class="slug">dark-keynote</div>
+          <p>Sân khấu tối, lưới mảnh, ánh sáng quét, giao diện bật ra đúng nhịp, một màu nhấn phát sáng. Hợp ra mắt sản phẩm, tin công nghệ.</p>
+          <div class="meta"><span>Nhạc: tech</span><span>Nhiều chuyển động</span></div>
+          <div class="use"><button data-cmd="/video-moi Làm video giới thiệu [sản phẩm hoặc tính năng], style dark-keynote">Dùng style này</button><a href="https://github.com/andyluu98/MotionFly/blob/main/styles/dark-keynote/STYLE.md">Luật style</a></div>
+        </div>
+      </article>
+
+      <article class="sc reveal" data-f="marketing">
+        <div class="pv pv-pp"><div class="sun"></div><div class="layer l1"></div><div class="layer l2"></div><div class="layer l3"></div></div>
+        <div class="body">
+          <h3>Paper popup</h3>
+          <div class="slug">paper-popup</div>
+          <p>Giấy cắt nhiều lớp, đổ bóng thật, cảnh bật lên như sách pop-up. Hợp kể chuyện, marketing, chủ đề xã hội.</p>
+          <div class="meta"><span>Nhạc: inspiring</span><span>Kể chuyện</span></div>
+          <div class="use"><button data-cmd="/video-moi Làm video kể câu chuyện [chủ đề], style paper-popup">Dùng style này</button><a href="https://github.com/andyluu98/MotionFly/blob/main/styles/paper-popup/STYLE.md">Luật style</a></div>
+        </div>
+      </article>
+
+    </div>
+    <p class="note">Muốn style riêng? Thêm thư mục <code>styles/ten-style/STYLE.md</code> theo khuôn có sẵn, không cần sửa code. Yêu cầu của anh luôn được ưu tiên hơn luật style.</p>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <p class="kicker">Tính năng</p>
+    <h2>Làm sẵn những phần tốn công nhất.</h2>
+    <p class="sub">Anh lo nội dung. Phần đọc, nhạc, dựng và soát lỗi đã có quy trình lo.</p>
+    <div class="feats">
+      <div class="feat reveal"><div class="ic">🎙️</div><h3>Giọng Việt tự soát</h3><p>Mỗi câu sinh vài bản, Whisper nghe lại và chấm điểm, giữ bản đọc tốt nhất. Thuật ngữ tiếng Anh sửa được cách đọc bằng một dòng.</p></div>
+      <div class="feat reveal"><div class="ic">🎚️</div><h3>Âm thanh chuẩn mạng xã hội</h3><p>Nhạc tự hạ khi có lời, chuẩn hóa -14 LUFS. Không có file nhạc thì plugin tự soạn nhạc nền bằng code, không lo bản quyền.</p></div>
+      <div class="feat reveal"><div class="ic">⚡</div><h3>Dựng song song</h3><p>Mỗi cảnh giao cho một agent riêng, cùng một bộ quy ước nét vẽ để cả video liền một khối.</p></div>
+      <div class="feat reveal"><div class="ic">🔍</div><h3>Người chấm độc lập</h3><p>Một agent khác chỉ nhìn ảnh khung hình, tìm chữ tràn, sai dấu, tương phản thấp, cảnh trống, rồi mới cho render.</p></div>
+      <div class="feat reveal"><div class="ic">🅰️</div><h3>Phụ đề đúng dấu</h3><p>Font Be Vietnam Pro, phụ đề chia đều theo câu, không còn dòng một chữ, kèm file .srt.</p></div>
+      <div class="feat reveal"><div class="ic">💻</div><h3>Chạy trên máy anh</h3><p>Giọng, nhạc, dựng đều chạy local. Có card NVIDIA thì nhanh hơn, không có vẫn chạy bằng CPU.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="cai-dat" style="background: var(--bg2);">
+  <div class="wrap">
+    <p class="kicker">Cài đặt</p>
+    <h2>Ba lệnh, rồi bắt đầu làm phim.</h2>
+    <p class="sub">Lệnh <code>/video-cai-dat</code> tự kiểm máy, báo thiếu gì, rồi tải phần còn lại (khoảng 2 đến 3 GB: môi trường Python, giọng VieNeu, model Whisper).</p>
+    <div class="install">
+      <div>
+        <div class="code">
+          <div class="bar"><span>Trong Claude Code</span><button data-copy="install">Chép</button></div>
+<pre id="install"><span class="k">/plugin</span> marketplace add andyluu98/MotionFly
+<span class="k">/plugin</span> install motionfly@motionfly
+<span class="k">/video-cai-dat</span></pre>
+        </div>
+        <div class="code" style="margin-top: 18px;">
+          <div class="bar"><span>Làm video đầu tiên</span><button data-copy="first">Chép</button></div>
+<pre id="first"><span class="k">/video-moi</span> Làm video 1 phút giải thích Skill, MCP
+và Agent trong Claude Code, style whiteboard
+<span class="c"># nói thêm "tự làm hết" để bỏ các bước duyệt</span></pre>
+        </div>
+      </div>
+      <ul class="req">
+        <li><b>Claude Code</b>: bản CLI, desktop hoặc IDE.</li>
+        <li><b>Node.js 22 trở lên</b>: để chạy bộ dựng HyperFrames.</li>
+        <li><b>Python 3.10 trở lên</b>: nên có thêm <code>uv</code> để cài nhanh.</li>
+        <li><b>ffmpeg</b> trong PATH: đọc, ghi âm thanh và video.</li>
+        <li><b>Tùy chọn</b>: card NVIDIA để chạy nhanh; Claude in Chrome và tài khoản ChatGPT nếu muốn chèn ảnh minh họa.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <p class="kicker">Lắp ghép, không làm lại</p>
+    <h2>Đứng trên vai cộng đồng.</h2>
+    <p class="sub">MotionFly không viết lại những gì đã có người làm tốt. Mọi phần mượn về đều ghi rõ nguồn, phiên bản và giấy phép trong <a href="https://github.com/andyluu98/MotionFly/blob/main/NOTICE.md">NOTICE.md</a>.</p>
+    <div class="credits">
+      <a class="cr" href="https://github.com/heygen-com/hyperframes"><em>Apache-2.0</em><b>HyperFrames</b><span>Bộ máy biến HTML thành video, của HeyGen.</span></a>
+      <a class="cr" href="https://github.com/lemomo-ai/lemo-opuscar"><em>MIT</em><b>lemo-opuscar</b><span>Khuôn style card và 6 style gốc.</span></a>
+      <a class="cr" href="https://github.com/bestagentkits/motion-video-skill"><em>MIT</em><b>motion-video-skill</b><span>Đo nhịp nhạc, bài học trộn giọng với nhạc.</span></a>
+      <a class="cr" href="https://github.com/pnnbao97/VieNeu-TTS"><em>Apache-2.0</em><b>VieNeu-TTS</b><span>Giọng đọc tiếng Việt chạy trên máy.</span></a>
+      <a class="cr" href="https://github.com/SYSTRAN/faster-whisper"><em>MIT</em><b>faster-whisper</b><span>Nghe lại để chấm phát âm, lấy mốc từng từ.</span></a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <span>MotionFly · giấy phép MIT · làm bởi andyluu98</span>
+    <span>Anh em với <a href="https://andyluu98.github.io/slidefly/">SlideFly</a>: slide biết bay</span>
+  </div>
+</footer>
+
+<div class="toast" id="toast">Đã chép câu lệnh</div>
+
+<script>
+(() => {
+  const toast = document.getElementById("toast");
+  const show = (msg) => { toast.textContent = msg; toast.classList.add("show"); clearTimeout(show.t); show.t = setTimeout(() => toast.classList.remove("show"), 2200); };
+  const copy = async (text, msg) => {
+    try { await navigator.clipboard.writeText(text); show(msg); }
+    catch (e) { show("Không chép được, anh bôi đen để chép tay"); }
+  };
+  document.querySelectorAll("[data-cmd]").forEach((b) => b.addEventListener("click", () => copy(b.dataset.cmd, "Đã chép lệnh, dán vào Claude Code và thay phần trong ngoặc vuông")));
+  document.querySelectorAll("[data-copy]").forEach((b) => b.addEventListener("click", () => copy(document.getElementById(b.dataset.copy).innerText, "Đã chép")));
+
+  const notes = {
+    "site/media/skill-mcp-agent": "\"Skill, MCP và Agent trong một phút\": 56 giây, giọng Ngọc Huyền, 7 cảnh do 7 agent dựng song song.",
+    "site/media/top5-github-tuan": "\"5 repo GitHub hot nhất tuần\": style dark keynote, giọng Mai Anh, số liệu tra từ GitHub Trending ngày 10/10/2026.",
+  };
+  const video = document.getElementById("demo");
+  document.querySelectorAll(".tabs button").forEach((b) => b.addEventListener("click", () => {
+    document.querySelectorAll(".tabs button").forEach((x) => x.classList.toggle("on", x === b));
+    video.src = b.dataset.src + ".mp4"; video.poster = b.dataset.src + ".jpg";
+    document.getElementById("demo-note").textContent = notes[b.dataset.src];
+    video.play().catch(() => {});
+  }));
+
+  document.querySelectorAll(".filters button").forEach((b) => b.addEventListener("click", () => {
+    document.querySelectorAll(".filters button").forEach((x) => x.classList.toggle("on", x === b));
+    const f = b.dataset.f;
+    document.querySelectorAll(".sc").forEach((c) => c.classList.toggle("hide", f !== "all" && !c.dataset.f.split(" ").includes(f)));
+  }));
+
+  const io = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); } }), { threshold: 0.12 });
+  document.querySelectorAll(".reveal").forEach((el, i) => { el.style.transitionDelay = (i % 7) * 60 + "ms"; io.observe(el); });
+})();
+</script>
+</body>
+</html>

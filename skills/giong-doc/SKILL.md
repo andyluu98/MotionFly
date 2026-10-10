@@ -23,7 +23,7 @@ Chạy nền nếu kịch bản dài hơn 1 phút. Xong khi log in `VOICEDONE`. 
   1. viết lại câu cho có chủ ngữ tiếng Việt, tránh câu ngắn dưới 5 từ hoặc mở đầu bằng tên tiếng Anh;
   2. thêm mục vào `"pron"` trong `script.json`, ví dụ `"MCP": "em xi pi"` (khóa có chữ hoa thì khớp đúng hoa thường);
   3. chạy lại với `--candidates 4`.
-- Từ cần sửa cho mọi dự án: thêm vào `~/.vn-video-studio/pron.json`.
+- Từ cần sửa cho mọi dự án: thêm vào `~/.motionfly/pron.json`.
 
 ## Giọng
 

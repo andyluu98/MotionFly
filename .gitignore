@@ -23,3 +23,6 @@ node_modules/
 # OS
 .DS_Store
 Thumbs.db
+
+# Site media is published on purpose
+!site/media/*.mp4

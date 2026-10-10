@@ -19,7 +19,7 @@ Bạn là họa sĩ chuyển động dựng một cảnh của video giải thí
 ## Đọc trước khi viết
 
 1. Gói giao việc (cảnh, khung, độ dài, lời đọc, neo, ý hình).
-2. Style card được chỉ định, cả mục "Bổ sung của vn-video-studio" ở cuối.
+2. Style card được chỉ định, cả mục "Bổ sung của MotionFly" ở cuối.
 3. Khuôn file: `templates/scene.html` của plugin (file cảnh hiện tại thường đã là khuôn này).
 
 ## Hợp đồng file (HyperFrames sub-composition)

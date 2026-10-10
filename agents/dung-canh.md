@@ -32,6 +32,8 @@ Bạn là họa sĩ chuyển động dựng một cảnh của video giải thí
 - Thời gian trong timeline là thời gian cục bộ của cảnh (0 = đầu cảnh). Lấy mốc bằng `A("<key>")` (neo trong gói); không gõ số giây của từ. Nhịp phụ giữa hai neo thì cộng trừ nhỏ quanh neo.
 - Cấm: `Math.random` không seed, `Date`, `requestAnimationFrame`, `setTimeout`, mạng, `repeat: -1`; tween `visibility`/`display`/`autoAlpha` trên phần tử có class `clip`; CSS `transform` ban đầu trên phần tử mà GSAP tween cùng thuộc tính (dùng `fromTo`); `<br>` trong đoạn chữ; thẻ `<audio>`/`<video>` (âm thanh do plugin ghép).
 - Không thêm `data-start` bên trong cảnh: cảnh đã được host định thời.
+- Chỉ tween `x`, `y`, `xPercent`, `yPercent`, `scale`, `rotation`, `opacity`, `clipPath`, màu. Không tween `top`, `left`, `width`, `height`, `letterSpacing` (HyperFrames lint `gsap_non_transform_motion`: giật khi render từng khung). Cần đổi kích thước khung thì dùng `clipPath: inset(...)` cộng `x`/`y`.
+- Không dùng `mix-blend-mode` cho vệt sáng: khi lớp cha có transform hoặc opacity, hòa màu bị cô lập và vệt sáng hiện thành khối trắng. Vệt sáng làm bằng gradient trong suốt nằm trong khung `overflow: hidden` chỉ bao đúng vật được quét, và ẩn (opacity 0) khi không chạy.
 
 ## Luật hình
 

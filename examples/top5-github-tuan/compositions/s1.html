@@ -1,0 +1,477 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <!-- Scene s1. Runtime keeps only <template>; put style, markup and script inside it. -->
+  </head>
+  <body>
+    <template>
+      <style>
+        /* Each scene declares its fonts (HyperFrames lint: font_family_without_font_face). Paths are relative to index.html. */
+        @font-face { font-family: "Be Vietnam Pro"; src: url("fonts/BeVietnamPro-Regular.ttf"); font-weight: 400; }
+        @font-face { font-family: "Be Vietnam Pro"; src: url("fonts/BeVietnamPro-Medium.ttf"); font-weight: 500; }
+        @font-face { font-family: "Be Vietnam Pro"; src: url("fonts/BeVietnamPro-Bold.ttf"); font-weight: 700; }
+        @font-face { font-family: "Be Vietnam Pro"; src: url("fonts/BeVietnamPro-ExtraBold.ttf"); font-weight: 800; }
+        @font-face { font-family: "JetBrains Mono"; src: url("fonts/JetBrainsMono-Variable.ttf"); font-weight: 100 800; }
+
+        #s1-root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          background: transparent;
+          color: var(--ink);
+          font-family: "Be Vietnam Pro", sans-serif;
+        }
+        #s1-cam, #s1-stage { position: absolute; inset: 0; }
+        #s1-root .s1-mono { font-family: "JetBrains Mono", monospace; }
+
+        /* ---- layer 3: environment data packets (built in JS) ---- */
+        #s1-env { position: absolute; inset: 0; filter: saturate(0.55); opacity: 0.8; }
+        #s1-flow { position: absolute; inset: 0; filter: saturate(0.7); }
+        #s1-root .s1-pk { position: absolute; top: 0; opacity: 0; transform-origin: 100% 50%; }
+        #s1-root .s1-pk::before {
+          content: ""; position: absolute; left: 0; right: 3px; top: 50%; height: 2px; margin-top: -1px;
+          background: linear-gradient(90deg, rgba(0, 0, 0, 0), var(--pc));
+        }
+        #s1-root .s1-pk::after {
+          content: ""; position: absolute; right: 0; top: 0; width: var(--d); height: var(--d); border-radius: 50%;
+          background: var(--pc); box-shadow: 0 0 12px var(--pc);
+        }
+
+        /* ---- opening light sweep ---- */
+        #s1-sweep {
+          position: absolute; top: -200px; bottom: -200px; left: 0; width: 420px; opacity: 0;
+          background: linear-gradient(90deg, rgba(255, 255, 255, 0), rgba(200, 215, 255, 0.13), rgba(255, 255, 255, 0));
+        }
+
+        /* ---- header: icon + typed mono label + caret ---- */
+        #s1-ico {
+          position: absolute; left: 72px; top: 196px; width: 48px; height: 48px; border-radius: 12px;
+          background: var(--s3); border: 1px solid var(--line); box-shadow: inset 0 1px 0 var(--hi);
+          display: flex; align-items: center; justify-content: center;
+          font-weight: 800; font-size: 26px; color: var(--ink); opacity: 0;
+        }
+        #s1-label {
+          position: absolute; left: 140px; top: 200px; height: 40px; line-height: 40px; white-space: nowrap;
+          font-family: "JetBrains Mono", monospace; font-size: 28px; font-weight: 500; color: var(--ink2);
+        }
+        #s1-root .s1-ch { display: inline-block; width: 21px; text-align: center; opacity: 0; }
+        #s1-root .s1-ch.s1-vn { font-family: "Be Vietnam Pro", sans-serif; font-weight: 700; }
+        #s1-caret { position: absolute; left: 0; top: 4px; width: 14px; height: 32px; background: var(--ink2); opacity: 0; }
+        #s1-rule {
+          position: absolute; left: 72px; right: 72px; top: 266px; height: 1px;
+          background: linear-gradient(90deg, var(--line), rgba(255, 255, 255, 0.16), var(--line));
+          transform-origin: 0 50%; opacity: 0;
+        }
+        #s1-chip5 {
+          position: absolute; right: 72px; top: 290px; padding: 10px 22px; border-radius: 999px;
+          background: var(--s3); border: 1px solid var(--line); box-shadow: inset 0 1px 0 var(--hi);
+          font-family: "JetBrains Mono", monospace; font-size: 26px; letter-spacing: 0.12em; color: var(--ink2);
+          opacity: 0; white-space: nowrap;
+        }
+        #s1-chip5 b { color: var(--ink); font-weight: 800; }
+
+        /* ---- brackets framing the big number ---- */
+        #s1-root .s1-brk { position: absolute; width: 44px; height: 44px; border: 0 solid var(--ink3); opacity: 0.9; }
+        #s1-brk-0 { left: 96px; top: 486px; border-top-width: 2px !important; border-left-width: 2px !important; }
+        #s1-brk-1 { left: 940px; top: 486px; border-top-width: 2px !important; border-right-width: 2px !important; }
+        #s1-brk-2 { left: 96px; top: 950px; border-bottom-width: 2px !important; border-left-width: 2px !important; }
+        #s1-brk-3 { left: 940px; top: 950px; border-bottom-width: 2px !important; border-right-width: 2px !important; }
+
+        /* ---- big number group ---- */
+        #s1-numg {
+          position: absolute; left: 0; right: 0; top: 500px; height: 480px;
+          display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px;
+        }
+        #s1-star { width: 84px; height: 84px; opacity: 0; }
+        #s1-star path { fill: var(--ink); }
+        #s1-numwrap { position: relative; overflow: hidden; padding: 30px 40px; }
+        #s1-num {
+          font-weight: 800; font-size: 220px; line-height: 1; letter-spacing: -0.04em;
+          font-variant-numeric: tabular-nums; color: var(--accent);
+          text-shadow: 0 0 28px var(--accent-glow); opacity: 0;
+        }
+        #s1-numsheen {
+          position: absolute; top: 0; bottom: 0; left: 0; width: 45%; mix-blend-mode: overlay; opacity: 0; display: none; /* removed: overlay blend renders as a white bar inside transformed parents */
+          background: linear-gradient(100deg, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0));
+        }
+        #s1-sub {
+          font-weight: 700; font-size: 34px; letter-spacing: 0.12em; color: var(--ink2); opacity: 0; white-space: nowrap;
+        }
+
+        /* ---- rank tags (#1 .. #5), rise from a mask ---- */
+        #s1-root .s1-tagm { position: absolute; left: 72px; width: 150px; height: 112px; overflow: hidden; }
+        #s1-root .s1-tag {
+          height: 112px; line-height: 112px; text-align: center; font-weight: 800; font-size: 96px; letter-spacing: -0.04em;
+          background: linear-gradient(180deg, #ffffff 10%, var(--ink3) 95%);
+          -webkit-background-clip: text; background-clip: text; color: transparent;
+        }
+
+        /* ---- repo cards ---- */
+        #s1-root .s1-card {
+          position: absolute; left: 160px; top: 920px; width: 760px; height: 120px; border-radius: 28px; overflow: hidden;
+          background: var(--s2); border: 1px solid var(--line);
+          box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5), inset 0 1px 0 var(--hi); opacity: 0;
+        }
+        #s1-root .s1-card-in {
+          display: flex; align-items: center; gap: 18px; height: 100%; padding: 0 34px; box-sizing: border-box;
+          font-family: "JetBrains Mono", monospace; font-size: 30px; white-space: nowrap;
+        }
+        #s1-root .s1-card-in svg { width: 34px; height: 34px; flex: none; }
+        #s1-root .s1-card-in svg path { fill: none; stroke: var(--ink3); stroke-width: 1.8; stroke-linejoin: round; }
+        #s1-root .s1-own { color: var(--ink2); }
+        #s1-root .s1-repo { color: var(--ink); margin-left: -18px; font-weight: 600; }
+        #s1-root .s1-sheen {
+          position: absolute; top: 0; bottom: 0; left: 0; width: 50%; pointer-events: none;
+          background: linear-gradient(100deg, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0));
+        }
+        #s1-card-0 { z-index: 5; } #s1-card-1 { z-index: 4; } #s1-card-2 { z-index: 3; } #s1-card-3 { z-index: 2; } #s1-card-4 { z-index: 1; }
+        #s1-cards { position: absolute; inset: 0; }
+
+        /* ---- star-count chips ejected from the stack into the number ---- */
+        #s1-root .s1-ej {
+          position: absolute; left: 540px; top: 1210px; padding: 8px 18px; border-radius: 999px; z-index: 8;
+          background: var(--s3); border: 1px solid var(--line); box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
+          font-family: "JetBrains Mono", monospace; font-size: 30px; color: var(--ink2); white-space: nowrap; opacity: 0;
+        }
+
+        /* ---- list scan light ---- */
+        #s1-scan {
+          position: absolute; left: 72px; right: 72px; top: 0; height: 160px; opacity: 0; z-index: 9; pointer-events: none;
+          background: linear-gradient(180deg, rgba(255, 255, 255, 0), rgba(200, 215, 255, 0.08), rgba(255, 255, 255, 0));
+        }
+      </style>
+
+      <div id="s1-root" data-composition-id="s1" data-width="1080" data-height="1920">
+        <div id="s1-cam">
+          <div id="s1-stage">
+            <div id="s1-env"></div>
+            <div id="s1-sweep"></div>
+
+            <div id="s1-ico">G</div>
+            <div id="s1-label"><span id="s1-caret"></span></div>
+            <div id="s1-rule"></div>
+            <div id="s1-chip5"><b>5</b> REPO · AI</div>
+
+            <div id="s1-brk-0" class="s1-brk"></div>
+            <div id="s1-brk-1" class="s1-brk"></div>
+            <div id="s1-brk-2" class="s1-brk"></div>
+            <div id="s1-brk-3" class="s1-brk"></div>
+
+            <div id="s1-flow"></div>
+
+            <div id="s1-numg">
+              <svg id="s1-star" viewBox="0 0 24 24"><path d="M12 2.5l2.9 6.1 6.6.8-4.9 4.6 1.3 6.6L12 17.3l-5.9 3.3 1.3-6.6-4.9-4.6 6.6-.8z" /></svg>
+              <div id="s1-numwrap"><div id="s1-num">0</div><div id="s1-numsheen"></div></div>
+              <div id="s1-sub">SAO MỚI TRONG TUẦN</div>
+            </div>
+
+            <div id="s1-tagm-0" class="s1-tagm" style="top: 584px"><div class="s1-tag">#1</div></div>
+            <div id="s1-tagm-1" class="s1-tagm" style="top: 748px"><div class="s1-tag">#2</div></div>
+            <div id="s1-tagm-2" class="s1-tagm" style="top: 912px"><div class="s1-tag">#3</div></div>
+            <div id="s1-tagm-3" class="s1-tagm" style="top: 1076px"><div class="s1-tag">#4</div></div>
+            <div id="s1-tagm-4" class="s1-tagm" style="top: 1240px"><div class="s1-tag">#5</div></div>
+
+            <div id="s1-cards">
+              <div id="s1-card-0" class="s1-card">
+                <div class="s1-card-in"><svg viewBox="0 0 24 24"><path d="M5 19.5V5a2 2 0 0 1 2-2h12v15H7a2 2 0 0 0-2 2 2 2 0 0 0 2 2h12v-4" /></svg><span class="s1-own">DietrichGebert/</span><span class="s1-repo">ponytail</span></div>
+                <div class="s1-sheen"></div>
+              </div>
+              <div id="s1-card-1" class="s1-card">
+                <div class="s1-card-in"><svg viewBox="0 0 24 24"><path d="M5 19.5V5a2 2 0 0 1 2-2h12v15H7a2 2 0 0 0-2 2 2 2 0 0 0 2 2h12v-4" /></svg><span class="s1-own">Panniantong/</span><span class="s1-repo">Agent-Reach</span></div>
+                <div class="s1-sheen"></div>
+              </div>
+              <div id="s1-card-2" class="s1-card">
+                <div class="s1-card-in"><svg viewBox="0 0 24 24"><path d="M5 19.5V5a2 2 0 0 1 2-2h12v15H7a2 2 0 0 0-2 2 2 2 0 0 0 2 2h12v-4" /></svg><span class="s1-own">tester-army/</span><span class="s1-repo">e2e</span></div>
+                <div class="s1-sheen"></div>
+              </div>
+              <div id="s1-card-3" class="s1-card">
+                <div class="s1-card-in"><svg viewBox="0 0 24 24"><path d="M5 19.5V5a2 2 0 0 1 2-2h12v15H7a2 2 0 0 0-2 2 2 2 0 0 0 2 2h12v-4" /></svg><span class="s1-own">heygen-com/</span><span class="s1-repo">hyperframes</span></div>
+                <div class="s1-sheen"></div>
+              </div>
+              <div id="s1-card-4" class="s1-card">
+                <div class="s1-card-in"><svg viewBox="0 0 24 24"><path d="M5 19.5V5a2 2 0 0 1 2-2h12v15H7a2 2 0 0 0-2 2 2 2 0 0 0 2 2h12v-4" /></svg><span class="s1-own">anthropics/</span><span class="s1-repo">knowledge-work-plugins</span></div>
+                <div class="s1-sheen"></div>
+              </div>
+            </div>
+
+            <div id="s1-ej-0" class="s1-ej">+8.319</div>
+            <div id="s1-ej-1" class="s1-ej">+7.084</div>
+            <div id="s1-ej-2" class="s1-ej">+6.566</div>
+            <div id="s1-ej-3" class="s1-ej">+4.003</div>
+            <div id="s1-ej-4" class="s1-ej">+2.601</div>
+
+            <div id="s1-scan"></div>
+          </div>
+        </div>
+      </div>
+
+      <script>
+        (() => {
+          const ID = "s1";
+          // A(key) = local time (s) of an anchor from timeline.json; never hard-code word times.
+          const A = (key) => window.__vv.local(ID, key);
+          const root = document.getElementById("s1-root");
+          const $ = (s) => root.querySelector(s);
+          const sc = window.__vv.scenes[ID];
+          const D = sc.end - sc.start;
+
+          // Music grid: 104 BPM counted from video t=0, returned as local scene times.
+          const BEAT = 60 / 104, S = window.__vv.scenes[ID].start;
+          const beats = (from, to) => { const o = []; for (let k = Math.ceil((S + from) / BEAT); k * BEAT - S <= to; k++) o.push(k * BEAT - S); return o; };
+          const HB = BEAT / 2;
+          const qb = (t) => Math.round((t + S) / HB) * HB - S; // snap to half-beat
+
+          // Deterministic hash in [0,1), seeded by index.
+          const hash = (n) => { const s = Math.sin(n * 127.1 + 311.7) * 43758.5453; return s - Math.floor(s); };
+          // Vietnamese thousands separator: 28573 -> "28.573".
+          const fmt = (n) => { const s = String(Math.round(n)); let o = ""; for (let i = 0; i < s.length; i++) { if (i > 0 && (s.length - i) % 3 === 0) o += "."; o += s[i]; } return o; };
+          const COLS = ["var(--c1)", "var(--c2)", "var(--c3)"];
+
+          const tGit = A("github"), tNam = A("nam"), tSao = A("sao"), tXem = A("xem"), tCv = A("cv");
+          const tEnd = D - 0.3; // CRT-off window
+
+          // ---------- build typed label (fixed 21px cells so the caret can follow) ----------
+          const CW = 21;
+          const lab = $("#s1-label");
+          const caret = $("#s1-caret");
+          const segs = [["GITHUB TRENDING · ", false], ["TUẦN", true], [" 03 → 10/10/2026", false]];
+          const chars = [];
+          segs.forEach(([txt, vn]) => {
+            for (const ch of txt) {
+              const sp = document.createElement("span");
+              sp.className = "s1-ch" + (vn ? " s1-vn" : "");
+              sp.textContent = ch === " " ? " " : ch;
+              lab.appendChild(sp);
+              chars.push(sp);
+            }
+          });
+
+          // ---------- build packets ----------
+          const mkPacket = (parent, color, len, d) => {
+            const el = document.createElement("div");
+            el.className = "s1-pk";
+            el.style.width = len + "px";
+            el.style.height = d + "px";
+            el.style.left = -len + "px";
+            el.style.marginTop = -d / 2 + "px";
+            el.style.setProperty("--pc", color);
+            el.style.setProperty("--d", d + "px");
+            parent.appendChild(el);
+            return el;
+          };
+
+          const tl = gsap.timeline({ paused: true });
+          const cam = $("#s1-cam"), stage = $("#s1-stage");
+
+          // ---------- camera + stage entry ----------
+          tl.fromTo(cam, { scale: 1 }, { scale: 1.05, duration: D, ease: "none" }, 0);
+          tl.fromTo(stage, { scale: 1.12, opacity: 0, filter: "blur(8px) brightness(1)" },
+            { scale: 1, opacity: 1, filter: "blur(0px) brightness(1)", duration: 0.4, ease: "power3.out" }, 0);
+          // light sweep out of darkness
+          tl.fromTo("#s1-sweep", { x: -520, skewX: -14, opacity: 0 }, { x: 1180, skewX: -14, opacity: 1, duration: 0.9, ease: "power2.inOut" }, 0.02);
+          tl.to("#s1-sweep", { opacity: 0, duration: 0.15 }, 0.8);
+
+          // ---------- layer 3: environment packets, straight along the 48px grid ----------
+          const env = $("#s1-env");
+          for (let j = 0; j < 18; j++) {
+            for (let r = 0; r < 3; r++) {
+              const n = j * 7 + r * 131 + 3;
+              const t = Math.max(0.2, qb(0.15 + r * 2.9 + hash(n + 5) * 2.4));
+              let dur = 1.5 + hash(n + 4) * 1.0;
+              dur = Math.min(dur, tEnd - t);
+              if (dur < 0.6) continue;
+              const vert = hash(n + 1) < 0.4;
+              let dir = hash(n + 2) < 0.5 ? 1 : -1;
+              const len = 48 * (6 + Math.floor(hash(n + 3) * 6));
+              const tail = 50 + Math.floor(hash(n + 8) * 40);
+              const d = 6 + Math.floor(hash(n + 9) * 5);
+              const el = mkPacket(env, COLS[(j + r) % 3], tail, d);
+              let xs, ys, xe, ye, rot;
+              if (vert) {
+                xs = xe = 12 + 48 * (1 + Math.floor(hash(n + 6) * 21));
+                ys = 48 * (4 + Math.floor(hash(n + 7) * 26));
+                if (ys + dir * len > 1584 || ys + dir * len < 96) dir = -dir;
+                ye = ys + dir * len;
+                rot = dir > 0 ? 90 : -90;
+              } else {
+                ys = ye = 48 * (5 + Math.floor(hash(n + 6) * 27));
+                xs = 12 + 48 * Math.floor(hash(n + 7) * 22);
+                xe = xs + dir * len;
+                rot = dir > 0 ? 0 : 180;
+              }
+              tl.fromTo(el, { x: xs, y: ys, rotation: rot }, { x: xe, y: ye, rotation: rot, duration: dur, ease: "none" }, t);
+              tl.to(el, { opacity: 1, duration: 0.15 }, t);
+              tl.to(el, { opacity: 0, duration: 0.2 }, t + dur - 0.2);
+            }
+          }
+
+          // ---------- sentence 1a: typed header ----------
+          const T0 = 0.42, DT = 0.026;
+          tl.set(caret, { opacity: 1 }, T0 - 0.06);
+          chars.forEach((c, k) => {
+            tl.set(c, { opacity: 1 }, T0 + k * DT);
+            tl.set(caret, { x: (k + 1) * CW + 3 }, T0 + k * DT);
+          });
+          // caret blinks on the beat for the whole scene (finite)
+          beats(T0 + chars.length * DT + 0.05, tEnd - 0.05).forEach((b) => {
+            tl.set(caret, { opacity: 1 }, b);
+            tl.set(caret, { opacity: 0 }, b + HB);
+          });
+          // "GitHub" spoken: square glyph pops, GITHUB letters hop
+          tl.fromTo("#s1-ico", { scale: 0, rotation: -90, opacity: 0 }, { scale: 1, rotation: 0, opacity: 1, duration: 0.32, ease: "back.out(1.8)" }, tGit - 0.08);
+          tl.fromTo(chars.slice(0, 6), { y: 0 }, { y: -10, duration: 0.09, yoyo: true, repeat: 1, ease: "power2.out", stagger: 0.03 }, tGit);
+          tl.fromTo("#s1-rule", { scaleX: 0, opacity: 0 }, { scaleX: 1, opacity: 1, duration: 0.5, ease: "power3.out" }, T0 + chars.length * DT - 0.1);
+
+          // ---------- sentence 1b: five repo cards fly in on curves, fan, then stack ----------
+          tl.fromTo("#s1-chip5", { scale: 0, rotation: -8, opacity: 0 }, { scale: 1, rotation: 0, opacity: 1, duration: 0.3, ease: "back.out(1.8)" }, tNam);
+          beats(tNam + 0.4, tXem - 0.1).forEach((b) => {
+            tl.to("#s1-chip5", { scale: 1.04, duration: 0.08, ease: "power2.out" }, b);
+            tl.to("#s1-chip5", { scale: 1, duration: 0.2, ease: "power2.out" }, b + 0.08);
+          });
+
+          const cards = [0, 1, 2, 3, 4].map((i) => $("#s1-card-" + i));
+          const sheens = cards.map((c) => c.querySelector(".s1-sheen"));
+          const sheenPass = (i, t, first) => {
+            tl.fromTo(sheens[i], { xPercent: -100 }, { xPercent: 220, duration: 0.55, ease: "power2.inOut", immediateRender: !!first }, t);
+          };
+          const fan = (i) => ({ x: (i - 2) * 16, y: (i - 2) * 104 - 40, r: (i - 2) * 2.5 });
+          cards.forEach((c, i) => {
+            const f = fan(i);
+            const side = i % 2 === 0 ? -1 : 1;
+            const t = tNam - 0.12 + i * 0.1;
+            tl.fromTo(c, { opacity: 0 }, { opacity: 1, duration: 0.15, ease: "none" }, t);
+            tl.fromTo(c, { x: side * 1100 }, { x: f.x, duration: 0.6, ease: "power3.out" }, t);
+            tl.fromTo(c, { y: f.y + 420 }, { y: f.y, duration: 0.72, ease: "back.out(1.4)" }, t);
+            tl.fromTo(c, { rotation: side * 28 }, { rotation: f.r, duration: 0.72, ease: "back.out(1.6)" }, t);
+            sheenPass(i, t + 0.42, true);
+          });
+          // collapse into a stack, landing on the beat
+          const bStack = beats(3.1, 4.0)[0];
+          const jit = [-2, 1.5, -1, 2, -1.5];
+          cards.forEach((c, i) => {
+            tl.to(c, { x: 0, y: 320 + i * 12, rotation: jit[i], scale: 1 - i * 0.035, duration: 0.32, ease: "back.out(1.3)" }, bStack - 0.3 + (4 - i) * 0.02);
+          });
+
+          // ---------- sentence 1c: 28.573 counts up, chips + data stream pour into it ----------
+          tl.fromTo("#s1-star", { y: -80, opacity: 0 }, { y: 0, opacity: 1, duration: 0.35, ease: "back.out(2.2)" }, tSao - 0.02);
+          tl.fromTo("#s1-num", { scale: 0.6, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.32, ease: "back.out(1.4)" }, tSao - 0.06);
+          const counter = { v: 0 };
+          const numEl = $("#s1-num");
+          tl.fromTo(counter, { v: 0 }, { v: 28573, duration: 1.3, ease: "power3.out", onUpdate: () => { numEl.textContent = fmt(counter.v); } }, tSao);
+          // sheen is only visible while it travels; hidden before, between and after the two passes
+          tl.fromTo("#s1-numsheen", { xPercent: -110, opacity: 1 }, { xPercent: 240, opacity: 1, duration: 0.6, ease: "power2.inOut" }, tSao + 0.1);
+          tl.set("#s1-numsheen", { opacity: 0 }, tSao + 0.7);
+          tl.fromTo("#s1-numsheen", { xPercent: -110, opacity: 1 }, { xPercent: 240, opacity: 1, duration: 0.5, ease: "power2.inOut", immediateRender: false }, tSao + 1.3);
+          tl.set("#s1-numsheen", { opacity: 0 }, tSao + 1.8);
+          tl.fromTo("#s1-sub", { y: 30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.3, ease: "back.out(1.4)" }, tSao + 0.95);
+          // brackets draw in from their corners
+          const brkOrigins = ["0% 0%", "100% 0%", "0% 100%", "100% 100%"];
+          brkOrigins.forEach((o, k) => {
+            tl.fromTo("#s1-brk-" + k, { scale: 0, transformOrigin: o }, { scale: 1, transformOrigin: o, duration: 0.25, ease: "back.out(1.6)" }, tSao + 0.05 + k * 0.05);
+          });
+          // star-count chips ejected from the stack, curved flight, shrink to a point inside the number
+          [0, 1, 2, 3, 4].forEach((i) => {
+            const ch = $("#s1-ej-" + i);
+            const t0 = tSao + i * 0.12;
+            tl.fromTo(ch, { xPercent: -50, x: (i - 2) * 150, y: 0, scale: 0.4, opacity: 0 },
+              { xPercent: -50, scale: 1, opacity: 1, duration: 0.18, ease: "back.out(1.6)" }, t0);
+            tl.to(ch, { x: 0, duration: 0.5, ease: "power2.in" }, t0 + 0.15);
+            tl.to(ch, { y: -476, duration: 0.5, ease: "power2.out" }, t0 + 0.15);
+            tl.to(ch, { scale: 0, opacity: 0, duration: 0.12, ease: "power2.in" }, t0 + 0.6);
+            // the card the chip came from kicks
+            tl.to(cards[i], { y: "-=14", duration: 0.08, ease: "power2.out" }, t0);
+            tl.to(cards[i], { y: "+=14", duration: 0.2, ease: "back.out(2)" }, t0 + 0.08);
+          });
+          // data dots run straight along grid lines into the number
+          const flow = $("#s1-flow");
+          const lanes = [
+            { xs: -60, ys: 672, xe: 156, ye: 672, rot: 0 },
+            { xs: 1140, ys: 720, xe: 924, ye: 720, rot: 180 },
+            { xs: -150, ys: 768, xe: 156, ye: 768, rot: 0 },
+            { xs: 444, ys: 300, xe: 444, ye: 508, rot: 90 },
+            { xs: 1230, ys: 816, xe: 924, ye: 816, rot: 180 },
+            { xs: -100, ys: 816, xe: 156, ye: 816, rot: 0 },
+            { xs: 636, ys: 340, xe: 636, ye: 508, rot: 90 },
+            { xs: 1180, ys: 672, xe: 924, ye: 672, rot: 180 },
+          ];
+          lanes.forEach((L, k) => {
+            const el = mkPacket(flow, COLS[k % 3], 70, 8);
+            const t = tSao - 0.25 + k * 0.09;
+            tl.fromTo(el, { x: L.xs, y: L.ys, rotation: L.rot, scale: 1 }, { x: L.xe, y: L.ye, rotation: L.rot, duration: 0.55, ease: "power2.in" }, t);
+            tl.to(el, { opacity: 1, duration: 0.1 }, t);
+            tl.to(el, { scale: 0, opacity: 0, duration: 0.1, ease: "power2.in" }, t + 0.55);
+          });
+          // beat accents
+          beats(tSao + 0.25, tXem - 0.1).forEach((b) => {
+            tl.to("#s1-star", { scale: 1.12, duration: 0.08, ease: "power2.out" }, b);
+            tl.to("#s1-star", { scale: 1, duration: 0.2, ease: "power2.out" }, b + 0.08);
+          });
+          beats(tSao + 1.35, tXem - 0.1).forEach((b) => {
+            tl.to("#s1-num", { scale: 1.04, duration: 0.08, ease: "power2.out" }, b);
+            tl.to("#s1-num", { scale: 1, duration: 0.22, ease: "power2.out" }, b + 0.08);
+          });
+
+          // ---------- sentence 2: whip, number up, cards split into list #1..#5 (dim, ready) ----------
+          tl.fromTo(cam, { y: 0 }, { y: -46, duration: 0.1, ease: "power2.in" }, tXem - 0.06);
+          tl.to(cam, { y: 0, duration: 0.3, ease: "back.out(1.6)" }, tXem + 0.04);
+          tl.to(stage, { filter: "blur(4px) brightness(1)", duration: 0.1, ease: "power2.in" }, tXem - 0.06);
+          tl.to(stage, { filter: "blur(0px) brightness(1)", duration: 0.22, ease: "power2.out" }, tXem + 0.04);
+          tl.fromTo("#s1-numg", { scale: 1, y: 0 }, { scale: 0.45, y: -340, duration: 0.45, ease: "back.out(1.2)" }, tXem - 0.04);
+          brkOrigins.forEach((o, k) => {
+            tl.to("#s1-brk-" + k, { scale: 0, duration: 0.16, ease: "power2.in" }, tXem - 0.05 + k * 0.05);
+          });
+          const rowC = [640, 804, 968, 1132, 1296];
+          cards.forEach((c, i) => {
+            const t = tXem + i * 0.06;
+            tl.to(c, { x: 72, duration: 0.45, ease: "power2.out" }, t);
+            tl.to(c, { y: rowC[i] - 980, duration: 0.5, ease: "back.out(1.3)" }, t);
+            tl.to(c, { rotation: 0, scale: 1, duration: 0.4, ease: "power2.out" }, t);
+            sheenPass(i, t + 0.35, false);
+          });
+          const tagMasks = [0, 1, 2, 3, 4].map((i) => $("#s1-tagm-" + i));
+          const tags = tagMasks.map((m) => m.querySelector(".s1-tag"));
+          tags.forEach((g, i) => {
+            tl.fromTo(g, { y: 112 }, { y: 0, duration: 0.32, ease: "back.out(1.4)" }, tXem + 0.3 + i * 0.07);
+          });
+          // dim to "ready"
+          [...cards, ...tagMasks].forEach((el) => tl.to(el, { opacity: 0.45, duration: 0.3, ease: "power2.out" }, tXem + 0.85));
+          // number group keeps pulsing on the beat
+          beats(tXem + 0.6, tEnd - 0.05).forEach((b) => {
+            tl.to("#s1-numg", { scale: 0.468, duration: 0.08, ease: "power2.out" }, b);
+            tl.to("#s1-numg", { scale: 0.45, duration: 0.22, ease: "power2.out" }, b + 0.08);
+          });
+          beats(tXem + 1.1, tCv + 0.5).forEach((b) => {
+            tags.forEach((g, i) => {
+              tl.to(g, { scale: 1.05, duration: 0.08, ease: "power2.out" }, b + i * 0.04);
+              tl.to(g, { scale: 1, duration: 0.2, ease: "power2.out" }, b + i * 0.04 + 0.08);
+            });
+          });
+          // "công việc của bạn": a scan light reads the list row by row
+          tl.fromTo("#s1-scan", { y: 520, opacity: 0 }, { y: 1400, duration: 0.9, ease: "power1.inOut" }, tCv);
+          tl.to("#s1-scan", { opacity: 1, duration: 0.1 }, tCv);
+          tl.to("#s1-scan", { opacity: 0, duration: 0.12 }, tCv + 0.78);
+          cards.forEach((c, i) => {
+            const t = tCv + 0.05 + i * 0.13;
+            tl.to([c, tagMasks[i]], { opacity: 0.85, duration: 0.12, ease: "power2.out" }, t);
+            tl.to([c, tagMasks[i]], { opacity: 0.45, duration: 0.3, ease: "power2.out" }, t + 0.14);
+          });
+          // #1 steps forward on the next beat: hand-off to scene s2 (Ponytail)
+          const bNext = beats(tCv + 0.75, tEnd - 0.1)[0];
+          if (bNext !== undefined) {
+            tl.to([cards[0], tagMasks[0]], { opacity: 1, duration: 0.2, ease: "power2.out" }, bNext);
+            tl.to(cards[0], { x: 88, duration: 0.25, ease: "back.out(1.6)" }, bNext);
+            sheenPass(0, bNext, false);
+          }
+
+          // ---------- exit: CRT-off of the whole stage in the last 0.3 s ----------
+          tl.to(stage, { scaleY: 0.02, filter: "blur(0px) brightness(2.2)", duration: 0.14, ease: "power3.in" }, tEnd);
+          tl.to(stage, { scaleX: 0, duration: 0.12, ease: "power3.in" }, tEnd + 0.15);
+          tl.to(stage, { opacity: 0, duration: 0.03 }, tEnd + 0.27);
+
+          window.__timelines[ID] = tl;
+        })();
+      </script>
+    </template>
+  </body>
+</html>

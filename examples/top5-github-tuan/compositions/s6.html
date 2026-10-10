@@ -1,0 +1,534 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <!-- Scene s6: #5 knowledge-work-plugins. Runtime keeps only <template>; style, markup and script live inside it. -->
+  </head>
+  <body>
+    <template>
+      <style>
+        /* Each scene declares its fonts (HyperFrames lint: font_family_without_font_face). Paths are relative to index.html. */
+        @font-face { font-family: "Be Vietnam Pro"; src: url("fonts/BeVietnamPro-Regular.ttf"); font-weight: 400; }
+        @font-face { font-family: "Be Vietnam Pro"; src: url("fonts/BeVietnamPro-Medium.ttf"); font-weight: 500; }
+        @font-face { font-family: "Be Vietnam Pro"; src: url("fonts/BeVietnamPro-Bold.ttf"); font-weight: 700; }
+        @font-face { font-family: "Be Vietnam Pro"; src: url("fonts/BeVietnamPro-ExtraBold.ttf"); font-weight: 800; }
+        @font-face { font-family: "JetBrains Mono"; src: url("fonts/JetBrainsMono-Variable.ttf"); font-weight: 100 800; }
+
+        #s6-root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          background: transparent;
+          color: var(--ink);
+          font-family: "Be Vietnam Pro", sans-serif;
+        }
+        #s6-root .mono { font-family: "JetBrains Mono", monospace; }
+
+        /* ---------- layers ---------- */
+        #s6-env { position: absolute; inset: 0; z-index: 1; opacity: 0.8; filter: saturate(0.55); transform-origin: 50% 50%; }
+        #s6-cam { position: absolute; inset: 0; z-index: 2; transform-origin: 50% 50%; }
+        #s6-stage { position: absolute; inset: 0; transform-origin: 50% 50%; }
+        #s6-crt { position: absolute; left: 0; top: 959px; width: 1080px; height: 3px; z-index: 3; opacity: 0;
+          background: var(--ink); box-shadow: 0 0 24px var(--ink); transform-origin: 50% 50%; }
+
+        /* environment data packets (built in script) */
+        #s6-root .pk { position: absolute; left: 0; top: 0; width: 0; height: 0; }
+        #s6-root .pk-r { position: absolute; }
+        #s6-root .pk-t { position: absolute; left: 0; height: 2px; border-radius: 2px; }
+        #s6-root .pk-d { position: absolute; top: 0; border-radius: 50%; }
+
+        /* ---------- part 1: rank head ---------- */
+        #s6-head { position: absolute; left: 72px; top: 480px; width: 936px; height: 280px; transform-origin: 50% 50%; }
+        #s6-badge { position: absolute; left: 0; top: 0; width: 370px; height: 280px; overflow: hidden; }
+        #s6-badge-in { position: absolute; inset: 0; }
+        #s6-root .bdg { position: absolute; left: 0; top: 0; font-size: 260px; font-weight: 800; line-height: 280px;
+          letter-spacing: -0.04em; white-space: nowrap; }
+        #s6-root .bdg-base { background: linear-gradient(180deg, var(--ink) 18%, var(--ink3) 96%);
+          -webkit-background-clip: text; background-clip: text; color: transparent; }
+        #s6-root .bdg-sw { background: linear-gradient(100deg, rgba(255, 255, 255, 0) 42%, rgba(255, 255, 255, 0.95) 50%, rgba(255, 255, 255, 0) 58%);
+          background-size: 300% 100%; background-repeat: no-repeat; background-position: 100% 0;
+          -webkit-background-clip: text; background-clip: text; color: transparent; }
+        #s6-col { position: absolute; left: 384px; top: 0; width: 552px; height: 280px; }
+        #s6-rank { position: absolute; left: 0; top: 46px; font-size: 24px; font-weight: 700; letter-spacing: 0.12em;
+          text-transform: uppercase; color: var(--ink3); white-space: nowrap; }
+        #s6-title { position: absolute; left: 0; top: 88px; font-size: 54px; font-weight: 800; letter-spacing: -0.02em;
+          line-height: 1.2; color: var(--ink); white-space: nowrap; }
+        #s6-owner { position: absolute; left: 0; top: 184px; height: 56px; padding: 0 24px 0 8px; border-radius: 28px;
+          display: flex; align-items: center; gap: 12px; background: var(--s3); border: 1px solid var(--line);
+          box-shadow: inset 0 1px 0 var(--hi); transform-origin: 0% 50%; }
+        #s6-root .ow-sq { width: 40px; height: 40px; border-radius: 10px; background: var(--ink); color: var(--bg);
+          font-size: 22px; font-weight: 800; display: flex; align-items: center; justify-content: center; }
+        #s6-root .ow-tx { font-size: 26px; font-weight: 700; color: var(--ink2); }
+
+        /* rail with a running packet */
+        #s6-railw { position: absolute; left: 72px; top: 800px; width: 936px; height: 20px; }
+        #s6-root .rail-line { position: absolute; left: 0; right: 0; top: 9px; height: 2px; background: var(--line); }
+        #s6-root .rail-ticks { position: absolute; left: 0; right: 0; top: 4px; height: 12px;
+          background: repeating-linear-gradient(90deg, var(--ink3) 0 2px, transparent 2px 48px); background-position: 36px 0; opacity: 0.5; }
+        #s6-raildot { position: absolute; left: 0; top: 10px; width: 0; height: 0; filter: saturate(0.6); }
+        #s6-root .rd-t { position: absolute; left: -96px; top: -1px; width: 96px; height: 2px;
+          background: linear-gradient(90deg, rgba(0, 0, 0, 0), var(--c1)); }
+        #s6-root .rd-d { position: absolute; left: -5px; top: -5px; width: 10px; height: 10px; border-radius: 50%;
+          background: var(--c1); box-shadow: 0 0 14px var(--c1); }
+
+        /* ---------- repo card ---------- */
+        #s6-card { position: absolute; left: 72px; top: 860px; width: 936px; height: 330px; border-radius: 28px;
+          background: var(--s2); border: 1px solid var(--line);
+          box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5), inset 0 1px 0 var(--hi); transform-origin: 50% 0%; }
+        #s6-root .card-clip { position: absolute; inset: 0; border-radius: 28px; overflow: hidden; }
+        #s6-csweep { position: absolute; top: -40px; bottom: -40px; left: 0; width: 260px;
+          background: linear-gradient(100deg, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.11), rgba(255, 255, 255, 0)); }
+        #s6-root .card-bar { position: absolute; left: 40px; right: 40px; top: 36px; height: 48px; display: flex;
+          align-items: center; gap: 16px; white-space: nowrap; }
+        #s6-root .card-bar svg { width: 36px; height: 36px; fill: none; stroke: var(--ink2); stroke-width: 2.4;
+          stroke-linecap: round; stroke-linejoin: round; flex: none; }
+        #s6-root .card-name { font-size: 32px; line-height: 48px; }
+        #s6-root .card-own { color: var(--ink2); }
+        #s6-repo { display: inline-block; color: var(--ink); font-weight: 600; }
+        #s6-root .card-sep { position: absolute; left: 40px; right: 40px; top: 108px; height: 1px; background: var(--line); }
+        #s6-root .card-desc { position: absolute; left: 40px; top: 130px; font-size: 34px; font-weight: 500; color: var(--ink2);
+          line-height: 48px; white-space: nowrap; }
+        #s6-root .card-stats { position: absolute; left: 40px; right: 40px; bottom: 34px; height: 80px; display: flex;
+          align-items: center; justify-content: space-between; }
+        #s6-root .st-tot { display: flex; align-items: center; gap: 16px; }
+        #s6-stico { width: 48px; height: 48px; color: var(--ink2); }
+        #s6-stico svg { width: 48px; height: 48px; fill: currentColor; display: block; }
+        #s6-total { font-size: 64px; font-weight: 800; letter-spacing: -0.04em; color: var(--ink); line-height: 1;
+          font-variant-numeric: tabular-nums; }
+        #s6-chip { position: relative; height: 64px; padding: 0 26px; border-radius: 32px; display: flex; align-items: center;
+          gap: 12px; background: var(--s3); border: 1px solid var(--line); box-shadow: inset 0 1px 0 var(--hi); }
+        #s6-chipn { display: inline-block; min-width: 6ch; text-align: right; font-size: 32px; font-weight: 700;
+          color: var(--accent); text-shadow: 0 0 28px var(--accent-glow); }
+        #s6-root .chip-tx { font-size: 28px; font-weight: 500; color: var(--ink2); white-space: nowrap; }
+        #s6-root .spk-c { position: absolute; left: 50%; top: 50%; width: 0; height: 0; }
+        #s6-root .spk { position: absolute; left: -9px; top: -9px; width: 18px; height: 18px; }
+        #s6-root .spk svg { width: 18px; height: 18px; fill: var(--ink); display: block; }
+
+        /* ---------- part 2: plugin grid ---------- */
+        #s6-ghead { position: absolute; left: 72px; top: 512px; width: 936px; height: 64px; }
+        #s6-cnt { position: absolute; left: 0; top: 0; height: 64px; display: flex; align-items: baseline; gap: 14px; }
+        #s6-cntn { display: inline-block; font-size: 52px; font-weight: 800; letter-spacing: -0.04em; line-height: 64px;
+          color: var(--ink); font-variant-numeric: tabular-nums; transform-origin: 50% 60%; }
+        #s6-root .cnt-lb { font-size: 22px; font-weight: 600; letter-spacing: 0.12em; color: var(--ink3); }
+        #s6-cl { position: absolute; right: 0; top: 4px; height: 56px; display: flex; align-items: center; gap: 14px; }
+        #s6-root .cl-sq { width: 44px; height: 44px; border-radius: 12px; background: var(--s3); border: 1px solid var(--line);
+          box-shadow: inset 0 1px 0 var(--hi); display: flex; align-items: center; justify-content: center;
+          font-size: 24px; font-weight: 800; color: var(--ink); }
+        #s6-root .cl-name { font-size: 28px; font-weight: 700; color: var(--ink); }
+        #s6-root .cl-arw { position: relative; width: 100px; height: 20px; }
+        #s6-root .cl-arw svg { position: absolute; inset: 0; width: 100px; height: 20px; fill: none; stroke: var(--ink3);
+          stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+        #s6-cldot { position: absolute; left: 0; top: 6px; width: 8px; height: 8px; border-radius: 50%;
+          background: var(--c2); box-shadow: 0 0 12px var(--c2); filter: saturate(0.6); }
+        #s6-clto { display: inline-block; font-size: 28px; font-weight: 700; color: var(--ink); }
+
+        #s6-grid { position: absolute; left: 72px; top: 610px; width: 936px; height: 632px; }
+        #s6-root .tile { position: absolute; width: 216px; height: 196px; }
+        #s6-root .tile.key { z-index: 3; }
+        #s6-root .tile-s { position: absolute; inset: 0; }
+        #s6-root .tile-glow { position: absolute; inset: 0; border-radius: 24px; border: 1.5px solid var(--ink2); opacity: 0;
+          box-shadow: 0 0 48px rgba(255, 255, 255, 0.16), 0 24px 50px rgba(0, 0, 0, 0.55); }
+        #s6-root .tile-in { position: absolute; inset: 0; border-radius: 24px; background: var(--s2); border: 1px solid var(--line);
+          box-shadow: inset 0 1px 0 var(--hi), 0 18px 36px rgba(0, 0, 0, 0.4); overflow: hidden; }
+        #s6-root .tile-lit { position: absolute; inset: 0; background: linear-gradient(160deg, var(--s3), var(--s2)); opacity: 0; }
+        #s6-root .tile-sw { position: absolute; top: -20px; bottom: -20px; left: 0; width: 120px;
+          background: linear-gradient(100deg, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0)); }
+        #s6-root .tile-c { position: absolute; inset: 0; }
+        #s6-root .ico-w { position: absolute; left: 24px; top: 24px; width: 64px; height: 64px; color: var(--ink2); }
+        #s6-root .ico-w svg { width: 64px; height: 64px; display: block; fill: none; stroke: currentColor; stroke-width: 3;
+          stroke-linecap: round; stroke-linejoin: round; overflow: visible; }
+        #s6-root .ico-w svg .f { fill: currentColor; stroke: none; }
+        #s6-root .tile-lb { position: absolute; left: 24px; bottom: 22px; font-size: 20px; font-weight: 600;
+          letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink2); white-space: nowrap; }
+        #s6-root .tile-no { position: absolute; right: 20px; top: 24px; font-size: 16px; font-weight: 500;
+          letter-spacing: 0.12em; color: var(--ink3); }
+        #s6-root .tag-row { position: absolute; left: 0; right: 0; top: -26px; display: flex; justify-content: center; z-index: 4; }
+        #s6-root .tag { display: inline-block; padding: 6px 18px; border-radius: 999px; background: var(--ink); color: var(--bg);
+          font-size: 24px; font-weight: 700; line-height: 1.3; white-space: nowrap; box-shadow: 0 10px 24px rgba(0, 0, 0, 0.5); }
+
+        #s6-root .mk { position: absolute; width: 28px; height: 28px; }
+        #s6-root .mk::before, #s6-root .mk::after { content: ""; position: absolute; background: var(--ink3); }
+        #s6-root .mk::before { left: 13px; top: 0; width: 2px; height: 28px; }
+        #s6-root .mk::after { left: 0; top: 13px; width: 28px; height: 2px; }
+
+        /* ---------- no-code line ---------- */
+        #s6-coderow { position: absolute; left: 72px; top: 1286px; width: 936px; height: 80px; display: flex;
+          align-items: center; justify-content: center; }
+        #s6-code { position: relative; height: 72px; padding: 0 34px; border-radius: 36px; display: flex; align-items: center;
+          gap: 14px; background: var(--s3); border: 1px solid var(--line); box-shadow: inset 0 1px 0 var(--hi); transform-origin: 50% 50%; }
+        #s6-root .cd-g { font-size: 34px; font-weight: 700; color: var(--ink2); }
+        #s6-root .cd-t { font-size: 34px; font-weight: 500; color: var(--ink2); }
+        #s6-cdc { width: 3px; height: 36px; background: var(--ink2); }
+        #s6-strike { position: absolute; left: 18px; right: 18px; top: 34px; height: 4px; border-radius: 2px;
+          background: var(--ink); transform-origin: 0% 50%; }
+        #s6-hl { position: absolute; left: 72px; top: 1386px; width: 936px; text-align: center; font-size: 62px; font-weight: 800;
+          letter-spacing: -0.01em; color: var(--ink); white-space: nowrap; line-height: 1.25; }
+        #s6-root .w { display: inline-block; overflow: hidden; vertical-align: top; padding-top: 8px; }
+        #s6-root .wi { display: inline-block; }
+        #s6-hlbar { position: absolute; left: 390px; top: 1490px; width: 300px; height: 3px; border-radius: 2px;
+          background: var(--ink3); transform-origin: 50% 50%; }
+      </style>
+
+      <div id="s6-root" data-composition-id="s6" data-width="1080" data-height="1920">
+        <div id="s6-env"></div>
+
+        <div id="s6-cam">
+          <div id="s6-stage">
+            <!-- part 1: rank badge + title column -->
+            <div id="s6-head">
+              <div id="s6-badge">
+                <div id="s6-badge-in">
+                  <div class="bdg bdg-base">#5</div>
+                  <div class="bdg bdg-sw" id="s6-bsw">#5</div>
+                </div>
+              </div>
+              <div id="s6-col">
+                <div id="s6-rank">Hạng 05 · tuần này</div>
+                <div id="s6-title">Plugin chính chủ</div>
+                <div id="s6-owner"><span class="ow-sq">A</span><span class="ow-tx">Anthropic</span></div>
+              </div>
+            </div>
+
+            <div id="s6-railw">
+              <div class="rail-ticks"></div>
+              <div class="rail-line"></div>
+              <div id="s6-raildot"><i class="rd-t"></i><b class="rd-d"></b></div>
+            </div>
+
+            <!-- repo card -->
+            <div id="s6-card">
+              <div class="card-clip"><div id="s6-csweep"></div></div>
+              <div class="card-bar">
+                <svg viewBox="0 0 36 36"><path d="M9 5h17a2 2 0 0 1 2 2v20a2 2 0 0 1-2 2H11a3 3 0 0 0-3 3V7a2 2 0 0 1 1-2z" /><path d="M8 32a3 3 0 0 1 3-3h17" /><path d="M14 11h8" /></svg>
+                <span class="card-name mono"><span class="card-own">anthropics/</span><span id="s6-repo">knowledge-work-plugins</span></span>
+              </div>
+              <div class="card-sep"></div>
+              <div class="card-desc">Plugin cho dân văn phòng</div>
+              <div class="card-stats">
+                <div class="st-tot">
+                  <div id="s6-stico"><svg viewBox="0 0 48 48"><polygon points="24,4 29.9,16.9 44,18.6 33.5,28.3 36.3,42.2 24,35.3 11.7,42.2 14.5,28.3 4,18.6 18.1,16.9" /></svg></div>
+                  <div id="s6-total">25.964</div>
+                </div>
+                <div id="s6-chip">
+                  <span id="s6-chipn" class="mono">+0</span><span class="chip-tx">tuần này</span>
+                  <div class="spk-c" id="s6-spk"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- part 2: grid header -->
+            <div id="s6-ghead">
+              <div id="s6-cnt"><span id="s6-cntn">00</span><span class="cnt-lb mono">PLUGIN</span></div>
+              <div id="s6-cl">
+                <span class="cl-sq">C</span><span class="cl-name">Claude</span>
+                <span class="cl-arw"><svg viewBox="0 0 100 20"><path id="s6-clpath" d="M2 10H92M84 3l9 7-9 7" stroke-dasharray="120" /></svg><i id="s6-cldot"></i></span>
+                <span id="s6-clto">Trợ lý</span>
+              </div>
+            </div>
+
+            <!-- corner markers of the grid -->
+            <div class="mk" id="s6-mk0" style="left: 58px; top: 596px"></div>
+            <div class="mk" id="s6-mk1" style="left: 994px; top: 596px"></div>
+            <div class="mk" id="s6-mk2" style="left: 58px; top: 1228px"></div>
+            <div class="mk" id="s6-mk3" style="left: 994px; top: 1228px"></div>
+
+            <!-- 11 plugin tiles: rows of 4, 4, 3 -->
+            <div id="s6-grid">
+              <div class="tile key" id="s6-t-sales" style="left: 0px; top: 0px">
+                <div class="tile-s"><div class="tile-glow"></div><div class="tile-in"><div class="tile-lit"></div><div class="tile-sw"></div>
+                  <div class="tile-c"><div class="ico-w"><svg viewBox="0 0 64 64"><path d="M10 54h44" /><rect x="14" y="40" width="8" height="12" rx="2" /><rect x="28" y="33" width="8" height="19" rx="2" /><rect x="42" y="25" width="8" height="27" rx="2" /><path d="M12 28 26 18l8 5 16-12" /><path d="M43 11h8v8" /></svg></div>
+                    <div class="tile-lb mono">sales</div><div class="tile-no mono">01</div></div></div></div>
+                <div class="tag-row"><span class="tag">Sales</span></div>
+              </div>
+              <div class="tile" id="s6-t-support" style="left: 240px; top: 0px">
+                <div class="tile-s"><div class="tile-glow"></div><div class="tile-in"><div class="tile-lit"></div>
+                  <div class="tile-c"><div class="ico-w"><svg viewBox="0 0 64 64"><path d="M14 12h36a6 6 0 0 1 6 6v20a6 6 0 0 1-6 6H30l-12 10v-10h-4a6 6 0 0 1-6-6V18a6 6 0 0 1 6-6z" /><circle class="f" cx="22" cy="28" r="2.6" /><circle class="f" cx="32" cy="28" r="2.6" /><circle class="f" cx="42" cy="28" r="2.6" /></svg></div>
+                    <div class="tile-lb mono">support</div><div class="tile-no mono">02</div></div></div></div>
+              </div>
+              <div class="tile" id="s6-t-product" style="left: 480px; top: 0px">
+                <div class="tile-s"><div class="tile-glow"></div><div class="tile-in"><div class="tile-lit"></div>
+                  <div class="tile-c"><div class="ico-w"><svg viewBox="0 0 64 64"><path d="M32 8 54 20v24L32 56 10 44V20z" /><path d="M10 20l22 12 22-12M32 32v24" /></svg></div>
+                    <div class="tile-lb mono">product</div><div class="tile-no mono">03</div></div></div></div>
+              </div>
+              <div class="tile" id="s6-t-marketing" style="left: 720px; top: 0px">
+                <div class="tile-s"><div class="tile-glow"></div><div class="tile-in"><div class="tile-lit"></div>
+                  <div class="tile-c"><div class="ico-w"><svg viewBox="0 0 64 64"><path d="M12 26h8l22-12v36L20 38h-8a2 2 0 0 1-2-2V28a2 2 0 0 1 2-2z" /><path d="M20 38l4 14h6l-3-14" /><path d="M50 24a10 10 0 0 1 0 16" /></svg></div>
+                    <div class="tile-lb mono">marketing</div><div class="tile-no mono">04</div></div></div></div>
+              </div>
+              <div class="tile key" id="s6-t-legal" style="left: 0px; top: 218px">
+                <div class="tile-s"><div class="tile-glow"></div><div class="tile-in"><div class="tile-lit"></div><div class="tile-sw"></div>
+                  <div class="tile-c"><div class="ico-w"><svg viewBox="0 0 64 64"><circle cx="32" cy="10" r="3" /><path d="M32 13v39M20 54h24M12 18h40" /><path d="M14 18 8 34M14 18l6 16M50 18l-6 16M50 18l6 16" /><path d="M6 34h16a8 7 0 0 1-16 0z" /><path d="M42 34h16a8 7 0 0 1-16 0z" /></svg></div>
+                    <div class="tile-lb mono">legal</div><div class="tile-no mono">05</div></div></div></div>
+                <div class="tag-row"><span class="tag">Pháp chế</span></div>
+              </div>
+              <div class="tile key" id="s6-t-finance" style="left: 240px; top: 218px">
+                <div class="tile-s"><div class="tile-glow"></div><div class="tile-in"><div class="tile-lit"></div><div class="tile-sw"></div>
+                  <div class="tile-c"><div class="ico-w"><svg viewBox="0 0 64 64"><rect x="14" y="8" width="36" height="48" rx="5" /><rect x="20" y="14" width="24" height="10" rx="2" /><circle class="f" cx="23" cy="33" r="2.6" /><circle class="f" cx="32" cy="33" r="2.6" /><circle class="f" cx="41" cy="33" r="2.6" /><circle class="f" cx="23" cy="41" r="2.6" /><circle class="f" cx="32" cy="41" r="2.6" /><circle class="f" cx="41" cy="41" r="2.6" /><circle class="f" cx="23" cy="49" r="2.6" /><circle class="f" cx="32" cy="49" r="2.6" /><circle class="f" cx="41" cy="49" r="2.6" /></svg></div>
+                    <div class="tile-lb mono">finance</div><div class="tile-no mono">06</div></div></div></div>
+                <div class="tag-row"><span class="tag">Kế toán</span></div>
+              </div>
+              <div class="tile" id="s6-t-data" style="left: 480px; top: 218px">
+                <div class="tile-s"><div class="tile-glow"></div><div class="tile-in"><div class="tile-lit"></div>
+                  <div class="tile-c"><div class="ico-w"><svg viewBox="0 0 64 64"><ellipse cx="32" cy="14" rx="18" ry="6" /><path d="M14 14v36c0 3.3 8 6 18 6s18-2.7 18-6V14" /><path d="M14 26c0 3.3 8 6 18 6s18-2.7 18-6M14 38c0 3.3 8 6 18 6s18-2.7 18-6" /></svg></div>
+                    <div class="tile-lb mono">data</div><div class="tile-no mono">07</div></div></div></div>
+              </div>
+              <div class="tile" id="s6-t-productivity" style="left: 720px; top: 218px">
+                <div class="tile-s"><div class="tile-glow"></div><div class="tile-in"><div class="tile-lit"></div>
+                  <div class="tile-c"><div class="ico-w"><svg viewBox="0 0 64 64"><rect x="10" y="10" width="44" height="44" rx="7" /><path d="M18 24l4 4 7-8M18 40l4 4 7-8M35 24h11M35 40h11" /></svg></div>
+                    <div class="tile-lb mono">productivity</div><div class="tile-no mono">08</div></div></div></div>
+              </div>
+              <div class="tile" id="s6-t-search" style="left: 120px; top: 436px">
+                <div class="tile-s"><div class="tile-glow"></div><div class="tile-in"><div class="tile-lit"></div>
+                  <div class="tile-c"><div class="ico-w"><svg viewBox="0 0 64 64"><circle cx="28" cy="28" r="15" /><path d="M39 39l14 14" /></svg></div>
+                    <div class="tile-lb mono">search</div><div class="tile-no mono">09</div></div></div></div>
+              </div>
+              <div class="tile" id="s6-t-bio" style="left: 360px; top: 436px">
+                <div class="tile-s"><div class="tile-glow"></div><div class="tile-in"><div class="tile-lit"></div>
+                  <div class="tile-c"><div class="ico-w"><svg viewBox="0 0 64 64"><circle cx="20" cy="18" r="7" /><circle cx="47" cy="26" r="6" /><circle cx="27" cy="47" r="8" /><path d="M27 20l14 4M22 25l3 14M43 31 33 41" /></svg></div>
+                    <div class="tile-lb mono">bio</div><div class="tile-no mono">10</div></div></div></div>
+              </div>
+              <div class="tile" id="s6-t-plugin" style="left: 600px; top: 436px">
+                <div class="tile-s"><div class="tile-glow"></div><div class="tile-in"><div class="tile-lit"></div>
+                  <div class="tile-c"><div class="ico-w"><svg viewBox="0 0 64 64"><path d="M24 8v12M40 8v12" /><path d="M16 20h32v10a16 16 0 0 1-32 0z" /><path d="M32 46v10" /></svg></div>
+                    <div class="tile-lb mono">plugin</div><div class="tile-no mono">11</div></div></div></div>
+              </div>
+            </div>
+
+            <!-- no-code line -->
+            <div id="s6-coderow">
+              <div id="s6-code"><span class="cd-g mono">&lt;/&gt;</span><span class="cd-t mono">code</span><i id="s6-cdc"></i><i id="s6-strike"></i></div>
+            </div>
+            <div id="s6-hl"><span class="w"><span class="wi" id="s6-w0">KHÔNG</span></span> <span class="w"><span class="wi" id="s6-w1">CẦN</span></span> <span class="w"><span class="wi" id="s6-w2">VIẾT</span></span> <span class="w"><span class="wi" id="s6-w3">CODE</span></span></div>
+            <div id="s6-hlbar"></div>
+          </div>
+        </div>
+
+        <div id="s6-crt"></div>
+      </div>
+
+      <script>
+        (() => {
+          // A("key") = local time (s) of an anchor from timeline.json; never hard-code word times.
+          const A = (key) => window.__vv.local("s6", key);
+          const SC = window.__vv.scenes["s6"];
+          const S = SC.start;
+          const D = SC.end - SC.start;
+          const BEAT = 60 / 104;
+          const SIX = BEAT / 4;
+          const beats = (from, to) => { const o = []; for (let k = Math.ceil((S + from) / BEAT); k * BEAT - S <= to; k++) o.push(k * BEAT - S); return o; };
+          const sixAfter = (t) => Math.ceil((S + t) / SIX - 1e-9) * SIX - S;
+          // deterministic hash in [0,1)
+          const h = (i, s) => { const x = Math.sin(i * 127.1 + s * 311.7) * 43758.5453; return x - Math.floor(x); };
+          // Vietnamese thousands separator: 28565 -> "28.565"
+          const fmt = (n) => String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+          const el = (id) => document.getElementById(id);
+          const NI = { immediateRender: false };
+
+          const tl = gsap.timeline({ paused: true });
+
+          // ---------- camera: slow push-in, whip-in entry ----------
+          tl.fromTo("#s6-cam", { scale: 1 }, { scale: 1.05, duration: D, ease: "none" }, 0);
+          tl.fromTo("#s6-stage", { scale: 1.12, x: 160, filter: "blur(8px)", opacity: 0 },
+            { scale: 1, x: 0, filter: "blur(0px)", opacity: 1, duration: 0.4, ease: "power3.out" }, 0);
+          tl.fromTo("#s6-env", { scale: 1.12, opacity: 0 }, { scale: 1, opacity: 0.8, duration: 0.4, ease: "power3.out" }, 0);
+
+          // ---------- environment: 18 data packets hopping along the 48px grid on the beat ----------
+          const env = el("s6-env");
+          const COLS = ["var(--c1)", "var(--c2)", "var(--c3)"];
+          const B = beats(0, D);
+          const snapX = (v) => 12 + 48 * Math.round((v - 12) / 48);
+          const snapY = (v) => 48 * Math.round(v / 48);
+          const hopEase = (n, frac) => (p) => {
+            if (p >= 1) return 1;
+            const q = p * n, k = Math.floor(q), f = Math.min(1, (q - k) / frac);
+            const s = f < 0.5 ? 4 * f * f * f : 1 - Math.pow(-2 * f + 2, 3) / 2;
+            return (k + s) / n;
+          };
+          for (let i = 0; i < 18; i++) {
+            const horiz = h(i, 1) < 0.55;
+            const dir = h(i, 2) < 0.5 ? 1 : -1;
+            const cells = h(i, 3) < 0.55 ? 1 : 2;
+            const stride = h(i, 9) < 0.5 ? 1 : 2;
+            const b0 = Math.floor(h(i, 4) * 3);
+            const d = 6 + Math.floor(h(i, 5) * 5);
+            const L = 48 + Math.floor(h(i, 6) * 72);
+            const col = COLS[i % 3];
+            const interval = stride * BEAT;
+            const hops = B.filter((b, k) => k >= b0 && (k - b0) % stride === 0 && b - 0.12 + interval <= D - 0.05);
+            const n = hops.length;
+            if (!n) continue;
+            const st = hops[0] - 0.12;
+            const travel = n * cells * 48 * dir;
+            let x0, y0, x1, y1, rot;
+            if (horiz) {
+              y0 = y1 = 48 * (3 + Math.floor(h(i, 7) * 31));
+              x0 = snapX(540 - travel / 2 + (h(i, 8) - 0.5) * 480);
+              x1 = x0 + travel;
+              rot = dir > 0 ? 0 : 180;
+            } else {
+              x0 = x1 = snapX(72 + h(i, 7) * 936);
+              y0 = snapY(900 - travel / 2 + (h(i, 8) - 0.5) * 480);
+              y1 = y0 + travel;
+              rot = dir > 0 ? 90 : -90;
+            }
+            const pk = document.createElement("div");
+            pk.className = "pk";
+            const r = document.createElement("div");
+            r.className = "pk-r";
+            r.style.cssText = `width:${L + d}px;height:${d}px;left:${-(L + d / 2)}px;top:${-d / 2}px;transform-origin:${L + d / 2}px ${d / 2}px;transform:rotate(${rot}deg)`;
+            r.innerHTML = `<i class="pk-t" style="width:${L}px;top:${(d - 2) / 2}px;background:linear-gradient(90deg, rgba(0,0,0,0), ${col})"></i>` +
+              `<b class="pk-d" style="left:${L}px;width:${d}px;height:${d}px;background:${col};box-shadow:0 0 12px ${col}"></b>`;
+            pk.appendChild(r);
+            env.appendChild(pk);
+            tl.fromTo(pk, { x: x0, y: y0 }, { x: x1, y: y1, duration: n * interval, ease: hopEase(n, 0.3 / interval) }, st);
+          }
+
+          // ---------- sentence 1: "#5 ... plugin chính chủ của Anthropic ... 2.601 sao" ----------
+          const tH = A("hang");
+          tl.fromTo("#s6-badge-in", { yPercent: 105 }, { yPercent: 0, duration: 0.45, ease: "power4.out" }, tH);
+          tl.fromTo("#s6-bsw", { backgroundPosition: "100% 0%" }, { backgroundPosition: "0% 0%", duration: 0.8, ease: "power2.inOut" }, tH + 0.25);
+          tl.fromTo("#s6-rank", { scaleX: 1.35, opacity: 0, transformOrigin: "0% 50%" }, { scaleX: 1, opacity: 1, duration: 0.35, ease: "power3.out" }, tH + 0.3);
+          tl.fromTo("#s6-title", { x: 70, opacity: 0 }, { x: 0, opacity: 1, duration: 0.35, ease: "back.out(1.4)" }, tH + 0.85);
+
+          // rail draws, a packet runs along it on the beat
+          tl.fromTo("#s6-railw", { scaleX: 0, transformOrigin: "0% 50%" }, { scaleX: 1, transformOrigin: "0% 50%", duration: 0.6, ease: "power3.out" }, tH + 0.3);
+          const r0 = beats(tH + 0.6, D)[0];
+          tl.fromTo("#s6-raildot", { x: 0 }, { x: 936, duration: 2 * BEAT, ease: "power2.inOut", repeat: 2 }, r0);
+
+          // repo card slides up, name types in, light sweeps across
+          const tR = A("repo");
+          tl.fromTo("#s6-card", { y: 140, opacity: 0 }, { y: 0, opacity: 1, duration: 0.4, ease: "back.out(1.3)" }, tR - 0.04);
+          tl.fromTo("#s6-repo", { clipPath: "inset(0% 100% 0% 0%)" }, { clipPath: "inset(0% 0% 0% 0%)", duration: 0.5, ease: "steps(22)" }, tR + 0.1);
+          tl.fromTo("#s6-csweep", { x: -300 }, { x: 1240, duration: 0.9, ease: "power2.inOut" }, tR + 0.15);
+          tl.fromTo("#s6-owner", { scale: 0.5, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.3, ease: "back.out(1.8)" }, tR + 0.08);
+
+          // stars: chip pops, weekly +2.601 and total 28.565 count together
+          const tS = A("sao");
+          const CNT = 1.2;
+          tl.fromTo("#s6-chip", { scale: 0.4, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.3, ease: "back.out(2)" }, tS - 0.05);
+          tl.fromTo("#s6-stico", { rotation: -144 }, { rotation: 0, duration: 0.5, ease: "back.out(1.6)" }, tS);
+          const wk = { v: 0 };
+          tl.fromTo(wk, { v: 0 }, { v: 2601, duration: CNT, ease: "power3.out", onUpdate: () => { el("s6-chipn").textContent = "+" + fmt(wk.v); } }, tS);
+          const tot = { v: 25964 };
+          tl.fromTo(tot, { v: 25964 }, { v: 28565, duration: CNT, ease: "power3.out", onUpdate: () => { el("s6-total").textContent = fmt(tot.v); } }, tS);
+          // sparkle burst when the count lands
+          const spk = el("s6-spk");
+          for (let i = 0; i < 8; i++) {
+            const s = document.createElement("div");
+            s.className = "spk";
+            s.innerHTML = '<svg viewBox="-10 -10 20 20"><path d="M0-10 2.5-2.5 10 0 2.5 2.5 0 10-2.5 2.5-10 0-2.5-2.5z" /></svg>';
+            spk.appendChild(s);
+            const a = (i / 8) * Math.PI * 2 + 0.3;
+            const dist = 150 + 30 * h(i, 11);
+            const ry = 0.42; // flatten the burst to the chip's pill shape
+            tl.fromTo(s, { x: 0, y: 0, scale: 0, rotation: 0, opacity: 1 },
+              { x: Math.cos(a) * dist, y: Math.sin(a) * dist * ry, scale: 1, rotation: 90, duration: 0.42, ease: "power3.out" }, tS + CNT - 0.05);
+            tl.fromTo(s, { scale: 1, opacity: 1 }, { scale: 0, opacity: 0, duration: 0.22, ease: "power2.in", ...NI }, tS + CNT + 0.37);
+          }
+          // beat pulses: star glyph and weekly chip
+          beats(tS + 0.6, D - 0.4).forEach((b) => {
+            tl.fromTo("#s6-stico", { scale: 1 }, { scale: 1.12, duration: 0.08, ease: "power2.out", ...NI }, b);
+            tl.fromTo("#s6-stico", { scale: 1.12 }, { scale: 1, duration: 0.2, ease: "power2.out", ...NI }, b + 0.08);
+          });
+          beats(tS + CNT + 0.1, D - 0.4).forEach((b) => {
+            tl.fromTo("#s6-chip", { scale: 1 }, { scale: 1.05, duration: 0.08, ease: "power2.out", ...NI }, b);
+            tl.fromTo("#s6-chip", { scale: 1.05 }, { scale: 1, duration: 0.2, ease: "power2.out", ...NI }, b + 0.08);
+          });
+
+          // ---------- transition: head CRT-off, rail retracts, whip, card flies up ----------
+          const tM = A("muoimot");
+          const T2 = tM - 0.45;
+          tl.fromTo("#s6-head", { scaleY: 1 }, { scaleY: 0.02, duration: 0.12, ease: "power2.in" }, T2);
+          tl.fromTo("#s6-head", { scaleX: 1 }, { scaleX: 0, duration: 0.1, ease: "power2.in", ...NI }, T2 + 0.12);
+          tl.fromTo("#s6-head", { opacity: 1 }, { opacity: 0, duration: 0.02, ...NI }, T2 + 0.2);
+          tl.fromTo("#s6-railw", { scaleX: 1, transformOrigin: "100% 50%" }, { scaleX: 0, transformOrigin: "100% 50%", duration: 0.25, ease: "power3.in", ...NI }, T2);
+          tl.fromTo("#s6-cam", { y: 0 }, { y: -40, duration: 0.14, ease: "power2.in" }, T2 + 0.05);
+          tl.fromTo("#s6-cam", { y: -40 }, { y: 0, duration: 0.4, ease: "back.out(1.3)", ...NI }, T2 + 0.19);
+          tl.fromTo("#s6-stage", { filter: "blur(0px)" }, { filter: "blur(5px)", duration: 0.12, ease: "power2.in", ...NI }, T2 + 0.07);
+          tl.fromTo("#s6-stage", { filter: "blur(5px)" }, { filter: "blur(0px)", duration: 0.25, ease: "power2.out", ...NI }, T2 + 0.19);
+          tl.fromTo("#s6-card", { y: 0 }, { y: -660, duration: 0.5, ease: "back.out(1.2)", ...NI }, T2 + 0.08);
+          tl.fromTo("#s6-card", { scale: 1 }, { scale: 0.86, duration: 0.5, ease: "power3.out" }, T2 + 0.08);
+          tl.fromTo("#s6-card", { x: 0, rotation: 0 }, { x: 40, rotation: -1.5, duration: 0.22, ease: "power2.out" }, T2 + 0.08);
+          tl.fromTo("#s6-card", { x: 40, rotation: -1.5 }, { x: 0, rotation: 0, duration: 0.34, ease: "back.out(1.4)", ...NI }, T2 + 0.3);
+
+          // ---------- sentence 2: "Mười một plugin ..." ----------
+          tl.fromTo("#s6-cnt", { x: -60, opacity: 0 }, { x: 0, opacity: 1, duration: 0.3, ease: "back.out(1.4)" }, tM);
+          tl.fromTo(".mk", { scale: 0, rotation: -90 }, { scale: 1, rotation: 0, duration: 0.3, ease: "back.out(1.6)", stagger: 0.05 }, tM);
+          // 11 tiles pop on consecutive sixteenth notes
+          const ORDER = ["sales", "support", "product", "marketing", "legal", "finance", "data", "productivity", "search", "bio", "plugin"];
+          const t0 = sixAfter(tM + 0.08);
+          ORDER.forEach((k, i) => {
+            tl.fromTo("#s6-t-" + k, { y: 50, scale: 0.5, opacity: 0 }, { y: 0, scale: 1, opacity: 1, duration: 0.32, ease: "back.out(1.7)" }, t0 + i * SIX);
+          });
+          const cnt = { v: 0 };
+          tl.fromTo(cnt, { v: 0 }, { v: 11, duration: 11 * SIX, ease: "none", onUpdate: () => {
+            const n = Math.min(11, Math.floor(cnt.v + 1e-6));
+            el("s6-cntn").textContent = (n < 10 ? "0" : "") + n;
+          } }, t0 - SIX);
+          const tDone = t0 + 11 * SIX;
+          beats(tDone, D - 0.4).forEach((b) => {
+            tl.fromTo("#s6-cntn", { scale: 1 }, { scale: 1.08, duration: 0.08, ease: "power2.out", ...NI }, b);
+            tl.fromTo("#s6-cntn", { scale: 1.08 }, { scale: 1, duration: 0.2, ease: "power2.out", ...NI }, b + 0.08);
+          });
+          // grid markers tick a quarter turn on every beat
+          beats(tM + 0.45, D - 0.4).forEach((b, k) => {
+            tl.fromTo(".mk", { rotation: k * 90 }, { rotation: (k + 1) * 90, duration: 0.22, ease: "back.out(1.4)", ...NI }, b - 0.04);
+          });
+
+          // "biến Claude thành trợ lý": chip flings in, arrow draws, packet flows to "Trợ lý"
+          const tSa = A("sales");
+          tl.fromTo("#s6-cl", { x: 140, rotation: 6, opacity: 0 }, { x: 0, rotation: 0, opacity: 1, duration: 0.35, ease: "back.out(1.4)" }, tSa - 0.75);
+          tl.fromTo("#s6-clpath", { strokeDashoffset: 120 }, { strokeDashoffset: 0, duration: 0.3, ease: "power2.out" }, tSa - 0.6);
+          tl.fromTo("#s6-clto", { y: 24, opacity: 0 }, { y: 0, opacity: 1, duration: 0.28, ease: "back.out(1.8)" }, tSa - 0.35);
+          const c0 = beats(tSa - 0.45, D)[0];
+          const cN = Math.max(0, Math.floor((D - 0.35 - c0) / BEAT) - 1);
+          tl.fromTo("#s6-cldot", { x: 0, opacity: 1 }, { x: 84, duration: 0.42, ease: "power1.in", repeat: cN, repeatDelay: BEAT - 0.42 }, c0);
+
+          // sales / kế toán / pháp chế: the three tiles scale up and light up, the rest dim
+          tl.fromTo("#s6-grid .tile:not(#s6-t-sales) .tile-s", { opacity: 1 }, { opacity: 0.38, duration: 0.3, ease: "power2.out" }, tSa);
+          const lightUp = (key, t, dimmed) => {
+            const id = "#s6-t-" + key;
+            if (dimmed) {
+              tl.fromTo(id + " .tile-s", { opacity: 0.38, scale: 1 }, { opacity: 1, scale: 1.12, duration: 0.34, ease: "back.out(1.6)", ...NI }, t);
+            } else {
+              tl.fromTo(id + " .tile-s", { scale: 1 }, { scale: 1.12, duration: 0.34, ease: "back.out(1.6)" }, t);
+            }
+            tl.fromTo(id + " .tile-glow", { opacity: 0 }, { opacity: 1, duration: 0.25, ease: "power2.out" }, t);
+            tl.fromTo(id + " .tile-lit", { opacity: 0 }, { opacity: 1, duration: 0.25, ease: "power2.out" }, t);
+            tl.fromTo(id + " .tile-c", { filter: "brightness(1)" }, { filter: "brightness(1.6)", duration: 0.25, ease: "power2.out" }, t);
+            tl.fromTo(id + " .tile-sw", { x: -160 }, { x: 260, duration: 0.6, ease: "power2.inOut" }, t + 0.05);
+            tl.fromTo(id + " .tag", { y: -34, opacity: 0 }, { y: 0, opacity: 1, duration: 0.3, ease: "back.out(2.2)" }, t + 0.06);
+            beats(t + 0.35, D - 0.4).forEach((b) => {
+              tl.fromTo(id + " .ico-w", { scale: 1 }, { scale: 1.1, duration: 0.08, ease: "power2.out", ...NI }, b);
+              tl.fromTo(id + " .ico-w", { scale: 1.1 }, { scale: 1, duration: 0.2, ease: "power2.out", ...NI }, b + 0.08);
+            });
+          };
+          lightUp("sales", tSa, false);
+          lightUp("finance", A("ketoan"), true);
+          lightUp("legal", A("phapche"), true);
+
+          // "mà không cần viết code": code pill drops, words rise, code gets struck and deleted
+          const tN = A("nocode");
+          tl.fromTo("#s6-code", { y: -70, opacity: 0 }, { y: 0, opacity: 1, duration: 0.4, ease: "bounce.out" }, tN - 0.02);
+          tl.fromTo("#s6-cdc", { opacity: 1 }, { opacity: 0, duration: 0.12, ease: "steps(1)", repeat: 3, yoyo: true }, tN + 0.1);
+          [0.1, 0.28, 0.48, 0.7].forEach((dt, i) => {
+            tl.fromTo("#s6-w" + i, { yPercent: 110 }, { yPercent: 0, duration: 0.3, ease: "power4.out" }, tN + dt);
+          });
+          tl.fromTo("#s6-strike", { scaleX: 0 }, { scaleX: 1, duration: 0.16, ease: "power3.out" }, tN + 0.62);
+          tl.fromTo("#s6-hlbar", { scaleX: 0 }, { scaleX: 1, duration: 0.3, ease: "power3.out" }, tN + 0.76);
+          tl.fromTo("#s6-code", { scaleY: 1 }, { scaleY: 0.04, duration: 0.1, ease: "power2.in" }, tN + 0.82);
+          tl.fromTo("#s6-code", { scaleX: 1 }, { scaleX: 0, duration: 0.08, ease: "power2.in", ...NI }, tN + 0.92);
+
+          // ---------- exit: CRT-off of the whole stage in the last 0.3 s ----------
+          const TE = D - 0.3;
+          tl.fromTo("#s6-stage, #s6-env", { scaleY: 1 }, { scaleY: 0.02, duration: 0.16, ease: "power3.in", ...NI }, TE);
+          tl.fromTo("#s6-stage, #s6-env", { scaleX: 1 }, { scaleX: 0, duration: 0.12, ease: "power2.in", ...NI }, TE + 0.16);
+          tl.fromTo("#s6-crt", { opacity: 0 }, { opacity: 1, duration: 0.04, ease: "none" }, TE + 0.12);
+          tl.fromTo("#s6-crt", { scaleX: 1 }, { scaleX: 0, duration: 0.12, ease: "power2.in" }, TE + 0.16);
+
+          window.__timelines["s6"] = tl;
+        })();
+      </script>
+    </template>
+  </body>
+</html>

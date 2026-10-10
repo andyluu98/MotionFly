@@ -1,0 +1,632 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <!-- Scene s5. Runtime keeps only <template>; put style, markup and script inside it. -->
+  </head>
+  <body>
+    <template>
+      <style>
+        /* Each scene declares its fonts (HyperFrames lint: font_family_without_font_face). Paths are relative to index.html. */
+        @font-face { font-family: "Be Vietnam Pro"; src: url("fonts/BeVietnamPro-Regular.ttf"); font-weight: 400; }
+        @font-face { font-family: "Be Vietnam Pro"; src: url("fonts/BeVietnamPro-Medium.ttf"); font-weight: 500; }
+        @font-face { font-family: "Be Vietnam Pro"; src: url("fonts/BeVietnamPro-Bold.ttf"); font-weight: 700; }
+        @font-face { font-family: "Be Vietnam Pro"; src: url("fonts/BeVietnamPro-ExtraBold.ttf"); font-weight: 800; }
+        @font-face { font-family: "JetBrains Mono"; src: url("fonts/JetBrainsMono-Variable.ttf"); font-weight: 100 800; }
+
+        #s5-root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          background: transparent;
+          color: var(--ink);
+          font-family: "Be Vietnam Pro", sans-serif;
+        }
+        #s5-root .mono { font-family: "JetBrains Mono", monospace; }
+        #s5-root .abs { position: absolute; }
+        #s5-cam, #s5-stage, #s5-amb { position: absolute; inset: 0; }
+        #s5-cam { transform-origin: 50% 50%; }
+        #s5-stage { transform-origin: 50% 50%; }
+
+        /* environment layer: data packets on the 48px grid */
+        #s5-amb { opacity: 0.55; filter: saturate(0.55); }
+        #s5-root .s5-pk { position: absolute; left: 0; top: 0; width: 0; height: 0; }
+        #s5-root .s5-pk-t { position: absolute; top: -1px; height: 2px; border-radius: 1px; }
+        #s5-root .s5-pk-d { position: absolute; border-radius: 50%; }
+        #s5-root .s5-node { position: absolute; width: 14px; height: 14px; opacity: 0; }
+        #s5-root .s5-node::before, #s5-root .s5-node::after { content: ""; position: absolute; background: var(--ink3); }
+        #s5-root .s5-node::before { left: 6px; top: 0; width: 2px; height: 14px; }
+        #s5-root .s5-node::after { left: 0; top: 6px; width: 14px; height: 2px; }
+
+        /* rank badge */
+        #s5-badge { left: 72px; top: 300px; width: 440px; height: 300px; overflow: hidden; transform-origin: 0 0; }
+        #s5-badge-in { position: absolute; inset: 0; }
+        #s5-root .s5-badge-txt {
+          position: absolute; left: 0; top: 0; font-size: 290px; line-height: 300px; font-weight: 800;
+          letter-spacing: -0.04em; white-space: nowrap; color: transparent;
+          -webkit-background-clip: text; background-clip: text;
+        }
+        #s5-badge-t { background-image: linear-gradient(180deg, var(--ink) 25%, var(--ink3) 100%); }
+        #s5-badge-g {
+          background-image: linear-gradient(100deg, transparent 40%, var(--ink) 50%, transparent 60%);
+          background-size: 300% 100%; background-position: 100% 0; opacity: 0.9;
+        }
+        #s5-rank { left: 540px; top: 392px; width: 420px; }
+        #s5-rank-l { font-size: 30px; font-weight: 700; letter-spacing: 0.12em; color: var(--ink3); white-space: nowrap; }
+        #s5-pips { position: relative; height: 26px; margin-top: 24px; }
+        #s5-root .s5-pip {
+          position: absolute; top: 0; width: 26px; height: 26px; border-radius: 7px;
+          background: var(--s3); border: 1px solid var(--line); box-sizing: border-box;
+        }
+        #s5-pip3 { background: var(--ink); }
+        #s5-rank-m { margin-top: 26px; font-size: 22px; letter-spacing: 0.12em; color: var(--ink3); white-space: nowrap; }
+
+        /* repo card */
+        #s5-card {
+          left: 72px; top: 650px; width: 936px; height: 420px; border-radius: 28px; overflow: hidden;
+          background: var(--s2); border: 1px solid var(--line); box-sizing: border-box;
+          box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5), inset 0 1px 0 var(--hi);
+        }
+        #s5-book { left: 44px; top: 42px; width: 40px; height: 40px; color: var(--ink2); }
+        #s5-name { left: 100px; top: 40px; height: 46px; font-size: 34px; line-height: 46px; white-space: pre; overflow: hidden; width: 0; }
+        #s5-own { color: var(--ink2); }
+        #s5-rep { color: var(--ink); }
+        #s5-av { right: 44px; top: 32px; height: 64px; display: flex; align-items: center; gap: 16px; }
+        #s5-av-l { font-size: 30px; font-weight: 500; color: var(--ink2); }
+        #s5-av-s {
+          width: 64px; height: 64px; border-radius: 16px; background: var(--s3); border: 1px solid var(--line);
+          box-sizing: border-box; display: flex; align-items: center; justify-content: center;
+          font-size: 34px; font-weight: 800; color: var(--ink);
+        }
+        #s5-div { left: 44px; right: 44px; top: 122px; height: 1px; background: var(--line); transform-origin: 0 50%; }
+        #s5-desc { left: 44px; top: 148px; font-size: 46px; font-weight: 500; line-height: 64px; color: var(--ink); white-space: nowrap; }
+        #s5-tags { left: 44px; top: 232px; display: flex; gap: 14px; }
+        #s5-root .s5-tag {
+          font-size: 24px; line-height: 44px; padding: 0 20px; border-radius: 999px; color: var(--ink2);
+          background: var(--s3); border: 1px solid var(--line);
+        }
+        #s5-stats { left: 44px; top: 300px; height: 84px; display: flex; align-items: center; gap: 18px; }
+        #s5-starw { position: relative; width: 56px; height: 56px; }
+        #s5-star { position: absolute; inset: 0; color: var(--ink); }
+        #s5-root .s5-ray { position: absolute; left: 27px; top: 27px; width: 2px; height: 2px; }
+        #s5-root .s5-ray i { position: absolute; left: -1px; top: -50px; width: 4px; height: 16px; border-radius: 2px; background: var(--ink2); transform-origin: 50% 100%; }
+        #s5-total { font-size: 72px; font-weight: 800; letter-spacing: -0.04em; line-height: 84px; color: var(--ink); transform-origin: 0 50%; }
+        #s5-total-u { font-size: 32px; font-weight: 500; color: var(--ink3); margin-top: 18px; }
+        #s5-root .s5-sw { position: absolute; top: 0; bottom: 0; left: 0; width: 260px; opacity: 0.08;
+          background: linear-gradient(90deg, transparent, var(--ink), transparent); }
+
+        /* connector card -> chip */
+        #s5-con { left: 300px; top: 1070px; width: 2px; height: 80px; background: var(--ink3); opacity: 0.6; transform-origin: 50% 0; }
+        #s5-cdot { left: 296px; top: 1070px; width: 10px; height: 10px; border-radius: 50%; background: var(--ink); box-shadow: 0 0 12px var(--ink2); opacity: 0; }
+
+        /* weekly chip */
+        #s5-chip { left: 72px; top: 1150px; width: 600px; height: 128px; transform-origin: 0 0; }
+        #s5-chip-in {
+          position: absolute; inset: 0; border-radius: 64px; background: var(--s3); border: 1px solid var(--line);
+          box-sizing: border-box; box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45), inset 0 1px 0 var(--hi);
+          display: flex; align-items: center; justify-content: center; gap: 22px; overflow: hidden;
+        }
+        #s5-trend { width: 44px; height: 44px; color: var(--ink2); }
+        #s5-chipnum {
+          display: inline-block; font-size: 68px; font-weight: 700; color: var(--accent);
+          text-shadow: 0 0 28px var(--accent-glow); letter-spacing: -0.02em;
+        }
+        #s5-chip-u { font-size: 40px; font-weight: 500; color: var(--ink2); white-space: nowrap; }
+
+        /* breadcrumb */
+        #s5-crumb { left: 254px; top: 228px; height: 44px; font-size: 28px; line-height: 44px; color: var(--ink2); white-space: pre; overflow: hidden; width: 0; }
+
+        /* code window */
+        #s5-code {
+          left: 72px; top: 350px; width: 936px; height: 450px; border-radius: 28px; overflow: hidden;
+          background: var(--s2); border: 1px solid var(--line); box-sizing: border-box;
+          box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5), inset 0 1px 0 var(--hi); opacity: 0;
+        }
+        #s5-code-bar { left: 0; right: 0; top: 0; height: 72px; border-bottom: 1px solid var(--line); background: var(--s1); }
+        #s5-doc { left: 32px; top: 22px; width: 28px; height: 28px; color: var(--ink3); }
+        #s5-fname { left: 74px; top: 0; font-size: 26px; line-height: 72px; color: var(--ink2); }
+        #s5-ai { right: 28px; top: 12px; height: 48px; display: flex; align-items: center; gap: 12px; }
+        #s5-ai-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--ink); }
+        #s5-ai-s {
+          height: 48px; padding: 0 14px; border-radius: 12px; background: var(--s3); border: 1px solid var(--line);
+          box-sizing: border-box; font-size: 24px; line-height: 46px; font-weight: 700; color: var(--ink);
+        }
+        #s5-code-a { left: 0; right: 0; top: 100px; height: 330px; }
+        #s5-root .s5-gn { position: absolute; left: 30px; width: 40px; text-align: right; font-size: 24px; line-height: 46px; color: var(--ink3); opacity: 0; }
+        #s5-root .s5-ln { position: absolute; left: 96px; height: 46px; font-size: 29px; line-height: 46px; white-space: pre; overflow: hidden; width: 0; color: var(--ink); }
+        #s5-root .s5-ln .t { color: var(--c1); }
+        #s5-root .s5-ln .a { color: var(--c2); }
+        #s5-root .s5-ln .k { color: var(--c3); }
+        #s5-root .s5-ln .s { color: var(--ink2); }
+        #s5-root .s5-ln .p { color: var(--ink3); }
+        #s5-caret { left: 0; top: 0; width: 14px; height: 34px; background: var(--ink); opacity: 0; }
+
+        /* light arrow + side chips */
+        #s5-beam { left: 537px; top: 806px; width: 6px; height: 122px; border-radius: 3px; opacity: 0.85;
+          background: linear-gradient(180deg, transparent, var(--ink)); transform-origin: 50% 0; }
+        #s5-ah { left: 516px; top: 916px; width: 48px; height: 32px; color: var(--ink); }
+        #s5-bdot { left: 533px; top: 806px; width: 14px; height: 14px; border-radius: 50%; background: var(--ink); box-shadow: 0 0 18px var(--ink2); opacity: 0; }
+        #s5-rl { left: 572px; top: 850px; font-size: 22px; letter-spacing: 0.12em; color: var(--ink3); }
+        #s5-root .s5-side {
+          height: 48px; padding: 0 20px; border-radius: 999px; background: var(--s3); border: 1px solid var(--line);
+          box-sizing: border-box; font-size: 24px; line-height: 46px; color: var(--ink2); white-space: nowrap;
+        }
+        #s5-mp4 { left: 120px; top: 1222px; }
+        #s5-mp4l { left: 216px; top: 1245px; width: 162px; height: 2px; background: var(--ink3); opacity: 0.6; transform-origin: 100% 50%; }
+        #s5-mp4d { left: 370px; top: 1242px; width: 8px; height: 8px; border-radius: 50%; background: var(--ink); opacity: 0; }
+        #s5-res { left: 758px; top: 1222px; }
+        #s5-resl { left: 702px; top: 1245px; width: 56px; height: 2px; background: var(--ink3); opacity: 0.6; transform-origin: 0 50%; }
+
+        /* nested screens (frame in frame): each .s5-scr is a 1080x1920 replica of the screen */
+        #s5-root .s5-lpos { position: absolute; left: 0; top: 0; width: 100%; height: 100%; }
+        #s5-root .s5-scr {
+          position: absolute; inset: 0; border-radius: 48px; overflow: hidden;
+          background-color: var(--bg);
+          background-image:
+            radial-gradient(90% 55% at 50% 0%, var(--s2) 0%, transparent 70%),
+            linear-gradient(var(--hi) 1px, transparent 1px),
+            linear-gradient(90deg, var(--hi) 1px, transparent 1px);
+          background-size: 100% 100%, 48px 48px, 48px 48px;
+          background-position: 0 0, 12px 0, 12px 0;
+        }
+        #s5-l1 { opacity: 0; box-shadow: 0 40px 120px rgba(0, 0, 0, 0.6); }
+        #s5-root .s5-bd { position: absolute; inset: 0; border-radius: 48px; border: 4px solid var(--ink3); box-sizing: border-box; }
+        #s5-root .s5-rim { position: absolute; inset: 0; border-radius: 48px; border: 6px solid var(--ink); box-sizing: border-box; opacity: 0; }
+        #s5-root .s5-prog { position: absolute; left: 90px; right: 90px; top: 1790px; height: 70px; }
+        #s5-root .s5-play { position: absolute; left: 0; top: 10px; width: 50px; height: 50px; color: var(--ink); }
+        #s5-root .s5-track { position: absolute; left: 80px; right: 0; top: 23px; height: 24px; border-radius: 12px; background: var(--s3); overflow: hidden; }
+        #s5-root .s5-fill { position: absolute; inset: 0; background: var(--ink); transform-origin: 0 50%; }
+        #s5-p2, #s5-p3 { opacity: 0; }
+        #s5-root .s5-ml { position: absolute; left: 0; right: 0; top: 1462px; text-align: center; }
+        #s5-root .s5-ml-t { font-size: 52px; line-height: 72px; font-weight: 800; letter-spacing: 0.12em; color: var(--ink); white-space: nowrap; }
+        #s5-root .s5-ml-t span { display: inline-block; }
+        #s5-root .s5-ul { width: 140px; height: 4px; margin: 10px auto 0; border-radius: 2px; background: var(--ink); }
+        #s5-ml1, #s5-ml2 { opacity: 0; }
+        #s5-v4 {
+          left: 0; right: 0; top: 520px; text-align: center; font-size: 440px; line-height: 460px; font-weight: 800;
+          letter-spacing: -0.04em; color: transparent; -webkit-background-clip: text; background-clip: text;
+          background-image: linear-gradient(180deg, var(--ink) 25%, var(--ink3) 100%); opacity: 0;
+        }
+        #s5-vt { left: 0; right: 0; top: 1010px; text-align: center; font-size: 120px; line-height: 140px; font-weight: 800; letter-spacing: -0.02em; color: var(--ink); opacity: 0; }
+        #s5-vo { left: 0; right: 0; top: 1170px; text-align: center; font-size: 44px; color: var(--ink3); opacity: 0; }
+        #s5-lab .s5-ul { transform-origin: 50% 50%; }
+      </style>
+
+      <div id="s5-root" data-composition-id="s5" data-width="1080" data-height="1920">
+        <div id="s5-cam">
+          <div id="s5-stage">
+            <div id="s5-amb"></div>
+            <div id="s5-nodes" class="abs" style="inset: 0"></div>
+
+            <!-- rank side panel -->
+            <div id="s5-rank" class="abs">
+              <div id="s5-rank-l">HẠNG 4 / 5</div>
+              <div id="s5-pips">
+                <i id="s5-pip0" class="s5-pip" style="left: 0px"></i>
+                <i id="s5-pip1" class="s5-pip" style="left: 40px"></i>
+                <i id="s5-pip2" class="s5-pip" style="left: 80px"></i>
+                <i id="s5-pip3" class="s5-pip" style="left: 120px"></i>
+                <i id="s5-pip4" class="s5-pip" style="left: 160px"></i>
+              </div>
+              <div id="s5-rank-m" class="mono">WEEKLY · TOP 5</div>
+            </div>
+
+            <!-- repo card -->
+            <div id="s5-card" class="abs">
+              <svg id="s5-book" class="abs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round">
+                <path d="M5 4.5A1.5 1.5 0 0 1 6.5 3H19v15H6.5A1.5 1.5 0 0 0 5 19.5z" />
+                <path d="M5 19.5A1.5 1.5 0 0 0 6.5 21H19" />
+                <path d="M9 7h6" />
+              </svg>
+              <div id="s5-name" class="abs mono"><span id="s5-own">heygen-com/</span><span id="s5-rep">hyperframes</span></div>
+              <div id="s5-av" class="abs"><span id="s5-av-l">HeyGen</span><span id="s5-av-s">H</span></div>
+              <div id="s5-div" class="abs"></div>
+              <div id="s5-desc" class="abs">Viết HTML, xuất video</div>
+              <div id="s5-tags" class="abs">
+                <span id="s5-tag0" class="s5-tag mono">html</span>
+                <span id="s5-tag1" class="s5-tag mono">gsap</span>
+                <span id="s5-tag2" class="s5-tag mono">mp4</span>
+              </div>
+              <div id="s5-stats" class="abs">
+                <div id="s5-starw">
+                  <svg id="s5-star" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round">
+                    <polygon points="12,2.5 14.9,8.6 21.5,9.3 16.6,13.8 18,20.4 12,17 6,20.4 7.4,13.8 2.5,9.3 9.1,8.6" />
+                  </svg>
+                  <div id="s5-ray0" class="s5-ray"><i></i></div>
+                  <div id="s5-ray1" class="s5-ray"><i></i></div>
+                  <div id="s5-ray2" class="s5-ray"><i></i></div>
+                  <div id="s5-ray3" class="s5-ray"><i></i></div>
+                  <div id="s5-ray4" class="s5-ray"><i></i></div>
+                  <div id="s5-ray5" class="s5-ray"><i></i></div>
+                </div>
+                <div id="s5-total">56.069</div>
+                <div id="s5-total-u">sao</div>
+              </div>
+              <div id="s5-card-sw" class="s5-sw"></div>
+            </div>
+
+            <div id="s5-con" class="abs"></div>
+            <div id="s5-cdot" class="abs"></div>
+
+            <!-- code window -->
+            <div id="s5-code" class="abs">
+              <div id="s5-code-bar" class="abs">
+                <svg id="s5-doc" class="abs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round">
+                  <path d="M6 3h8l4 4v14H6z" />
+                  <path d="M14 3v4h4" />
+                </svg>
+                <div id="s5-fname" class="abs mono">s5.html</div>
+                <div id="s5-ai" class="abs"><i id="s5-ai-dot"></i><span id="s5-ai-s" class="mono">AI</span></div>
+              </div>
+              <div id="s5-code-a" class="abs">
+                <i id="s5-caret" class="abs"></i>
+              </div>
+              <div id="s5-code-sw" class="s5-sw"></div>
+            </div>
+
+            <!-- light arrow: code -> video -->
+            <div id="s5-beam" class="abs"></div>
+            <svg id="s5-ah" class="abs" viewBox="0 0 48 32" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="6,6 24,26 42,6" />
+            </svg>
+            <div id="s5-bdot" class="abs"></div>
+            <div id="s5-rl" class="abs mono">RENDER</div>
+            <div id="s5-mp4l" class="abs"></div>
+            <div id="s5-mp4d" class="abs"></div>
+            <div id="s5-mp4" class="abs s5-side mono">MP4</div>
+            <div id="s5-resl" class="abs"></div>
+            <div id="s5-res" class="abs s5-side mono">1080 × 1920</div>
+
+            <!-- video frame, three nested levels -->
+            <div id="s5-l1pos" class="s5-lpos">
+              <div id="s5-l1" class="s5-scr">
+                <div id="s5-l2pos" class="s5-lpos">
+                  <div id="s5-l2" class="s5-scr">
+                    <div id="s5-l3pos" class="s5-lpos">
+                      <div id="s5-l3" class="s5-scr">
+                        <div id="s5-v4" class="abs">#4</div>
+                        <div id="s5-vt" class="abs">HyperFrames</div>
+                        <div id="s5-vo" class="abs mono">heygen-com</div>
+                        <div id="s5-p3" class="s5-prog">
+                          <svg class="s5-play" viewBox="0 0 24 24"><polygon points="6,4 20,12 6,20" fill="currentColor" /></svg>
+                          <div class="s5-track"><i class="s5-fill"></i></div>
+                        </div>
+                        <i class="s5-bd"></i>
+                        <i id="s5-rim3" class="s5-rim"></i>
+                      </div>
+                    </div>
+                    <div id="s5-p2" class="s5-prog">
+                      <svg class="s5-play" viewBox="0 0 24 24"><polygon points="6,4 20,12 6,20" fill="currentColor" /></svg>
+                      <div class="s5-track"><i class="s5-fill"></i></div>
+                    </div>
+                    <div id="s5-ml2" class="s5-ml"><div class="s5-ml-t">BẠN ĐANG XEM NÓ</div><div class="s5-ul"></div></div>
+                    <i class="s5-bd"></i>
+                    <i id="s5-rim2" class="s5-rim"></i>
+                  </div>
+                </div>
+                <div id="s5-p1" class="s5-prog">
+                  <svg class="s5-play" viewBox="0 0 24 24"><polygon points="6,4 20,12 6,20" fill="currentColor" /></svg>
+                  <div class="s5-track"><i class="s5-fill"></i></div>
+                </div>
+                <div id="s5-ml1" class="s5-ml"><div class="s5-ml-t">BẠN ĐANG XEM NÓ</div><div class="s5-ul"></div></div>
+                <i class="s5-bd"></i>
+                <i id="s5-rim1" class="s5-rim"></i>
+              </div>
+            </div>
+
+            <!-- real label under the outer frame -->
+            <div id="s5-lab" class="s5-ml"><div id="s5-lab-t" class="s5-ml-t"></div><div id="s5-lab-ul" class="s5-ul"></div></div>
+
+            <!-- rank badge (flies to breadcrumb) -->
+            <div id="s5-badge" class="abs">
+              <div id="s5-badge-in">
+                <div id="s5-badge-t" class="s5-badge-txt">#4</div>
+                <div id="s5-badge-g" class="s5-badge-txt">#4</div>
+              </div>
+            </div>
+            <div id="s5-crumb" class="abs mono">heygen-com/hyperframes</div>
+
+            <!-- weekly stars chip (flies to breadcrumb) -->
+            <div id="s5-chip" class="abs">
+              <div id="s5-chip-in">
+                <svg id="s5-trend" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="3,17 9,11 13,15 21,7" />
+                  <polyline points="15,7 21,7 21,13" />
+                </svg>
+                <span id="s5-chipnum" class="mono">+0</span>
+                <span id="s5-chip-u">tuần này</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <script>
+        (() => {
+          // A("key") = local time (s) of an anchor from timeline.json; never hard-code word times.
+          const A = (key) => window.__vv.local("s5", key);
+          const tl = gsap.timeline({ paused: true });
+          const D = window.__vv.scenes["s5"].end - window.__vv.scenes["s5"].start; // 10.09
+          const BEAT = 60 / 104, S = window.__vv.scenes["s5"].start;
+          const beats = (from, to) => { const o = []; for (let k = Math.ceil((S + from) / BEAT); k * BEAT - S <= to; k++) o.push(k * BEAT - S); return o; };
+          const h = (n) => { const x = Math.sin(n * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); };
+          const fmt = (n) => String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+          const $ = (s) => document.querySelector(s);
+          const BK = "back.out(1.4)";
+          const pulse = (sel, t, s) => {
+            tl.fromTo(sel, { scale: 1 }, { scale: s || 1.04, duration: 0.09, ease: "power2.out", immediateRender: false }, t);
+            tl.to(sel, { scale: 1, duration: 0.2, ease: "power2.inOut" }, t + 0.09);
+          };
+          const crtOff = (sel, t) => {
+            tl.to(sel, { scaleY: 0.02, duration: 0.12, ease: "power3.in", transformOrigin: "50% 50%" }, t);
+            tl.to(sel, { scaleX: 0, duration: 0.1, ease: "power3.in" }, t + 0.12);
+            tl.set(sel, { opacity: 0 }, t + 0.22);
+          };
+
+          const tH = A("hang"), tR = A("repo"), tS = A("sao"), tC = A("html"), tV = A("video"), tX = A("dangxem");
+          const T2 = beats(tC - 0.9, tC)[0]; // put-away of part 1 lands on the beat before "AI"
+
+          // ---------- camera + stage ----------
+          tl.fromTo("#s5-cam", { scale: 1 }, { scale: 1.04, duration: D, ease: "none" }, 0);
+          tl.fromTo("#s5-stage", { x: 140, scale: 1.12, opacity: 0, filter: "blur(8px)" },
+            { x: 0, scale: 1, opacity: 1, filter: "blur(0px)", duration: 0.4, ease: "power3.out" }, 0);
+
+          // ---------- environment: packets on grid lines (hash, straight runs) ----------
+          const amb = $("#s5-amb");
+          const cols = ["var(--c1)", "var(--c2)", "var(--c3)"];
+          for (let i = 0; i < 18; i++) {
+            const horiz = h(i * 7 + 1) < 0.56;
+            const dir = h(i * 7 + 2) < 0.5 ? 1 : -1;
+            const size = 6 + Math.round(h(i * 7 + 3) * 4);
+            const trail = 50 + Math.round(h(i * 7 + 4) * 80);
+            const col = cols[i % 3];
+            const pk = document.createElement("div");
+            pk.className = "s5-pk";
+            pk.id = "s5-pk" + i;
+            pk.innerHTML =
+              '<i class="s5-pk-t" style="width:' + trail + "px;left:" + -trail + "px;background:linear-gradient(90deg,transparent," + col + ')"></i>' +
+              '<i class="s5-pk-d" style="width:' + size + "px;height:" + size + "px;left:" + -size / 2 + "px;top:" + -size / 2 + "px;background:" + col + ";box-shadow:0 0 " + size * 2 + "px " + col + '"></i>';
+            amb.appendChild(pk);
+            const speed = 340 + h(i * 7 + 5) * 380;
+            const delay = 0.1 + h(i * 7 + 6) * 1.6;
+            let a = -160, b, fixed;
+            if (horiz) { fixed = 48 * (4 + Math.floor(h(i * 7 + 7) * 29)); b = 1240; }
+            else { fixed = 12 + 48 * (1 + Math.floor(h(i * 7 + 7) * 20)); b = 1660; }
+            if (dir < 0) { const c = a; a = b; b = c; }
+            const dur = Math.abs(b - a) / speed;
+            const rep = Math.max(0, Math.floor((D - delay) / dur) - 1);
+            const rot = horiz ? (dir > 0 ? 0 : 180) : (dir > 0 ? 90 : -90);
+            if (horiz) tl.fromTo(pk, { x: a, y: fixed, rotation: rot }, { x: b, rotation: rot, duration: dur, ease: "none", repeat: rep }, delay);
+            else tl.fromTo(pk, { x: fixed, y: a, rotation: rot }, { y: b, rotation: rot, duration: dur, ease: "none", repeat: rep }, delay);
+          }
+
+          // grid nodes that tick on every beat
+          const nodesEl = $("#s5-nodes");
+          [[60, 192], [1020, 192], [60, 864], [1020, 864], [60, 1536], [1020, 1536], [252, 1584], [828, 1584]].forEach((p, i) => {
+            const n = document.createElement("i");
+            n.className = "s5-node";
+            n.id = "s5-node" + i;
+            n.style.left = p[0] - 7 + "px";
+            n.style.top = p[1] - 7 + "px";
+            nodesEl.appendChild(n);
+          });
+          tl.fromTo(".s5-node", { opacity: 0, scale: 0 }, { opacity: 0.55, scale: 1, duration: 0.25, ease: BK, stagger: 0.04 }, 0.3);
+          beats(0.7, D - 0.45).forEach((b) => {
+            tl.fromTo(".s5-node", { scale: 1, opacity: 0.55 }, { scale: 1.3, opacity: 1, duration: 0.08, ease: "power2.out", immediateRender: false }, b);
+            tl.to(".s5-node", { scale: 1, opacity: 0.55, duration: 0.25, ease: "power2.in" }, b + 0.08);
+          });
+
+          // ---------- sentence 1: rank badge ----------
+          tl.fromTo("#s5-badge-in", { yPercent: 100 }, { yPercent: 0, duration: 0.45, ease: "power3.out" }, tH);
+          tl.fromTo("#s5-badge-g", { backgroundPosition: "100% 0" }, { backgroundPosition: "0% 0", duration: 0.7, ease: "power2.inOut" }, tH + 0.3);
+          tl.fromTo("#s5-rank-l", { x: -40, opacity: 0 }, { x: 0, opacity: 1, duration: 0.3, ease: "power3.out" }, tH + 0.25);
+          tl.fromTo(".s5-pip", { scale: 0 }, { scale: 1, duration: 0.25, ease: "back.out(2)", stagger: 0.05 }, tH + 0.35);
+          tl.fromTo("#s5-rank-m", { y: 16, opacity: 0 }, { y: 0, opacity: 1, duration: 0.3, ease: "power3.out" }, tH + 0.6);
+          beats(tH + 0.7, T2 - 0.35).forEach((b) => pulse("#s5-pip3", b, 1.25));
+
+          // repo card drops in and bounces
+          tl.fromTo("#s5-card", { y: -90, opacity: 0 }, { y: 0, opacity: 1, duration: 0.4, ease: "back.out(1.6)" }, tR - 0.05);
+          tl.fromTo("#s5-card-sw", { x: -300 }, { x: 1000, duration: 0.8, ease: "power2.inOut" }, tR + 0.15);
+          tl.fromTo("#s5-book", { scale: 0, rotation: -30 }, { scale: 1, rotation: 0, duration: 0.3, ease: "back.out(2)" }, tR + 0.08);
+          tl.fromTo("#s5-name", { width: 0 }, { width: 22 * 20.4, duration: 0.36, ease: "steps(22)" }, tR + 0.1);
+          tl.fromTo("#s5-div", { scaleX: 0 }, { scaleX: 1, duration: 0.4, ease: "power3.out" }, tR + 0.3);
+          tl.fromTo("#s5-desc", { y: 30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.3, ease: "power3.out" }, tR + 0.45);
+          tl.fromTo(".s5-tag", { scale: 0.4, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.25, ease: BK, stagger: 0.08 }, tR + 0.7);
+          tl.fromTo("#s5-starw", { scale: 0, rotation: -72 }, { scale: 1, rotation: 0, duration: 0.35, ease: "back.out(1.8)" }, tR + 0.85);
+          tl.fromTo("#s5-total", { x: -20, opacity: 0 }, { x: 0, opacity: 1, duration: 0.3, ease: "power3.out" }, tR + 0.92);
+          tl.fromTo("#s5-total-u", { opacity: 0 }, { opacity: 1, duration: 0.3 }, tR + 1.0);
+
+          // "của HeyGen": owner avatar flips in, owner text lights up (sub-beat before the "sao" anchor)
+          const tHg = tS - 0.7;
+          tl.fromTo("#s5-av-s", { scale: 0, rotation: -90 }, { scale: 1, rotation: 0, duration: 0.32, ease: "back.out(1.8)" }, tHg);
+          tl.fromTo("#s5-av-l", { x: 30, opacity: 0 }, { x: 0, opacity: 1, duration: 0.28, ease: "power3.out" }, tHg + 0.06);
+          const cs = getComputedStyle($("#s5-root"));
+          const INK = cs.getPropertyValue("--ink").trim(), INK2 = cs.getPropertyValue("--ink2").trim();
+          tl.fromTo("#s5-own", { color: INK2 }, { color: INK, duration: 0.15 }, tHg);
+          tl.to("#s5-own", { color: INK2, duration: 0.4 }, tHg + 0.45);
+
+          // "thêm 4 nghìn sao": connector draws, chip flicks up, numbers count
+          tl.fromTo("#s5-con", { scaleY: 0 }, { scaleY: 1, duration: 0.2, ease: "power2.out" }, tS - 0.15);
+          tl.set("#s5-cdot", { opacity: 1 }, tS - 0.05);
+          tl.fromTo("#s5-cdot", { y: 0 }, { y: 70, duration: 0.3, ease: "power1.in", repeat: 3 }, tS - 0.05);
+          tl.set("#s5-cdot", { opacity: 0 }, tS + 1.15);
+          tl.fromTo("#s5-chip-in", { scale: 0.6, y: 40, opacity: 0 }, { scale: 1, y: 0, opacity: 1, duration: 0.3, ease: BK }, tS - 0.05);
+          tl.fromTo("#s5-trend", { x: -20, opacity: 0 }, { x: 0, opacity: 1, duration: 0.25, ease: "power3.out" }, tS + 0.1);
+          const cnt = { v: 0 };
+          const tCount = tS + 0.05, dCount = 1.0;
+          tl.fromTo(cnt, { v: 0 }, {
+            v: 4003, duration: dCount, ease: "power3.out",
+            onUpdate: () => {
+              $("#s5-chipnum").textContent = "+" + fmt(cnt.v);
+              $("#s5-total").textContent = fmt(56069 + cnt.v);
+            },
+          }, tCount);
+          const tDone = tCount + dCount;
+          for (let i = 0; i < 6; i++) gsap.set("#s5-ray" + i, { rotation: i * 60 });
+          tl.fromTo(".s5-ray i", { scaleY: 0, opacity: 1 }, { scaleY: 1, duration: 0.18, ease: "power2.out" }, tDone - 0.05);
+          tl.to(".s5-ray i", { y: -14, opacity: 0, duration: 0.3, ease: "power2.in" }, tDone + 0.13);
+          beats(tDone - 0.05, tX - 0.4).forEach((b) => pulse("#s5-chipnum", b, 1.04));
+
+          // ---------- transition to sentence 2: put-away + whip ----------
+          tl.to("#s5-stage", { x: -30, filter: "blur(5px)", duration: 0.1, ease: "power2.in" }, T2);
+          tl.to("#s5-stage", { x: 0, filter: "blur(0px)", duration: 0.28, ease: "back.out(1.3)" }, T2 + 0.1);
+          tl.to(".s5-pip", { scale: 0, duration: 0.14, ease: "power2.in", stagger: { each: 0.03, from: "end" } }, T2 - 0.05);
+          tl.to("#s5-rank-l, #s5-rank-m", { x: -50, opacity: 0, duration: 0.2, ease: "power2.in" }, T2);
+          tl.to("#s5-con", { scaleY: 0, duration: 0.12, ease: "power2.in", transformOrigin: "50% 100%" }, T2);
+          crtOff("#s5-card", T2 + 0.02);
+          tl.to("#s5-badge", { x: 16, y: -104, scale: 0.36, duration: 0.42, ease: "power3.inOut" }, T2 + 0.04);
+          tl.to("#s5-chip", { x: 620, duration: 0.5, ease: "power1.in" }, T2 + 0.08);
+          tl.to("#s5-chip", { y: -936, duration: 0.5, ease: "power3.out" }, T2 + 0.08);
+          tl.to("#s5-chip", { scale: 0.5, duration: 0.5, ease: "back.out(1.3)" }, T2 + 0.08);
+          tl.fromTo("#s5-crumb", { width: 0 }, { width: 22 * 16.8, duration: 0.3, ease: "steps(22)" }, T2 + 0.45);
+
+          // ---------- sentence 2: "AI viết HTML" ----------
+          tl.fromTo("#s5-code", { scaleY: 0.04, opacity: 0, transformOrigin: "50% 0%" },
+            { scaleY: 1, opacity: 1, duration: 0.32, ease: "back.out(1.2)" }, tC - 0.4);
+          tl.fromTo("#s5-doc", { scale: 0 }, { scale: 1, duration: 0.22, ease: "back.out(2)" }, tC - 0.3);
+          tl.fromTo("#s5-fname", { x: -20, opacity: 0 }, { x: 0, opacity: 1, duration: 0.22, ease: "power3.out" }, tC - 0.26);
+          tl.fromTo("#s5-ai", { scale: 0, rotation: 25 }, { scale: 1, rotation: 0, duration: 0.3, ease: "back.out(2)" }, tC - 0.3);
+          beats(tC - 0.2, tV + 0.3).forEach((b) => {
+            tl.to("#s5-ai-dot", { opacity: 0.2, duration: 0.05 }, b);
+            tl.to("#s5-ai-dot", { opacity: 1, duration: 0.05 }, b + BEAT / 2);
+          });
+
+          // code lines typed with syntax colours (category hues appear only while being typed in)
+          const LINES = [
+            [["p", "<"], ["t", "div"], ["a", " id"], ["p", "="], ["s", '"s5"'], ["a", " data-start"], ["p", "="], ["s", '"0"'], ["p", ">"]],
+            [["", "  "], ["p", "<"], ["t", "h1"], ["a", " class"], ["p", "="], ["s", '"hang"'], ["p", ">"], ["", "#4"], ["p", "</"], ["t", "h1"], ["p", ">"]],
+            [["", "  "], ["p", "<"], ["t", "p"], ["p", ">"], ["", "HyperFrames"], ["p", "</"], ["t", "p"], ["p", ">"]],
+            [["p", "</"], ["t", "div"], ["p", ">"]],
+            [["p", "<"], ["t", "script"], ["p", ">"]],
+            [["", "  "], ["k", "gsap"], ["p", "."], ["k", "from"], ["p", "("], ["s", '".hang"'], ["p", ", { "], ["a", "y"], ["p", ": "], ["", "80"], ["p", " });"]],
+            [["p", "</"], ["t", "script"], ["p", ">"]],
+          ];
+          const CW = 29 * 0.6, LH = 46, codeA = $("#s5-code-a");
+          let tt = tC - 0.16;
+          const perChar = 0.0082;
+          tl.set("#s5-caret", { opacity: 1 }, tt);
+          LINES.forEach((ln, i) => {
+            const gn = document.createElement("div");
+            gn.className = "s5-gn mono";
+            gn.id = "s5-gn" + i;
+            gn.style.top = i * LH + "px";
+            gn.textContent = String(i + 1);
+            codeA.appendChild(gn);
+            const el = document.createElement("div");
+            el.className = "s5-ln mono";
+            el.id = "s5-ln" + i;
+            el.style.top = i * LH + "px";
+            let n = 0;
+            ln.forEach((seg) => {
+              const sp = document.createElement("span");
+              if (seg[0]) sp.className = seg[0];
+              sp.textContent = seg[1];
+              n += seg[1].length;
+              el.appendChild(sp);
+            });
+            codeA.appendChild(el);
+            const d = n * perChar;
+            tl.fromTo(gn, { opacity: 0 }, { opacity: 1, duration: 0.08 }, tt);
+            tl.fromTo(el, { width: 0 }, { width: n * CW + 2, duration: d, ease: "steps(" + n + ")" }, tt);
+            tl.fromTo("#s5-caret", { x: 96, y: i * LH + 6 }, { x: 96 + n * CW, duration: d, ease: "steps(" + n + ")", immediateRender: i === 0 }, tt);
+            tt += d + 0.03;
+          });
+          const tTyped = tt;
+          beats(tTyped, tX - 0.45).forEach((b) => {
+            tl.to("#s5-caret", { opacity: 0, duration: 0.01 }, b);
+            tl.to("#s5-caret", { opacity: 1, duration: 0.01 }, b + BEAT / 2);
+          });
+
+          // ---------- "rồi xuất thành video": light reads the code, beam turns it into a frame ----------
+          tl.fromTo("#s5-code-sw", { x: -300 }, { x: 1000, duration: 0.55, ease: "power2.inOut" }, tV - 0.35);
+          tl.fromTo("#s5-beam", { scaleY: 0 }, { scaleY: 1, duration: 0.2, ease: "power2.out" }, tV - 0.17);
+          tl.fromTo("#s5-ah", { scale: 0, y: -20 }, { scale: 1, y: 0, duration: 0.22, ease: "back.out(2)" }, tV - 0.04);
+          tl.fromTo("#s5-rl", { x: 24, opacity: 0 }, { x: 0, opacity: 1, duration: 0.25, ease: "power3.out" }, tV - 0.08);
+          tl.set("#s5-bdot", { opacity: 1 }, tV - 0.07);
+          tl.fromTo("#s5-bdot", { y: 0 }, { y: 116, duration: 0.34, ease: "power1.in", repeat: 3 }, tV - 0.07);
+          tl.set("#s5-bdot", { opacity: 0 }, tV - 0.07 + 4 * 0.34);
+
+          // frame L1 expands from the arrow tip (UI expand)
+          tl.set("#s5-l1pos", { x: 378, y: 966, scale: 0.3, transformOrigin: "0 0" }, 0);
+          tl.fromTo("#s5-l1", { scaleX: 0.15, scaleY: 0.02, opacity: 0, transformOrigin: "50% 0%" },
+            { scaleX: 1, scaleY: 1, opacity: 1, duration: 0.34, ease: "back.out(1.3)" }, tV);
+          tl.fromTo("#s5-rim1", { opacity: 0 }, { opacity: 0.9, duration: 0.08 }, tV + 0.3);
+          tl.to("#s5-rim1", { opacity: 0, duration: 0.35 }, tV + 0.38);
+          // video content follows the typed code: gsap.from(".hang", { y: 80 })
+          tl.fromTo("#s5-v4", { y: 80, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, ease: "power3.out" }, tV + 0.26);
+          tl.fromTo("#s5-vt", { y: 40, opacity: 0 }, { y: 0, opacity: 1, duration: 0.4, ease: "power3.out" }, tV + 0.42);
+          tl.fromTo("#s5-vo", { opacity: 0 }, { opacity: 1, duration: 0.3 }, tV + 0.55);
+          tl.fromTo(".s5-fill", { scaleX: 0 }, { scaleX: 1, duration: D - 0.34 - (tV + 0.1), ease: "none" }, tV + 0.1);
+          beats(tV + 0.15, D - 0.5).forEach((b) => pulse(".s5-play", b, 1.15));
+          // side chips: output format and frame size
+          tl.fromTo("#s5-mp4l", { scaleX: 0 }, { scaleX: 1, duration: 0.25, ease: "power2.out" }, tV + 0.2);
+          tl.fromTo("#s5-mp4", { x: -40, opacity: 0 }, { x: 0, opacity: 1, duration: 0.28, ease: BK }, tV + 0.3);
+          tl.set("#s5-mp4d", { opacity: 1 }, tV + 0.35);
+          tl.fromTo("#s5-mp4d", { x: 0 }, { x: -154, duration: 0.4, ease: "power1.in", repeat: 2 }, tV + 0.35);
+          tl.set("#s5-mp4d", { opacity: 0 }, tV + 0.35 + 1.2);
+          tl.fromTo("#s5-resl", { scaleX: 0 }, { scaleX: 1, duration: 0.2, ease: "power2.out" }, tV + 0.32);
+          tl.fromTo("#s5-res", { y: 30, scale: 0.6, opacity: 0 }, { y: 0, scale: 1, opacity: 1, duration: 0.3, ease: "back.out(1.8)" }, tV + 0.4);
+
+          // ---------- "chính video bạn đang xem": clear the desk, frame takes the stage ----------
+          const tO = tX - 0.35;
+          crtOff("#s5-code", tO);
+          tl.to("#s5-beam", { scaleY: 0, duration: 0.14, ease: "power2.in", transformOrigin: "50% 100%" }, tO);
+          tl.to("#s5-ah", { scale: 0, duration: 0.14, ease: "power2.in" }, tO + 0.06);
+          tl.to("#s5-rl", { x: 24, opacity: 0, duration: 0.15, ease: "power2.in" }, tO);
+          tl.to("#s5-mp4, #s5-res", { scale: 0, duration: 0.16, ease: "power2.in", stagger: 0.04 }, tO + 0.02);
+          tl.to("#s5-mp4l, #s5-resl", { scaleX: 0, duration: 0.14, ease: "power2.in" }, tO + 0.08);
+          tl.to("#s5-badge, #s5-crumb", { y: "-=48", opacity: 0, duration: 0.2, ease: "power2.in", stagger: 0.05 }, tO + 0.04);
+          crtOff("#s5-chip-in", beats(tO, tX)[0]);
+
+          // frame L1 flies to centre on a curve (x and y on different eases), scale overshoots
+          const CXk = 205.2, CYk = 244.8, K = 0.62; // child slot: scale 0.62 centred at (540, 840)
+          const tF = tX - 0.23;
+          tl.to("#s5-l1pos", { x: CXk, duration: 0.5, ease: "power2.inOut" }, tF);
+          tl.to("#s5-l1pos", { y: CYk, duration: 0.5, ease: "power3.out" }, tF);
+          tl.to("#s5-l1pos", { scale: K, duration: 0.5, ease: "back.out(1.3)" }, tF);
+          tl.fromTo("#s5-rim1", { opacity: 0 }, { opacity: 0.9, duration: 0.08, immediateRender: false }, tF + 0.46);
+          tl.to("#s5-rim1", { opacity: 0, duration: 0.35 }, tF + 0.54);
+
+          // pull back: L2 shrinks inside L1 ("đang"), then L3 inside L2 ("xem")
+          const tP2 = tX + 0.27, tP3 = tX + 0.6;
+          tl.fromTo("#s5-l2pos", { x: 0, y: 0, scale: 1, transformOrigin: "0 0" }, { x: CXk, y: CYk, scale: K, duration: 0.45, ease: "power3.inOut" }, tP2);
+          tl.fromTo("#s5-p2", { opacity: 0 }, { opacity: 1, duration: 0.2 }, tP2 + 0.3);
+          tl.fromTo("#s5-ml1", { y: 30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.25, ease: BK }, tP2 + 0.35);
+          tl.fromTo("#s5-rim2", { opacity: 0 }, { opacity: 0.9, duration: 0.08 }, tP2 + 0.42);
+          tl.to("#s5-rim2", { opacity: 0, duration: 0.35 }, tP2 + 0.5);
+          tl.fromTo("#s5-l3pos", { x: 0, y: 0, scale: 1, transformOrigin: "0 0" }, { x: CXk, y: CYk, scale: K, duration: 0.45, ease: "power3.inOut" }, tP3);
+          tl.fromTo("#s5-p3", { opacity: 0 }, { opacity: 1, duration: 0.2 }, tP3 + 0.3);
+          tl.fromTo("#s5-ml2", { y: 30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.25, ease: BK }, tP3 + 0.35);
+          tl.fromTo("#s5-rim3", { opacity: 0 }, { opacity: 0.9, duration: 0.08 }, tP3 + 0.42);
+          tl.to("#s5-rim3", { opacity: 0, duration: 0.35 }, tP3 + 0.5);
+
+          // real label "BẠN ĐANG XEM NÓ", letters pop on "xem"
+          const labT = $("#s5-lab-t");
+          Array.from("BẠN ĐANG XEM NÓ").forEach((ch, i) => {
+            const sp = document.createElement("span");
+            sp.id = "s5-lc" + i;
+            sp.textContent = ch === " " ? " " : ch;
+            labT.appendChild(sp);
+          });
+          tl.fromTo("#s5-lab-t span", { y: 28, opacity: 0 }, { y: 0, opacity: 1, duration: 0.26, ease: "back.out(1.8)", stagger: 0.025 }, tX + 0.57);
+          tl.fromTo("#s5-lab-ul", { scaleX: 0 }, { scaleX: 1, duration: 0.3, ease: "power3.out" }, tX + 0.92);
+
+          // "nó": rims flash outer to inner on the beat, label ticks
+          const tNo = beats(tX + 1.25, D - 0.5)[0];
+          ["#s5-rim1", "#s5-rim2", "#s5-rim3"].forEach((r, i) => {
+            tl.fromTo(r, { opacity: 0 }, { opacity: 0.85, duration: 0.06, immediateRender: false }, tNo + i * 0.07);
+            tl.to(r, { opacity: 0, duration: 0.3 }, tNo + i * 0.07 + 0.06);
+          });
+          pulse("#s5-lab-t", tNo, 1.04);
+
+          // ---------- exit: CRT off for the whole stage in the last 0.3 s ----------
+          tl.to("#s5-stage", { scaleY: 0.02, duration: 0.16, ease: "power3.in" }, D - 0.3);
+          tl.to("#s5-stage", { scaleX: 0, duration: 0.12, ease: "power3.in" }, D - 0.14);
+          tl.set("#s5-stage", { opacity: 0 }, D - 0.02);
+
+          window.__timelines["s5"] = tl;
+        })();
+      </script>
+    </template>
+  </body>
+</html>

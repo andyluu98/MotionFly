@@ -1,0 +1,20 @@
+/* dark-keynote: cool neutral ladder, one luminous accent (lime) reserved for the key number of each scene */
+:root {
+  --bg: #07080b;
+  --s1: #101217;
+  --s2: #161920;
+  --s3: #1d212a;
+  --line: rgba(255, 255, 255, 0.08);
+  --hi: rgba(255, 255, 255, 0.06);
+  --ink: #f2f4f8;
+  --ink2: #a3abba;
+  --ink3: #6b7384;
+  --accent: #b7f34a;
+  --accent-glow: rgba(183, 243, 74, 0.45);
+  --c1: #6ea8ff; /* category codes: only on moving trails, never on static UI */
+  --c2: #c39bf0;
+  --c3: #f5b36b;
+  --cap-bg: rgba(16, 18, 23, 0.9);
+  --cap-ink: #f2f4f8;
+}
+#captions .cap span { border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45); font-weight: 500; }

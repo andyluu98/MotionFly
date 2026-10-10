@@ -1,0 +1,566 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <!-- Scene s2. Runtime keeps only <template>; put style, markup and script inside it. -->
+  </head>
+  <body>
+    <template>
+      <style>
+        /* Each scene declares its fonts (HyperFrames lint: font_family_without_font_face). Paths are relative to index.html. */
+        @font-face { font-family: "Be Vietnam Pro"; src: url("fonts/BeVietnamPro-Regular.ttf"); font-weight: 400; }
+        @font-face { font-family: "Be Vietnam Pro"; src: url("fonts/BeVietnamPro-Medium.ttf"); font-weight: 500; }
+        @font-face { font-family: "Be Vietnam Pro"; src: url("fonts/BeVietnamPro-Bold.ttf"); font-weight: 700; }
+        @font-face { font-family: "Be Vietnam Pro"; src: url("fonts/BeVietnamPro-ExtraBold.ttf"); font-weight: 800; }
+        @font-face { font-family: "JetBrains Mono"; src: url("fonts/JetBrainsMono-Variable.ttf"); font-weight: 100 800; }
+
+        #s2-root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          background: transparent;
+          color: var(--ink);
+          font-family: "Be Vietnam Pro", sans-serif;
+        }
+        #s2-crt, #s2-env, #s2-cam, #s2-stage { position: absolute; inset: 0; transform-origin: 50% 50%; }
+        #s2-root .s2-mono { font-family: "JetBrains Mono", monospace; }
+
+        /* ---- layer 3: environment (grid nodes + data packets on the 48px grid) ---- */
+        #s2-root .s2-node { position: absolute; width: 14px; height: 14px; opacity: 0.35; }
+        #s2-root .s2-node::before, #s2-root .s2-node::after { content: ""; position: absolute; background: var(--ink3); }
+        #s2-root .s2-node::before { left: 6px; top: 0; width: 2px; height: 14px; }
+        #s2-root .s2-node::after { left: 0; top: 6px; width: 14px; height: 2px; }
+        #s2-root .s2-pko { position: absolute; width: 0; height: 0; }
+        #s2-root .s2-pki { position: absolute; }
+        #s2-root .s2-pki i { position: absolute; left: 0; top: 50%; height: 2px; margin-top: -1px; }
+        #s2-root .s2-pki b { position: absolute; right: 0; top: 0; border-radius: 50%; }
+
+        /* ---- rank badge ---- */
+        #s2-badge { position: absolute; left: 0; right: 0; top: 470px; height: 300px; overflow: hidden; display: flex; justify-content: center; }
+        #s2-badge-in { position: relative; transform-origin: 50% 50%; }
+        #s2-root .s2-rank {
+          display: block; font-weight: 800; font-size: 290px; line-height: 300px; letter-spacing: -0.04em; white-space: nowrap;
+          background-image: linear-gradient(180deg, var(--ink) 18%, var(--ink3) 92%);
+          -webkit-background-clip: text; background-clip: text; color: transparent;
+        }
+        #s2-glint {
+          position: absolute; left: 0; top: 0;
+          background-image: linear-gradient(105deg, transparent 38%, color-mix(in srgb, var(--ink) 55%, transparent) 50%, transparent 62%) !important;
+          background-size: 300% 100%; background-position: 100% 0%;
+        }
+        #s2-toplbl { position: absolute; left: 0; right: 0; top: 786px; text-align: center; }
+        #s2-toplbl span {
+          display: inline-block; font-family: "JetBrains Mono", monospace; font-size: 26px; font-weight: 500;
+          letter-spacing: 0.12em; color: var(--ink3); white-space: nowrap;
+        }
+        #s2-pips { position: absolute; left: 0; right: 0; top: 834px; display: flex; justify-content: center; gap: 10px; }
+        #s2-root .s2-pip { width: 44px; height: 6px; border-radius: 3px; background: var(--s3); transform-origin: 50% 50%; }
+        #s2-root .s2-pip.s2-on { background: var(--ink); }
+
+        /* ---- shared surfaces ---- */
+        #s2-root .s2-sweep { position: absolute; inset: 0; overflow: hidden; border-radius: inherit; pointer-events: none; }
+        #s2-root .s2-sweep i {
+          position: absolute; top: 0; bottom: 0; left: 0; width: 45%;
+          background: linear-gradient(100deg, transparent, color-mix(in srgb, var(--ink) 12%, transparent), transparent);
+        }
+
+        /* ---- repo card ---- */
+        #s2-card {
+          position: absolute; left: 72px; top: 890px; width: 936px; height: 340px; box-sizing: border-box; padding: 44px;
+          border-radius: 28px; background: var(--s2); border: 1px solid var(--line);
+          box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5), inset 0 1px 0 var(--hi); transform-origin: 50% 0%;
+        }
+        #s2-root .s2-head { display: flex; align-items: center; gap: 18px; height: 44px; }
+        #s2-book { width: 38px; height: 38px; flex: none; }
+        #s2-title { display: inline-block; font-family: "JetBrains Mono", monospace; font-size: 34px; font-weight: 500; white-space: nowrap; color: var(--ink2); }
+        #s2-title b { font-weight: 700; color: var(--ink); }
+        #s2-desc { margin-top: 26px; font-size: 40px; line-height: 52px; font-weight: 700; color: var(--ink); white-space: nowrap; }
+        #s2-root .s2-met { margin-top: 34px; height: 84px; display: flex; align-items: center; gap: 14px; }
+        #s2-star { width: 34px; height: 34px; flex: none; }
+        #s2-totalwrap { display: flex; align-items: baseline; gap: 12px; white-space: nowrap; }
+        #s2-total { font-family: "JetBrains Mono", monospace; font-size: 34px; font-weight: 500; color: var(--ink2); }
+        #s2-root .s2-unit { font-size: 30px; font-weight: 500; color: var(--ink3); }
+        #s2-root .s2-flex { flex: 1; }
+        #s2-chip {
+          position: relative; display: flex; align-items: center; gap: 14px; height: 84px; box-sizing: border-box; padding: 0 30px;
+          border-radius: 42px; background: var(--s3); border: 1px solid var(--line); box-shadow: inset 0 1px 0 var(--hi);
+          white-space: nowrap; transform-origin: 100% 50%;
+        }
+        #s2-arrow { width: 28px; height: 28px; flex: none; }
+        #s2-chipnum { display: grid; justify-items: end; min-width: 6ch; font-family: "JetBrains Mono", monospace; font-size: 44px; font-weight: 700; transform-origin: 50% 50%; }
+        #s2-root .s2-acc { grid-area: 1 / 1; color: var(--accent); text-shadow: 0 0 28px var(--accent-glow); }
+        #s2-root .s2-neu { grid-area: 1 / 1; color: var(--ink2); opacity: 0; }
+        #s2-root .s2-chiptxt { font-size: 30px; font-weight: 500; color: var(--ink2); }
+        #s2-rays { position: absolute; left: 50%; top: 50%; width: 0; height: 0; opacity: 0; }
+        #s2-rays i { position: absolute; left: 0; top: 0; width: 3px; height: 18px; border-radius: 2px; background: var(--ink2); }
+
+        /* ---- rule row: law -> AI ---- */
+        #s2-rule {
+          position: absolute; left: 120px; top: 520px; height: 64px; box-sizing: border-box; padding: 0 26px;
+          display: flex; align-items: center; gap: 14px; border-radius: 32px;
+          background: var(--s2); border: 1px solid var(--line); box-shadow: inset 0 1px 0 var(--hi); transform-origin: 0% 50%;
+        }
+        #s2-shield { width: 30px; height: 30px; flex: none; }
+        #s2-rule span { font-size: 26px; font-weight: 700; letter-spacing: 0.12em; color: var(--ink2); white-space: nowrap; }
+        #s2-link { position: absolute; left: 392px; top: 551px; width: 496px; height: 2px; background: color-mix(in srgb, var(--ink3) 65%, transparent); transform-origin: 0% 50%; }
+        #s2-vlink { position: absolute; left: 931px; top: 590px; width: 2px; height: 50px; background: color-mix(in srgb, var(--ink3) 65%, transparent); transform-origin: 50% 0%; }
+        #s2-root .s2-ldot { position: absolute; left: 388px; top: 548px; width: 8px; height: 8px; border-radius: 50%; background: var(--ink2); box-shadow: 0 0 10px var(--ink2); opacity: 0; }
+        #s2-vdot { left: 928px !important; top: 588px !important; }
+        #s2-ai {
+          position: absolute; left: 896px; top: 516px; width: 72px; height: 72px; box-sizing: border-box; border-radius: 18px;
+          background: var(--s3); border: 1px solid var(--line); box-shadow: inset 0 1px 0 var(--hi), 0 16px 30px rgba(0, 0, 0, 0.45);
+          display: flex; align-items: center; justify-content: center; font-size: 28px; font-weight: 800; color: var(--ink);
+          transform-origin: 50% 50%;
+        }
+
+        /* ---- code window ---- */
+        #s2-win {
+          position: absolute; left: 120px; top: 640px; width: 840px; height: 820px; border-radius: 24px; overflow: hidden;
+          background: var(--s1); border: 1px solid var(--line); box-sizing: border-box;
+          box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5), inset 0 1px 0 var(--hi); transform-origin: 50% 0%;
+        }
+        #s2-root .s2-wbar {
+          position: absolute; left: 0; right: 0; top: 0; height: 64px; box-sizing: border-box; padding: 0 24px;
+          display: flex; align-items: center; gap: 14px; background: var(--s2); border-bottom: 1px solid var(--line); white-space: nowrap;
+        }
+        #s2-glyph { width: 26px; height: 26px; flex: none; }
+        #s2-root .s2-fname { font-family: "JetBrains Mono", monospace; font-size: 24px; color: var(--ink2); }
+        #s2-lineswrap { position: relative; display: flex; align-items: baseline; gap: 8px; font-size: 24px; color: var(--ink3); }
+        #s2-lines { font-family: "JetBrains Mono", monospace; font-weight: 600; color: var(--ink2); }
+        #s2-strike { position: absolute; left: -6px; right: -6px; top: 52%; height: 2px; background: var(--ink2); transform-origin: 0% 50%; }
+        #s2-root .s2-wbody { position: absolute; left: 0; right: 0; top: 64px; bottom: 0; overflow: hidden; }
+        #s2-scroll { position: absolute; left: 0; right: 0; top: 0; box-sizing: border-box; padding: 8px 24px; transform-origin: 50% 0%; }
+        #s2-root .s2-ln { height: 20px; display: flex; align-items: center; }
+        #s2-root .s2-ln i { flex: none; width: 46px; font-style: normal; font-family: "JetBrains Mono", monospace; font-size: 12px; color: var(--ink3); opacity: 0.7; }
+        #s2-root .s2-ln span { display: flex; align-items: center; }
+        #s2-root .s2-ln b { display: block; height: 8px; border-radius: 4px; margin-right: 10px; }
+        #s2-short { position: absolute; left: 0; right: 0; top: 0; box-sizing: border-box; padding: 22px 24px; }
+        #s2-root .s2-sl { height: 34px; display: flex; align-items: center; }
+        #s2-root .s2-sl i { flex: none; width: 46px; font-style: normal; font-family: "JetBrains Mono", monospace; font-size: 16px; color: var(--ink2); }
+        #s2-root .s2-sl span { flex: 1; display: flex; align-items: center; }
+        #s2-root .s2-sl b { display: block; height: 11px; border-radius: 6px; margin-right: 12px; }
+        #s2-root .s2-k1 { background: color-mix(in srgb, var(--ink2) 70%, transparent); }
+        #s2-root .s2-k2 { background: color-mix(in srgb, var(--ink3) 80%, transparent); }
+        #s2-root .s2-k3 { background: color-mix(in srgb, var(--ink) 45%, transparent); }
+
+        /* ---- squeeze clamps ---- */
+        #s2-root .s2-clamp { position: absolute; left: 96px; width: 888px; height: 18px; box-sizing: border-box; border: 3px solid var(--ink2); transform-origin: 50% 50%; }
+        #s2-clampT { top: 606px; border-bottom: none !important; border-radius: 6px 6px 0 0; }
+        #s2-clampB { top: 1486px; border-top: none !important; border-radius: 0 0 6px 6px; }
+
+        /* ---- benchmark panel ---- */
+        #s2-panel {
+          position: absolute; left: 508px; top: 640px; width: 500px; height: 820px; box-sizing: border-box; padding: 40px;
+          border-radius: 28px; background: var(--s2); border: 1px solid var(--line);
+          box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5), inset 0 1px 0 var(--hi); transform-origin: 0% 50%;
+        }
+        #s2-root .s2-legend { display: flex; gap: 30px; height: 32px; align-items: center; font-size: 24px; font-weight: 500; color: var(--ink2); white-space: nowrap; }
+        #s2-root .s2-legend span { display: flex; align-items: center; gap: 10px; }
+        #s2-root .s2-sw { display: block; width: 28px; height: 12px; border-radius: 6px; }
+        #s2-root .s2-grp { position: absolute; left: 40px; right: 40px; }
+        #s2-g1 { top: 120px; }
+        #s2-g2 { top: 420px; }
+        #s2-root .s2-grow { display: flex; align-items: flex-end; justify-content: space-between; height: 120px; }
+        #s2-root .s2-gl { font-family: "JetBrains Mono", monospace; font-size: 30px; font-weight: 600; letter-spacing: 0.12em; color: var(--ink2); padding-bottom: 14px; transform-origin: 0% 100%; }
+        #s2-root .s2-pct { display: grid; justify-items: end; font-size: 104px; line-height: 1; font-weight: 800; letter-spacing: -0.04em; transform-origin: 100% 100%; white-space: nowrap; }
+        #s2-root .s2-pct .s2-neu { color: var(--ink); }
+        #s2-root .s2-bars { margin-top: 22px; display: flex; flex-direction: column; gap: 22px; }
+        #s2-root .s2-track { position: relative; height: 26px; }
+        #s2-root .s2-ghost { position: absolute; inset: 0; box-sizing: border-box; border: 2px dashed color-mix(in srgb, var(--ink3) 85%, transparent); border-radius: 13px; }
+        #s2-root .s2-fill { position: absolute; left: 0; top: 0; bottom: 0; width: 100%; border-radius: 13px; transform-origin: 0% 50%; }
+        #s2-root .s2-fb { background: var(--ink3); }
+        #s2-root .s2-fa { background: var(--ink); }
+        #s2-root .s2-div { position: absolute; left: 40px; right: 40px; top: 378px; height: 1px; background: var(--line); }
+        #s2-note { position: absolute; left: 40px; top: 722px; display: inline-block; font-size: 22px; font-weight: 500; color: var(--ink2); white-space: nowrap; }
+        #s2-note .s2-mono { font-weight: 600; margin-right: 6px; }
+
+        #s2-crtline { position: absolute; left: 0; right: 0; top: 50%; height: 3px; margin-top: -1px; background: var(--ink); opacity: 0; transform-origin: 50% 50%; }
+      </style>
+
+      <div id="s2-root" data-composition-id="s2" data-width="1080" data-height="1920">
+        <div id="s2-crt">
+          <!-- layer 3: environment, not scaled by the camera so packets stay on the 48px grid -->
+          <div id="s2-env">
+            <div class="s2-node" style="left: 53px; top: 185px"></div>
+            <div class="s2-node" style="left: 1013px; top: 185px"></div>
+            <div class="s2-node" style="left: 53px; top: 665px"></div>
+            <div class="s2-node" style="left: 1013px; top: 665px"></div>
+            <div class="s2-node" style="left: 53px; top: 1145px"></div>
+            <div class="s2-node" style="left: 1013px; top: 1145px"></div>
+            <div class="s2-node" style="left: 53px; top: 1529px"></div>
+            <div class="s2-node" style="left: 1013px; top: 1529px"></div>
+            <div id="s2-pk"></div>
+          </div>
+
+          <div id="s2-cam">
+            <div id="s2-stage">
+              <!-- rank badge -->
+              <div id="s2-badge">
+                <div id="s2-badge-in">
+                  <span class="s2-rank">#1</span>
+                  <span class="s2-rank" id="s2-glint">#1</span>
+                </div>
+              </div>
+              <div id="s2-toplbl"><span>TOP 01 / 05</span></div>
+              <div id="s2-pips">
+                <div class="s2-pip s2-on"></div>
+                <div class="s2-pip"></div>
+                <div class="s2-pip"></div>
+                <div class="s2-pip"></div>
+                <div class="s2-pip"></div>
+              </div>
+
+              <!-- repo card -->
+              <div id="s2-card">
+                <div class="s2-head">
+                  <svg id="s2-book" viewBox="0 0 24 24" fill="none" stroke="var(--ink2)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <path pathLength="1" stroke-dasharray="1" d="M5 4.5A1.5 1.5 0 0 1 6.5 3H19v15H6.5A1.5 1.5 0 0 0 5 19.5z" />
+                    <path pathLength="1" stroke-dasharray="1" d="M5 19.5A1.5 1.5 0 0 0 6.5 21H19v-3" />
+                    <path pathLength="1" stroke-dasharray="1" d="M9 7h6" />
+                  </svg>
+                  <span id="s2-title">DietrichGebert/<b>ponytail</b></span>
+                </div>
+                <div id="s2-desc">Bộ luật buộc AI viết ít code</div>
+                <div class="s2-met">
+                  <svg id="s2-star" viewBox="0 0 24 24"><path fill="var(--ink2)" d="M12 2.6l2.9 6 6.5.8-4.8 4.5 1.2 6.5L12 17.3l-5.8 3.1 1.2-6.5L2.6 9.4l6.5-.8z" /></svg>
+                  <div id="s2-totalwrap"><span id="s2-total">0</span><span class="s2-unit">sao</span></div>
+                  <div class="s2-flex"></div>
+                  <div id="s2-chip">
+                    <svg id="s2-arrow" viewBox="0 0 24 24" fill="none" stroke="var(--ink2)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 18L18 6M9 6h9v9" /></svg>
+                    <div id="s2-chipnum"><span class="s2-acc">+0</span><span class="s2-neu">+0</span></div>
+                    <span class="s2-chiptxt">tuần này</span>
+                    <div id="s2-rays"></div>
+                  </div>
+                </div>
+                <div class="s2-sweep"><i></i></div>
+              </div>
+
+              <!-- rule row: law -> AI -> code -->
+              <div id="s2-rule">
+                <svg id="s2-shield" viewBox="0 0 24 24" fill="none" stroke="var(--ink2)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path pathLength="1" stroke-dasharray="1" d="M12 3l7 3v5c0 4.6-3 8.4-7 10-4-1.6-7-5.4-7-10V6z" />
+                  <path pathLength="1" stroke-dasharray="1" d="M8.8 12.2l2.2 2.2 4.2-4.6" />
+                </svg>
+                <span>BỘ LUẬT</span>
+              </div>
+              <div id="s2-link"></div>
+              <div class="s2-ldot" id="s2-ld0"></div>
+              <div class="s2-ldot" id="s2-ld1"></div>
+              <div class="s2-ldot" id="s2-ld2"></div>
+              <div id="s2-vlink"></div>
+              <div class="s2-ldot" id="s2-vdot"></div>
+              <div id="s2-ai">AI</div>
+
+              <!-- code window -->
+              <div id="s2-win">
+                <div class="s2-wbar">
+                  <svg id="s2-glyph" viewBox="0 0 24 24" fill="none" stroke="var(--ink3)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 7l-5 5 5 5M16 7l5 5-5 5" /></svg>
+                  <span class="s2-fname">output.ts</span>
+                  <div class="s2-flex"></div>
+                  <div id="s2-lineswrap"><span id="s2-lines">0</span><span>dòng</span><div id="s2-strike"></div></div>
+                </div>
+                <div class="s2-wbody">
+                  <div id="s2-scroll"></div>
+                  <div id="s2-short">
+                    <div class="s2-sl"><i>1</i><span><b class="s2-k1" style="width: 22%"></b><b class="s2-k3" style="width: 30%"></b></span></div>
+                    <div class="s2-sl"><i>2</i><span style="padding-left: 26px"><b class="s2-k2" style="width: 16%"></b><b class="s2-k1" style="width: 38%"></b></span></div>
+                    <div class="s2-sl"><i>3</i><span style="padding-left: 26px"><b class="s2-k3" style="width: 44%"></b></span></div>
+                    <div class="s2-sl"><i>4</i><span style="padding-left: 52px"><b class="s2-k1" style="width: 20%"></b><b class="s2-k2" style="width: 24%"></b></span></div>
+                    <div class="s2-sl"><i>5</i><span style="padding-left: 26px"><b class="s2-k2" style="width: 34%"></b></span></div>
+                    <div class="s2-sl"><i>6</i><span><b class="s2-k1" style="width: 12%"></b></span></div>
+                    <div class="s2-sl"><i>7</i><span><b class="s2-k3" style="width: 26%"></b><b class="s2-k2" style="width: 18%"></b></span></div>
+                    <div class="s2-sl"><i>8</i><span><b class="s2-k1" style="width: 8%"></b></span></div>
+                  </div>
+                </div>
+                <div class="s2-sweep"><i></i></div>
+              </div>
+              <div class="s2-clamp" id="s2-clampT"></div>
+              <div class="s2-clamp" id="s2-clampB"></div>
+
+              <!-- benchmark panel -->
+              <div id="s2-panel">
+                <div class="s2-legend">
+                  <span><i class="s2-sw s2-fb"></i>trước</span>
+                  <span><i class="s2-sw s2-fa"></i>sau</span>
+                </div>
+                <div class="s2-grp" id="s2-g1">
+                  <div class="s2-grow">
+                    <div class="s2-gl" id="s2-g1l">CODE</div>
+                    <div class="s2-pct" id="s2-pct1"><span class="s2-acc">-0%</span><span class="s2-neu">-0%</span></div>
+                  </div>
+                  <div class="s2-bars">
+                    <div class="s2-track"><div class="s2-ghost"></div><div class="s2-fill s2-fb"></div></div>
+                    <div class="s2-track"><div class="s2-ghost"></div><div class="s2-fill s2-fa" id="s2-fa1"></div></div>
+                  </div>
+                </div>
+                <div class="s2-div"></div>
+                <div class="s2-grp" id="s2-g2">
+                  <div class="s2-grow">
+                    <div class="s2-gl" id="s2-g2l">TOKEN</div>
+                    <div class="s2-pct" id="s2-pct2"><span class="s2-acc">-0%</span><span class="s2-neu">-0%</span></div>
+                  </div>
+                  <div class="s2-bars">
+                    <div class="s2-track"><div class="s2-ghost"></div><div class="s2-fill s2-fb"></div></div>
+                    <div class="s2-track"><div class="s2-ghost"></div><div class="s2-fill s2-fa" id="s2-fa2"></div></div>
+                  </div>
+                </div>
+                <div id="s2-note"><span class="s2-mono">//</span>benchmark của tác giả</div>
+                <div class="s2-sweep"><i></i></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div id="s2-crtline"></div>
+      </div>
+
+      <script>
+        (() => {
+          // A("key") = local time (s) of an anchor from timeline.json; never hard-code word times.
+          const A = (key) => window.__vv.local("s2", key);
+          const SC = window.__vv.scenes["s2"];
+          const DUR = SC.end - SC.start;
+          const BEAT = 60 / 104, S = SC.start;
+          const beats = (from, to) => { const o = []; for (let k = Math.ceil((S + from) / BEAT); k * BEAT - S <= to; k++) o.push(k * BEAT - S); return o; };
+          // Deterministic hash in [0,1) (no Math.random).
+          const hash = (i, k) => { const x = Math.sin(i * 127.1 + k * 311.7 + 1.3) * 43758.5453; return x - Math.floor(x); };
+          // Vietnamese thousands separator: 160063 -> "160.063".
+          const fmt = (n) => String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+          const q = (s) => document.querySelector(s);
+          const qa = (s) => Array.from(document.querySelectorAll(s));
+          const setTxt = (els, s) => els.forEach((el) => { el.textContent = s; });
+
+          // ---------- build: 335 grey code lines ----------
+          const LC = [
+            "color-mix(in srgb, var(--ink3) 60%, transparent)",
+            "color-mix(in srgb, var(--ink2) 30%, transparent)",
+            "var(--s3)",
+          ];
+          let html = "";
+          for (let i = 0; i < 335; i++) {
+            let segs = "";
+            if (hash(i, 9) > 0.1) {
+              const n = 1 + Math.floor(hash(i, 2) * 3);
+              for (let s = 0; s < n; s++) segs += '<b style="width:' + Math.round(28 + hash(i, 3 + s) * 150) + "px;background:" + LC[(i + s) % 3] + '"></b>';
+            }
+            html += '<div class="s2-ln"><i>' + (i + 1) + '</i><span style="padding-left:' + Math.floor(hash(i, 1) * 4) * 22 + 'px">' + segs + "</span></div>";
+          }
+          q("#s2-scroll").innerHTML = html;
+          const LINE_H = 20, BODY_H = 820 - 64;
+          const SCROLL_END = -(335 * LINE_H + 16 - BODY_H);
+
+          // ---------- build: star-burst rays on an ellipse around the chip ----------
+          let rays = "";
+          for (let k = 0; k < 10; k++) {
+            const a = (k / 10) * Math.PI * 2, rx = 210, ry = 66;
+            const x = Math.cos(a) * rx, y = Math.sin(a) * ry;
+            const th = (Math.atan2(y / (ry * ry), x / (rx * rx)) * 180) / Math.PI;
+            rays += '<i style="transform:translate(' + (x - 1.5).toFixed(1) + "px," + (y - 9).toFixed(1) + "px) rotate(" + (th - 90).toFixed(1) + 'deg)"></i>';
+          }
+          q("#s2-rays").innerHTML = rays;
+
+          // ---------- build: data packets that run straight along the 48px grid ----------
+          // _nen grid lines: x = 12 + 48k, y = 48m.
+          const PK = 18, CV = ["--c1", "--c2", "--c3"], pk = [];
+          let pkHtml = "";
+          for (let i = 0; i < PK; i++) {
+            const hz = hash(i, 1) < 0.55, dir = hash(i, 2) < 0.5 ? 1 : -1;
+            const d = 6 + Math.floor(hash(i, 3) * 5), L = Math.round(70 + hash(i, 5) * 70);
+            const col = "color-mix(in srgb, var(" + CV[i % 3] + ") 60%, var(--ink3))";
+            const lx = hz ? 0 : 12 + 48 * (1 + Math.floor(hash(i, 4) * 20));
+            const ly = hz ? 48 * (4 + Math.floor(hash(i, 4) * 30)) : 0;
+            const rot = hz ? (dir > 0 ? 0 : 180) : dir > 0 ? 90 : -90;
+            pkHtml +=
+              '<div class="s2-pko" id="s2-pk' + i + '" style="left:' + lx + "px;top:" + ly + 'px">' +
+              '<div class="s2-pki" style="width:' + L + "px;height:" + d + "px;left:" + (d / 2 - L) + "px;top:" + -d / 2 + "px;transform-origin:" + (L - d / 2) + "px " + d / 2 + "px;transform:rotate(" + rot + 'deg)">' +
+              '<i style="right:' + d / 2 + "px;background:linear-gradient(90deg,transparent," + col + ')"></i>' +
+              '<b style="width:' + d + "px;height:" + d + "px;background:" + col + ";box-shadow:0 0 12px " + col + '"></b></div></div>';
+            pk.push({ hz, dir });
+          }
+          q("#s2-pk").innerHTML = pkHtml;
+          q("#s2-pk").style.opacity = "0.6";
+
+          const chipEls = qa("#s2-chipnum span");
+          const p1Els = qa("#s2-pct1 span");
+          const p2Els = qa("#s2-pct2 span");
+          const totalEl = q("#s2-total");
+          const linesEl = q("#s2-lines");
+
+          const tl = gsap.timeline({ paused: true });
+          const pulse = (t, sel, s) => {
+            tl.to(sel, { scale: s || 1.04, duration: 0.08, ease: "power1.out" }, t);
+            tl.to(sel, { scale: 1, duration: 0.22, ease: "power2.out" }, t + 0.08);
+          };
+          const count = (t, to, dur, write, ease) => {
+            const o = { v: 0 };
+            tl.to(o, { v: to, duration: dur, ease: ease || "power3.out", onUpdate: () => write(o.v) }, t);
+          };
+          const typeOn = (sel, t, n, dur) => tl.fromTo(sel, { clipPath: "inset(0% 100% 0% 0%)" }, { clipPath: "inset(0% 0% 0% 0%)", duration: dur, ease: "steps(" + n + ")" }, t);
+
+          const tH = A("hang"), tR = A("repo"), tS = A("sao"), tL = A("luat"), tI = A("it"), tC = A("code"), tT = A("token");
+          const tE = DUR - 0.3;
+
+          // ---------- camera + whip entrance ----------
+          tl.fromTo("#s2-cam", { scale: 1 }, { scale: 1.05, duration: DUR, ease: "none" }, 0);
+          tl.fromTo("#s2-stage", { scale: 1.12, x: 90, opacity: 0, filter: "blur(8px)" }, { scale: 1, x: 0, opacity: 1, filter: "blur(0px)", duration: 0.4, ease: "power3.out" }, 0);
+          tl.fromTo("#s2-env", { opacity: 0 }, { opacity: 1, duration: 0.5, ease: "power2.out" }, 0);
+
+          // ---------- layer 3: packets (straight runs, finite repeats) ----------
+          pk.forEach((p, i) => {
+            const dist = p.hz ? 1400 : 1940;
+            const d = dist / (560 + hash(i, 6) * 380);
+            const rd = 0.3 + hash(i, 7) * 1.4;
+            const t0 = hash(i, 8) * 2.6;
+            const n = Math.max(0, Math.floor((tE - t0 - d) / (d + rd)));
+            const a = -160, b = p.hz ? 1240 : 1780;
+            const from = p.dir > 0 ? a : b, to = p.dir > 0 ? b : a;
+            const prop = p.hz ? "x" : "y";
+            tl.fromTo("#s2-pk" + i, { [prop]: from }, { [prop]: to, duration: d, ease: "none", repeat: n, repeatDelay: rd }, t0);
+          });
+
+          // grid nodes blink on the beat (two per beat, rotating)
+          const nodes = qa("#s2-env .s2-node");
+          beats(0.45, tE - 0.1).forEach((t, j) => {
+            [(j * 3) % 8, (j * 3 + 4) % 8].forEach((k) => {
+              tl.to(nodes[k], { opacity: 0.95, scale: 1.5, duration: 0.08, ease: "power1.out" }, t);
+              tl.to(nodes[k], { opacity: 0.35, scale: 1, duration: 0.3, ease: "power2.out" }, t + 0.08);
+            });
+          });
+
+          // ---------- sentence 1: "#1" badge rises, repo card, star count ----------
+          tl.fromTo("#s2-badge-in", { y: 310 }, { y: 0, duration: 0.42, ease: "back.out(1.3)" }, tH);
+          tl.fromTo("#s2-glint", { backgroundPosition: "100% 0%" }, { backgroundPosition: "0% 0%", duration: 0.9, ease: "power2.inOut" }, tH + 0.3);
+          typeOn("#s2-toplbl span", tH + 0.35, 11, 0.33);
+          tl.fromTo("#s2-pips .s2-pip", { scaleX: 0 }, { scaleX: 1, duration: 0.22, ease: "back.out(1.4)", stagger: 0.05 }, tH + 0.45);
+          beats(0.95, tL - 0.4).forEach((t) => {
+            tl.to("#s2-pips .s2-on", { scaleY: 2, duration: 0.08, ease: "power1.out" }, t);
+            tl.to("#s2-pips .s2-on", { scaleY: 1, duration: 0.22, ease: "power2.out" }, t + 0.08);
+          });
+
+          tl.fromTo("#s2-card", { y: -90, scale: 0.94, opacity: 0 }, { y: 0, scale: 1, opacity: 1, duration: 0.34, ease: "back.out(1.4)" }, tR);
+          tl.fromTo("#s2-book path", { strokeDashoffset: 1 }, { strokeDashoffset: 0, duration: 0.4, ease: "power2.out", stagger: 0.06 }, tR + 0.08);
+          typeOn("#s2-title", tR + 0.12, 23, 0.46);
+          tl.fromTo("#s2-card .s2-sweep i", { xPercent: -130 }, { xPercent: 330, duration: 0.8, ease: "power2.inOut" }, tR + 0.2);
+          tl.fromTo("#s2-desc", { x: -28, opacity: 0 }, { x: 0, opacity: 1, duration: 0.3, ease: "back.out(1.4)" }, tR + 0.3);
+          tl.fromTo("#s2-star", { scale: 0, rotation: -120 }, { scale: 1, rotation: 0, duration: 0.32, ease: "back.out(1.6)" }, tR + 0.4);
+          tl.fromTo("#s2-totalwrap", { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.22, ease: "power2.out" }, tR + 0.42);
+          count(tR + 0.42, 160063, 1.1, (v) => { totalEl.textContent = fmt(v); });
+
+          // chip "+8.319 tuần này": pop, count in accent, burst when it lands
+          tl.fromTo("#s2-chip", { scale: 0.5, x: 40, opacity: 0 }, { scale: 1, x: 0, opacity: 1, duration: 0.28, ease: "back.out(1.7)" }, tS);
+          tl.fromTo("#s2-arrow", { x: -10, y: 10, opacity: 0 }, { x: 0, y: 0, opacity: 1, duration: 0.25, ease: "back.out(2)" }, tS + 0.1);
+          count(tS + 0.04, 8319, 1.2, (v) => setTxt(chipEls, "+" + fmt(v)));
+          const tDone = tS + 1.24;
+          tl.fromTo("#s2-rays", { scale: 0.7, opacity: 0 }, { scale: 0.85, opacity: 1, duration: 0.06, ease: "none" }, tDone);
+          tl.to("#s2-rays", { scale: 1.35, opacity: 0, duration: 0.42, ease: "power2.out" }, tDone + 0.06);
+          pulse(tDone, "#s2-chipnum", 1.1);
+          beats(tS + 0.3, tL - 0.2).filter((t) => t > tDone + 0.3 || t < tDone - 0.3).forEach((t) => pulse(t, "#s2-chipnum", 1.04));
+
+          // ---------- whip to idea 2: badge CRT-off, card flies to the top ----------
+          tl.to("#s2-toplbl span", { clipPath: "inset(0% 0% 0% 100%)", duration: 0.16, ease: "steps(6)" }, tL - 0.3);
+          tl.to("#s2-pips .s2-pip", { scaleX: 0, duration: 0.12, ease: "power2.in", stagger: 0.03 }, tL - 0.3);
+          tl.to("#s2-badge-in", { scaleY: 0.02, duration: 0.11, ease: "power2.in" }, tL - 0.24);
+          tl.to("#s2-badge-in", { scaleX: 0, duration: 0.09, ease: "power2.in" }, tL - 0.13);
+          tl.to("#s2-card", { y: 200 - 890, scale: 0.8, duration: 0.5, ease: "power3.inOut" }, tL - 0.12);
+          tl.to("#s2-cam", { y: -26, duration: 0.12, ease: "power2.in" }, tL - 0.14);
+          tl.to("#s2-cam", { y: 0, duration: 0.32, ease: "back.out(1.3)" }, tL - 0.02);
+          tl.to("#s2-stage", { filter: "blur(3px)", duration: 0.12, ease: "power2.in" }, tL - 0.14);
+          tl.to("#s2-stage", { filter: "blur(0px)", duration: 0.24, ease: "power2.out" }, tL - 0.02);
+          // accent leaves the chip: the next key number gets it later
+          tl.to("#s2-chipnum .s2-acc", { opacity: 0, duration: 0.3, ease: "power1.out" }, tL);
+          tl.to("#s2-chipnum .s2-neu", { opacity: 1, duration: 0.3, ease: "power1.out" }, tL);
+
+          // ---------- sentence 2a: "Bộ luật" stamps in, code window streams 335 lines ----------
+          tl.fromTo("#s2-rule", { scale: 1.4, rotation: -8, opacity: 0 }, { scale: 1, rotation: 0, opacity: 1, duration: 0.26, ease: "back.out(1.6)" }, tL + 0.1);
+          tl.fromTo("#s2-shield path", { strokeDashoffset: 1 }, { strokeDashoffset: 0, duration: 0.4, ease: "power2.out", stagger: 0.1 }, tL + 0.16);
+          tl.fromTo("#s2-win", { scaleY: 0.02, opacity: 0 }, { scaleY: 1, opacity: 1, duration: 0.36, ease: "power3.out" }, tL + 0.2);
+          tl.fromTo("#s2-win .s2-sweep i", { xPercent: -130 }, { xPercent: 330, duration: 0.8, ease: "power2.inOut" }, tL + 0.4);
+          tl.fromTo("#s2-scroll", { y: 0 }, { y: SCROLL_END, duration: 1.2, ease: "power2.in" }, tL + 0.36);
+          count(tL + 0.36, 335, 1.2, (v) => { linesEl.textContent = String(Math.round(v)); }, "power2.in");
+
+          // "buộc AI": link draws, AI node spins in, data dots run law -> AI -> code
+          tl.fromTo("#s2-link", { scaleX: 0 }, { scaleX: 1, duration: 0.3, ease: "power3.out" }, tI - 0.92);
+          tl.fromTo("#s2-ai", { scale: 0, rotation: 90 }, { scale: 1, rotation: 0, duration: 0.3, ease: "back.out(1.6)" }, tI - 0.7);
+          tl.fromTo("#s2-vlink", { scaleY: 0 }, { scaleY: 1, duration: 0.2, ease: "power2.out" }, tI - 0.5);
+          const tOut = tC - 1.45;
+          [0, 1, 2].forEach((j) => {
+            const ts = tI - 0.62 + j * 0.18, d = 0.5, rd = 0.1;
+            tl.fromTo("#s2-ld" + j, { opacity: 0 }, { opacity: 1, duration: 0.08 }, ts);
+            tl.fromTo("#s2-ld" + j, { x: 0 }, { x: 496, duration: d, ease: "power1.inOut", repeat: Math.max(0, Math.floor((tOut - ts - d) / (d + rd))), repeatDelay: rd }, ts);
+          });
+          {
+            const ts = tI - 0.3, d = 0.28, rd = 0.14;
+            tl.fromTo("#s2-vdot", { opacity: 0 }, { opacity: 1, duration: 0.06 }, ts);
+            tl.fromTo("#s2-vdot", { y: 0 }, { y: 48, duration: d, ease: "power1.in", repeat: Math.max(0, Math.floor((tOut - ts - d) / (d + rd))), repeatDelay: rd }, ts);
+          }
+          beats(tI - 0.3, tOut - 0.3).forEach((t) => pulse(t, "#s2-ai", 1.08));
+
+          // ---------- "ít": tug-of-war squeeze, long scroll collapses into a short block ----------
+          tl.fromTo("#s2-clampT", { scaleX: 0 }, { scaleX: 1, duration: 0.2, ease: "back.out(1.4)" }, tI - 0.28);
+          tl.fromTo("#s2-clampB", { scaleX: 0 }, { scaleX: 1, duration: 0.2, ease: "back.out(1.4)" }, tI - 0.24);
+          tl.to("#s2-win", { scaleY: 1.02, duration: 0.18, ease: "power2.out" }, tI - 0.22);
+          tl.to("#s2-win", { x: 3, duration: 0.03, ease: "none", repeat: 5, yoyo: true }, tI - 0.2);
+          // clamp: same look as top 858 / height 385, done with transform + clip-path (no layout snapping)
+          tl.fromTo("#s2-win", { clipPath: "inset(0px 0px 0px 0px round 24px)" }, { scaleY: 1, y: 218, clipPath: "inset(0px 0px 435px 0px round 24px)", duration: 0.42, ease: "back.out(1.2)" }, tI);
+          tl.to("#s2-win", { scaleX: 1.03, duration: 0.12, ease: "power2.out" }, tI + 0.05);
+          tl.to("#s2-win", { scaleX: 1, duration: 0.3, ease: "back.out(2)" }, tI + 0.17);
+          tl.to("#s2-clampT", { y: 220, duration: 0.42, ease: "back.out(1.2)" }, tI);
+          tl.to("#s2-clampB", { y: -229, duration: 0.42, ease: "back.out(1.2)" }, tI);
+          tl.to("#s2-scroll", { opacity: 0, scaleY: 0.3, duration: 0.2, ease: "power2.in" }, tI);
+          tl.fromTo("#s2-short .s2-sl", { x: -30, opacity: 0 }, { x: 0, opacity: 1, duration: 0.24, ease: "back.out(1.5)", stagger: 0.04 }, tI + 0.16);
+          tl.fromTo("#s2-strike", { scaleX: 0 }, { scaleX: 1, duration: 0.22, ease: "power3.out" }, tI + 0.42);
+          tl.to("#s2-lineswrap", { opacity: 0.5, duration: 0.2, ease: "power1.out" }, tI + 0.5);
+          tl.to(["#s2-clampT", "#s2-clampB"], { scaleX: 0, duration: 0.18, ease: "power2.in" }, tI + 0.64);
+
+          // ---------- put-away of the rule row, one part per beat-ish ----------
+          tl.to(["#s2-ld0", "#s2-ld1", "#s2-ld2", "#s2-vdot"], { opacity: 0, duration: 0.1 }, tOut);
+          tl.to("#s2-vlink", { scaleY: 0, duration: 0.12, ease: "power2.in" }, tOut);
+          tl.to("#s2-ai", { scale: 0, rotation: -90, duration: 0.16, ease: "back.in(1.6)" }, tOut + 0.05);
+          tl.to("#s2-link", { scaleX: 0, duration: 0.16, ease: "power2.in" }, tOut + 0.1);
+          tl.to("#s2-rule", { scaleY: 0.04, duration: 0.1, ease: "power2.in" }, tOut + 0.18);
+          tl.to("#s2-rule", { scaleX: 0, duration: 0.1, ease: "power2.in" }, tOut + 0.28);
+
+          // ---------- sentence 2b: window docks left, benchmark panel expands out of it ----------
+          tl.to("#s2-win", { x: -48, clipPath: "inset(0px 436px 435px 0px round 24px)", duration: 0.42, ease: "power3.inOut" }, tC - 1.35);
+          tl.fromTo("#s2-panel", { scaleX: 0.02, opacity: 0 }, { scaleX: 1, opacity: 1, duration: 0.32, ease: "power3.out" }, tC - 1.15);
+          tl.fromTo("#s2-panel .s2-sweep i", { xPercent: -130 }, { xPercent: 330, duration: 0.8, ease: "power2.inOut" }, tC - 0.95);
+          typeOn("#s2-note", tC - 1.0, 24, 0.4);
+          tl.fromTo("#s2-panel .s2-legend > span", { y: 14, opacity: 0 }, { y: 0, opacity: 1, duration: 0.24, ease: "back.out(1.6)", stagger: 0.08 }, tC - 0.95);
+          tl.fromTo("#s2-panel .s2-div", { scaleX: 0 }, { scaleX: 1, duration: 0.3, ease: "power3.out" }, tC - 0.85);
+
+          // tIn = entrance of the group, t = hit (bar shrink + number), both from anchors
+          const group = (g, tIn, t, fa, pctSel, pctEls, keep, target) => {
+            tl.fromTo(g + " .s2-gl", { x: 40, opacity: 0 }, { x: 0, opacity: 1, duration: 0.26, ease: "back.out(1.5)" }, tIn);
+            tl.fromTo(g + " .s2-ghost", { opacity: 0 }, { opacity: 1, duration: 0.2 }, tIn + 0.05);
+            tl.fromTo(g + " .s2-fill", { scaleX: 0 }, { scaleX: 1, duration: 0.3, ease: "power3.out", stagger: 0.08 }, tIn + 0.08);
+            // tension, then the "after" bar gets pulled back to `keep`
+            tl.to(fa, { x: 2, duration: 0.03, ease: "none", repeat: 5, yoyo: true }, t - 0.22);
+            tl.to(fa, { scaleX: 1.02, duration: 0.12, ease: "power2.out" }, t - 0.14);
+            tl.to(fa, { width: keep, scaleX: 1, duration: 0.5, ease: "back.out(1.3)" }, t);
+            tl.fromTo(pctSel, { y: -40, opacity: 0 }, { y: 0, opacity: 1, duration: 0.3, ease: "back.out(1.6)" }, t);
+            count(t, target, 0.8, (v) => setTxt(pctEls, "-" + Math.round(v) + "%"));
+          };
+          group("#s2-g1", tC - 0.82, tC, "#s2-fa1", "#s2-pct1", p1Els, "47%", 53);
+          beats(tC + 0.75, tT - 0.35).forEach((t) => pulse(t, "#s2-pct1", 1.04));
+          // token group enters on "code và", shrinks on the "token" anchor
+          group("#s2-g2", tT - 0.62, tT, "#s2-fa2", "#s2-pct2", p2Els, "55%", 45);
+          // accent moves from -53% to -45%: one accent at a time
+          tl.to("#s2-pct1 .s2-acc", { opacity: 0, duration: 0.3, ease: "power1.out" }, tT);
+          tl.to("#s2-pct1 .s2-neu", { opacity: 1, duration: 0.3, ease: "power1.out" }, tT);
+          beats(tT + 1.05, tE - 0.1).forEach((t) => pulse(t, "#s2-pct2", 1.04));
+          pulse(tT + 1.0, "#s2-g2l", 1.12);
+
+          // ---------- exit: CRT-off of the whole scene in the last 0.3 s ----------
+          tl.fromTo("#s2-crt", { filter: "brightness(1)" }, { scaleY: 0.02, filter: "brightness(2)", duration: 0.14, ease: "power2.in", immediateRender: false }, tE);
+          tl.to("#s2-crt", { scaleX: 0, duration: 0.12, ease: "power2.in" }, tE + 0.14);
+          tl.to("#s2-crt", { opacity: 0, duration: 0.03 }, tE + 0.26);
+          tl.fromTo("#s2-crtline", { opacity: 0, scaleX: 1 }, { opacity: 0.85, duration: 0.05 }, tE + 0.1);
+          tl.to("#s2-crtline", { scaleX: 0, duration: 0.14, ease: "power2.in" }, tE + 0.15);
+          tl.to("#s2-crtline", { opacity: 0, duration: 0.03 }, tE + 0.27);
+
+          tl.set({}, {}, DUR);
+          window.__timelines["s2"] = tl;
+        })();
+      </script>
+    </template>
+  </body>
+</html>

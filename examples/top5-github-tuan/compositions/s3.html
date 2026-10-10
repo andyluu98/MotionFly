@@ -1,0 +1,573 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <!-- Scene s3: #2 Agent Reach. Runtime keeps only <template>; style, markup and script live inside it. -->
+  </head>
+  <body>
+    <template>
+      <style>
+        /* Each scene declares its fonts (HyperFrames lint: font_family_without_font_face). Paths are relative to index.html. */
+        @font-face { font-family: "Be Vietnam Pro"; src: url("fonts/BeVietnamPro-Regular.ttf"); font-weight: 400; }
+        @font-face { font-family: "Be Vietnam Pro"; src: url("fonts/BeVietnamPro-Medium.ttf"); font-weight: 500; }
+        @font-face { font-family: "Be Vietnam Pro"; src: url("fonts/BeVietnamPro-Bold.ttf"); font-weight: 700; }
+        @font-face { font-family: "Be Vietnam Pro"; src: url("fonts/BeVietnamPro-ExtraBold.ttf"); font-weight: 800; }
+        @font-face { font-family: "JetBrains Mono"; src: url("fonts/JetBrainsMono-Variable.ttf"); font-weight: 100 800; }
+
+        #s3-root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          background: transparent;
+          color: var(--ink);
+          font-family: "Be Vietnam Pro", sans-serif;
+        }
+        #s3-root * { box-sizing: border-box; }
+        #s3-amb, #s3-cam, #s3-stage, #s3-net, #s3-p1 { position: absolute; inset: 0; }
+        #s3-root .mono { font-family: "JetBrains Mono", monospace; }
+        #s3-root .lbl { font-family: "Be Vietnam Pro", sans-serif; font-weight: 500; text-transform: uppercase; letter-spacing: 0.12em; color: var(--ink3); }
+        #s3-root .surf {
+          background: var(--s2);
+          border: 1px solid var(--line);
+          box-shadow: inset 0 1px 0 var(--hi), 0 30px 60px rgba(0, 0, 0, 0.5);
+        }
+        #s3-root .sweep {
+          position: absolute; left: 0; top: -20%; width: 220px; height: 140%;
+          background: linear-gradient(90deg, transparent, var(--ink), transparent);
+          opacity: 0.09; pointer-events: none;
+        }
+
+        /* Environment layer: data packets on the 48px grid (grid lines of _nen: x = 12 + 48k, y = 48k) */
+        #s3-amb { filter: saturate(0.55); }
+        #s3-root .s3-pk { position: absolute; left: 0; top: 0; width: 0; height: 0; --sz: 8px; }
+        #s3-root .s3-pk b {
+          position: absolute; left: calc(var(--sz) / -2); top: calc(var(--sz) / -2);
+          width: var(--sz); height: var(--sz); border-radius: 50%;
+          background: var(--pc); box-shadow: 0 0 10px var(--pc);
+        }
+        #s3-root .s3-pk i {
+          position: absolute; left: -70px; top: -1.5px; width: 64px; height: 3px; border-radius: 2px;
+          background: linear-gradient(90deg, transparent, var(--pc)); opacity: 0.8;
+        }
+        #s3-root .s3-node { position: absolute; left: 0; top: 0; width: 6px; height: 6px; margin: -3px 0 0 -3px; background: var(--ink3); border-radius: 1px; }
+
+        /* Sentence 1: rank badge, repo card, weekly chip */
+        #s3-bbox { position: absolute; left: 72px; top: 360px; width: 936px; height: 300px; }
+        #s3-badge { position: absolute; left: 0; top: 0; width: 400px; height: 300px; overflow: hidden; }
+        #s3-bin { position: absolute; inset: 0; }
+        #s3-root .s3-bt {
+          position: absolute; left: 0; top: 0; font-weight: 800; font-size: 280px; line-height: 300px;
+          letter-spacing: -0.04em; white-space: nowrap; color: transparent;
+          -webkit-background-clip: text; background-clip: text;
+        }
+        #s3-bt { background-image: linear-gradient(180deg, var(--ink) 18%, var(--ink3) 100%); }
+        #s3-bshine {
+          background-image: linear-gradient(100deg, transparent 42%, var(--ink) 50%, transparent 58%);
+          background-size: 300% 100%; background-position: 100% 0%; opacity: 0.9;
+        }
+        #s3-blbl { position: absolute; left: 400px; top: 70px; display: flex; flex-direction: column; gap: 6px; }
+        #s3-blbl .lbl { font-size: 30px; }
+        #s3-blbl .mono { font-size: 72px; font-weight: 600; color: var(--ink2); letter-spacing: -0.02em; }
+        #s3-bline { position: absolute; left: 400px; top: 236px; width: 536px; height: 2px; background: var(--ink3); opacity: 0.5; }
+
+        #s3-card { position: absolute; left: 72px; top: 720px; width: 936px; height: 380px; border-radius: 28px; overflow: hidden; }
+        #s3-root .s3-tbar {
+          height: 104px; display: flex; align-items: center; gap: 20px; padding: 0 40px;
+          border-bottom: 1px solid var(--line); font-size: 34px;
+        }
+        #s3-root .s3-tbar svg { width: 40px; height: 40px; flex: none; }
+        #s3-desc { position: absolute; left: 40px; top: 146px; font-size: 54px; font-weight: 700; letter-spacing: -0.01em; white-space: nowrap; }
+        #s3-stat { position: absolute; left: 40px; top: 252px; display: flex; align-items: center; gap: 18px; }
+        #s3-stat svg { width: 46px; height: 46px; }
+        #s3-stars { font-size: 54px; font-weight: 700; color: var(--ink2); letter-spacing: -0.02em; min-width: 200px; }
+        #s3-stat .lbl { font-size: 26px; }
+
+        #s3-chipw { position: absolute; left: 0; top: 1170px; width: 100%; display: flex; justify-content: center; }
+        #s3-chip {
+          display: flex; align-items: center; gap: 22px; height: 124px; padding: 0 48px; border-radius: 62px;
+          background: var(--s3); border: 1px solid var(--line);
+          box-shadow: inset 0 1px 0 var(--hi), 0 20px 40px rgba(0, 0, 0, 0.4);
+        }
+        #s3-chipn {
+          display: inline-block; width: 272px; font-size: 72px; font-weight: 700; letter-spacing: -0.02em;
+          color: var(--accent); text-shadow: 0 0 28px var(--accent-glow);
+        }
+        #s3-chip .s3-chipt { font-size: 40px; font-weight: 500; color: var(--ink2); white-space: nowrap; }
+        #s3-root .s3-tick { position: absolute; left: 539px; top: 1221px; width: 3px; height: 22px; border-radius: 2px; background: var(--ink3); }
+
+        /* Sentence 2: header, terminal, AI hub network, market card */
+        #s3-head { position: absolute; left: 72px; top: 196px; width: 936px; height: 52px; display: flex; align-items: center; gap: 18px; }
+        #s3-head .s3-h2 { font-size: 40px; font-weight: 800; color: var(--ink); letter-spacing: -0.03em; }
+        #s3-head .mono { font-size: 26px; color: var(--ink3); letter-spacing: 0.12em; }
+        #s3-hline { position: absolute; left: 72px; top: 254px; width: 936px; height: 1px; background: var(--line); }
+
+        #s3-term { position: absolute; left: 72px; top: 280px; width: 936px; height: 272px; border-radius: 24px; overflow: hidden; background: var(--s1); }
+        #s3-term .s3-ttl { height: 60px; display: flex; align-items: center; gap: 14px; padding: 0 28px; background: var(--s2); border-bottom: 1px solid var(--line); }
+        #s3-term .s3-ttl svg { width: 26px; height: 26px; }
+        #s3-term .s3-ttl .mono { font-size: 24px; color: var(--ink3); letter-spacing: 0.06em; }
+        #s3-term .s3-body { padding: 22px 40px; }
+        #s3-root .s3-ln { height: 56px; display: flex; align-items: center; font-size: 34px; white-space: nowrap; }
+        #s3-root .s3-caret { display: inline-block; width: 18px; height: 40px; margin-left: 4px; background: var(--ink2); }
+        #s3-typed { color: var(--ink); }
+        #s3-l2 .lbl { font-size: 24px; margin-right: 22px; }
+        #s3-track { position: relative; width: 440px; height: 12px; border-radius: 6px; background: var(--s3); overflow: hidden; }
+        #s3-fill { position: absolute; inset: 0; background: var(--ink3); border-radius: 6px; }
+        #s3-l3 svg { width: 34px; height: 34px; margin-right: 12px; }
+        #s3-ok { color: var(--accent); font-weight: 700; margin-right: 18px; }
+        #s3-l3 .s3-okt { font-size: 30px; font-weight: 500; color: var(--ink2); }
+
+        #s3-lines { position: absolute; left: 0; top: 0; width: 100%; height: 100%; overflow: visible; }
+        #s3-lines path { fill: none; stroke: var(--ink3); stroke-width: 2; stroke-linecap: round; }
+        #s3-dots { position: absolute; inset: 0; filter: saturate(0.75); }
+        #s3-orbit { position: absolute; left: 400px; top: 860px; width: 280px; height: 280px; border-radius: 50%; border: 2px dashed var(--ink3); opacity: 0; }
+        #s3-ring { position: absolute; left: 445px; top: 905px; width: 190px; height: 190px; border-radius: 50%; border: 2px solid var(--ink3); opacity: 0; }
+        #s3-hub {
+          position: absolute; left: 445px; top: 905px; width: 190px; height: 190px; border-radius: 50%;
+          display: flex; align-items: center; justify-content: center;
+          background: var(--s3); border: 1px solid var(--line);
+          box-shadow: inset 0 1px 0 var(--hi), 0 24px 56px rgba(0, 0, 0, 0.55);
+          font-size: 68px; font-weight: 800; letter-spacing: -0.02em;
+        }
+        #s3-root .s3-tile {
+          position: absolute; width: 150px; height: 150px; border-radius: 36px;
+          display: flex; align-items: center; justify-content: center;
+          font-size: 64px; font-weight: 800; letter-spacing: -0.03em; color: var(--ink);
+        }
+        #s3-root .s3-tn { position: absolute; width: 260px; text-align: center; font-size: 26px; color: var(--ink2); }
+        #s3-root .s3-gh { position: absolute; left: 962px; width: 14px; height: 14px; border-radius: 4px; background: var(--s3); border: 1px solid var(--ink3); }
+
+        #s3-mkt { position: absolute; left: 72px; top: 1272px; width: 936px; height: 264px; border-radius: 28px; overflow: hidden; }
+        #s3-mkt .s3-mh { position: absolute; left: 40px; top: 30px; display: flex; align-items: center; gap: 18px; }
+        #s3-mkt .s3-mh svg { width: 40px; height: 40px; }
+        #s3-mkt .s3-mt { font-size: 40px; font-weight: 700; letter-spacing: -0.01em; white-space: nowrap; }
+        #s3-mkt .s3-mtag { position: absolute; right: 40px; top: 42px; font-size: 22px; }
+        #s3-root .s3-row { position: absolute; left: 40px; display: flex; align-items: center; gap: 16px; }
+        #s3-root .s3-row span { width: 150px; font-size: 26px; font-weight: 500; color: var(--ink2); white-space: nowrap; }
+        #s3-root .s3-btrack { position: relative; width: 260px; height: 12px; border-radius: 6px; background: var(--s1); }
+        #s3-root .s3-bfill { position: absolute; left: 0; top: 0; height: 12px; border-radius: 6px; }
+        #s3-spark { position: absolute; left: 520px; top: 100px; width: 376px; height: 130px; overflow: visible; }
+      </style>
+
+      <div id="s3-root" data-composition-id="s3" data-width="1080" data-height="1920">
+        <!-- Environment layer stays outside the camera so packets keep riding the background grid -->
+        <div id="s3-amb"></div>
+
+        <div id="s3-cam">
+          <div id="s3-stage">
+            <!-- Sentence 1 -->
+            <div id="s3-p1">
+              <div id="s3-bbox">
+                <div id="s3-badge">
+                  <div id="s3-bin">
+                    <div id="s3-bt" class="s3-bt">#2</div>
+                    <div id="s3-bshine" class="s3-bt">#2</div>
+                  </div>
+                </div>
+                <div id="s3-blbl">
+                  <div class="lbl">Hạng</div>
+                  <div class="mono">02 / 05</div>
+                </div>
+                <div id="s3-bline"></div>
+              </div>
+
+              <div id="s3-card" class="surf">
+                <div class="s3-tbar">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="var(--ink2)" stroke-width="1.8" stroke-linejoin="round">
+                    <path d="M4 4.5A1.5 1.5 0 0 1 5.5 3H19v15H5.5A1.5 1.5 0 0 0 4 19.5z" />
+                    <path d="M4 19.5A1.5 1.5 0 0 0 5.5 21H19v-3" />
+                    <path d="M8 7h7" />
+                  </svg>
+                  <div class="mono"><span style="color: var(--ink2)">Panniantong/</span><span style="color: var(--ink)">Agent-Reach</span></div>
+                </div>
+                <div id="s3-desc">AI đọc nhiều nền tảng</div>
+                <div id="s3-stat">
+                  <svg viewBox="0 0 24 24"><polygon points="12,2 15.1,8.6 22,9.3 16.8,14 18.2,21 12,17.3 5.8,21 7.2,14 2,9.3 8.9,8.6" fill="var(--ink3)" /></svg>
+                  <div id="s3-stars">0</div>
+                  <div class="lbl">Tổng sao</div>
+                </div>
+                <div id="s3-csw" class="sweep"></div>
+              </div>
+
+              <div id="s3-chipw">
+                <div id="s3-chip">
+                  <span id="s3-chipn" class="mono">+0</span>
+                  <span class="s3-chipt">tuần này</span>
+                </div>
+              </div>
+              <div id="s3-ticks"></div>
+            </div>
+
+            <!-- Sentence 2 -->
+            <div id="s3-head">
+              <span class="s3-h2">#2</span>
+              <span class="mono">PANNIANTONG/AGENT-REACH</span>
+            </div>
+            <div id="s3-hline"></div>
+
+            <div id="s3-term" class="surf">
+              <div class="s3-ttl">
+                <svg viewBox="0 0 24 24" fill="none" stroke="var(--ink3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="5,7 10,12 5,17" /><line x1="12" y1="17" x2="19" y2="17" />
+                </svg>
+                <span class="mono">terminal</span>
+              </div>
+              <div class="s3-body">
+                <div id="s3-l1" class="s3-ln mono"><span style="color: var(--ink3)">$&nbsp;</span><span id="s3-typed"></span><span id="s3-caret" class="s3-caret"></span></div>
+                <div id="s3-l2" class="s3-ln"><span class="lbl">Đang cài</span><div id="s3-track"><div id="s3-fill"></div></div></div>
+                <div id="s3-l3" class="s3-ln">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path id="s3-chk" d="M4 12.5l5 5L20 6.5" /></svg>
+                  <span id="s3-ok" class="mono">OK</span>
+                  <span class="s3-okt">đã cài xong</span>
+                  <span id="s3-caret2" class="s3-caret"></span>
+                </div>
+              </div>
+            </div>
+
+            <div id="s3-net">
+              <svg id="s3-lines" viewBox="0 0 1080 1920">
+                <path id="s3-l0" /><path id="s3-l1p" /><path id="s3-l2p" /><path id="s3-l3p" />
+              </svg>
+              <div id="s3-dots"></div>
+              <div id="s3-orbit"></div>
+              <div id="s3-ring"></div>
+              <div id="s3-hub">AI</div>
+
+              <div id="s3-t0" class="s3-tile surf" style="left: 129px; top: 589px">R</div>
+              <div id="s3-t1" class="s3-tile surf" style="left: 801px; top: 589px">Y</div>
+              <div id="s3-t2" class="s3-tile surf" style="left: 129px; top: 1261px">T</div>
+              <div id="s3-t3" class="s3-tile surf" style="left: 801px; top: 1261px; font-size: 56px">+7</div>
+              <div id="s3-n0" class="s3-tn lbl" style="left: 74px; top: 754px">Reddit</div>
+              <div id="s3-n1" class="s3-tn lbl" style="left: 746px; top: 754px">YouTube</div>
+              <div id="s3-n2" class="s3-tn lbl" style="left: 74px; top: 1426px">Twitter</div>
+              <div id="s3-n3" class="s3-tn lbl" style="left: 746px; top: 1426px">Nền tảng</div>
+              <div id="s3-ghosts"></div>
+            </div>
+
+            <div id="s3-mkt" class="surf">
+              <div class="s3-mh">
+                <svg viewBox="0 0 24 24" fill="var(--ink2)"><rect x="3" y="13" width="4" height="8" rx="1" /><rect x="10" y="8" width="4" height="13" rx="1" /><rect x="17" y="3" width="4" height="18" rx="1" /></svg>
+                <span class="s3-mt">Nghiên cứu thị trường</span>
+              </div>
+              <div class="s3-mtag lbl">Báo cáo</div>
+              <div id="s3-r0" class="s3-row" style="top: 110px"><span>Tích cực</span><div class="s3-btrack"><div id="s3-f0" class="s3-bfill" style="width: 203px; background: var(--ink2)"></div></div></div>
+              <div id="s3-r1" class="s3-row" style="top: 152px"><span>Trung lập</span><div class="s3-btrack"><div id="s3-f1" class="s3-bfill" style="width: 120px; background: var(--ink3)"></div></div></div>
+              <div id="s3-r2" class="s3-row" style="top: 194px"><span>Tiêu cực</span><div class="s3-btrack"><div id="s3-f2" class="s3-bfill" style="width: 62px; background: var(--ink3); opacity: 0.55"></div></div></div>
+              <svg id="s3-spark" viewBox="0 0 376 130">
+                <line x1="0" y1="118" x2="376" y2="118" stroke="var(--line)" stroke-width="2" />
+                <path id="s3-area" fill="var(--ink)" fill-opacity="0.06" />
+                <path id="s3-sl" fill="none" stroke="var(--ink2)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
+                <circle id="s3-end" cx="360" cy="18" r="8" fill="var(--ink)" />
+              </svg>
+              <div id="s3-msw" class="sweep"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <script>
+        (() => {
+          // A("key") = local time (s) of an anchor from timeline.json; never hard-code word times.
+          const A = (key) => window.__vv.local("s3", key);
+          const SC = window.__vv.scenes["s3"];
+          const DUR = SC.end - SC.start;
+          const BEAT = 60 / 104, S = window.__vv.scenes["s3"].start;
+          const beats = (from, to) => { const o = []; for (let k = Math.ceil((S + from) / BEAT); k * BEAT - S <= to; k++) o.push(k * BEAT - S); return o; };
+          const halfBeats = (from, to) => { const H = BEAT / 2, o = []; for (let k = Math.ceil((S + from) / H); k * H - S <= to; k++) o.push(k * H - S); return o; };
+          const snapHalf = (t) => { const H = BEAT / 2; return Math.ceil((S + t) / H) * H - S; };
+          const $ = (id) => document.getElementById(id);
+          // Deterministic hash in [0,1) (no Math.random).
+          const hash = (i, k) => { const x = Math.sin(i * 127.1 + k * 311.7 + 0.5) * 43758.5453; return x - Math.floor(x); };
+          // Vietnamese thousands separator: 7084 -> "7.084".
+          const fmt = (n) => String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+
+          const tl = gsap.timeline({ paused: true });
+          const ft = (el, from, to, t) => tl.fromTo(el, from, Object.assign({ immediateRender: false }, to), t);
+          const pulse = (el, from, to, amt) => beats(from, to).forEach((b) => {
+            ft(el, { scale: 1 }, { scale: amt, duration: 0.06, ease: "power1.out" }, b - 0.03);
+            ft(el, { scale: amt }, { scale: 1, duration: 0.24, ease: "power2.out" }, b + 0.03);
+          });
+          const crt = (el, t, d1, d2) => {
+            ft(el, { scaleY: 1, transformOrigin: "50% 50%" }, { scaleY: 0.02, duration: d1, ease: "power2.in" }, t);
+            ft(el, { scaleX: 1 }, { scaleX: 0, duration: d2, ease: "power2.in" }, t + d1);
+            tl.set(el, { opacity: 0 }, t + d1 + d2);
+          };
+          const count = (el, to, t, d, prefix) => {
+            const o = { v: 0 };
+            el.textContent = prefix + "0";
+            tl.fromTo(o, { v: 0 }, { v: to, duration: d, ease: "power3.out", immediateRender: false,
+              onUpdate: () => { el.textContent = prefix + fmt(o.v); } }, t);
+          };
+
+          const PALETTE = ["var(--c1)", "var(--c2)", "var(--c3)"];
+          const makePacket = (parent, id, i, size) => {
+            const el = document.createElement("div");
+            el.className = "s3-pk";
+            el.id = id;
+            el.style.setProperty("--pc", PALETTE[i % 3]);
+            el.style.setProperty("--sz", size + "px");
+            el.appendChild(document.createElement("i"));
+            el.appendChild(document.createElement("b"));
+            parent.appendChild(el);
+            return el;
+          };
+
+          /* ---------- Initial states (frame 0) ---------- */
+          gsap.set("#s3-stage", { scale: 1.12, x: 120, opacity: 0, filter: "blur(8px) brightness(1)", transformOrigin: "50% 50%" });
+          gsap.set("#s3-amb", { opacity: 0, transformOrigin: "50% 50%" });
+          gsap.set("#s3-cam", { scale: 1, x: 0, filter: "blur(0px)", transformOrigin: "50% 50%" });
+          gsap.set("#s3-bin", { y: 300 });
+          gsap.set("#s3-bshine", { backgroundPosition: "100% 0%" });
+          gsap.set("#s3-blbl", { x: -30, opacity: 0 });
+          gsap.set("#s3-bline", { scaleX: 0, transformOrigin: "0% 50%" });
+          gsap.set("#s3-card", { y: 80, scale: 0.86, opacity: 0, transformOrigin: "50% 100%" });
+          gsap.set(["#s3-csw", "#s3-msw"], { x: -320, skewX: -18 });
+          gsap.set("#s3-chip", { y: -90, opacity: 0 });
+          gsap.set("#s3-chipn", { transformOrigin: "50% 50%" });
+          gsap.set("#s3-head", { x: -40, opacity: 0 });
+          gsap.set("#s3-hline", { scaleX: 0, transformOrigin: "0% 50%" });
+          gsap.set("#s3-term", { scaleX: 0.02, scaleY: 0.02, opacity: 0, transformOrigin: "50% 50%" });
+          gsap.set(["#s3-l2", "#s3-l3"], { opacity: 0 });
+          gsap.set("#s3-fill", { scaleX: 0, transformOrigin: "0% 50%" });
+          gsap.set("#s3-caret2", { opacity: 0 });
+          gsap.set("#s3-chk", { strokeDasharray: 24, strokeDashoffset: 24 });
+          gsap.set("#s3-hub", { scale: 0 });
+          gsap.set("#s3-orbit", { scale: 0.6, opacity: 0, rotation: 0 });
+          gsap.set("#s3-ring", { scale: 1, opacity: 0 });
+          gsap.set("#s3-mkt", { y: 140, scale: 0.96, opacity: 0, transformOrigin: "50% 100%" });
+          gsap.set(["#s3-f0", "#s3-f1", "#s3-f2"], { scaleX: 0, transformOrigin: "0% 50%" });
+          gsap.set(["#s3-r0", "#s3-r1", "#s3-r2"], { x: -16, opacity: 0 });
+          gsap.set("#s3-end", { scale: 0, transformOrigin: "50% 50%" });
+          gsap.set("#s3-area", { opacity: 0 });
+
+          /* ---------- Camera + scene entry / exit ---------- */
+          // Whip in: stage from scale 1.12, blur 8px, opacity 0, offset right.
+          ft("#s3-stage", { scale: 1.12, x: 120, opacity: 0, filter: "blur(8px) brightness(1)" },
+            { scale: 1, x: 0, opacity: 1, filter: "blur(0px) brightness(1)", duration: 0.4, ease: "power3.out" }, 0);
+          ft("#s3-amb", { opacity: 0 }, { opacity: 1, duration: 0.4, ease: "power2.out" }, 0);
+          // Slow push-in through the whole scene.
+          ft("#s3-cam", { scale: 1 }, { scale: 1.05, duration: DUR, ease: "none" }, 0);
+          // Exit: CRT-off of stage and environment in the last 0.3 s.
+          const tOut = DUR - 0.3;
+          ft("#s3-stage", { filter: "blur(0px) brightness(1)" }, { filter: "blur(0px) brightness(1.8)", duration: 0.24, ease: "power2.in" }, tOut);
+          crt("#s3-stage", tOut, 0.15, 0.12);
+          crt("#s3-amb", tOut, 0.15, 0.12);
+
+          /* ---------- Environment: grid packets + grid nodes ---------- */
+          const amb = $("s3-amb");
+          for (let i = 0; i < 18; i++) {
+            const el = makePacket(amb, "s3-pk" + i, i, 6 + Math.round(hash(i, 0) * 4));
+            gsap.set(el, { opacity: 0, x: 0, y: 0, rotation: 0 });
+            let t = snapHalf(0.15 + hash(i, 1) * 1.6);
+            for (let k = 0; k < 12; k++) {
+              const h = (n) => hash(i, k * 7 + n);
+              const horiz = h(2) < 0.5;
+              const cells = 4 + Math.floor(h(3) * 6);
+              const dir = h(4) < 0.5 ? 1 : -1;
+              const len = cells * 48;
+              let x0, y0, x1, y1, rot;
+              if (horiz) {
+                const row = 5 + Math.floor(h(5) * 29);
+                const c0 = dir > 0 ? 1 + Math.floor(h(6) * (20 - cells)) : 1 + cells + Math.floor(h(6) * (20 - cells));
+                x0 = 12 + 48 * c0; x1 = x0 + dir * len; y0 = y1 = row * 48; rot = dir > 0 ? 0 : 180;
+              } else {
+                const col = 1 + Math.floor(h(5) * 20);
+                const r0 = dir > 0 ? 4 + Math.floor(h(6) * (30 - cells)) : 4 + cells + Math.floor(h(6) * (30 - cells));
+                x0 = x1 = 12 + 48 * col; y0 = r0 * 48; y1 = y0 + dir * len; rot = dir > 0 ? 90 : 270;
+              }
+              const d = len / (300 + h(1) * 200);
+              if (t + d > tOut) break;
+              tl.set(el, { x: x0, y: y0, rotation: rot }, t);
+              ft(el, { x: x0, y: y0 }, { x: x1, y: y1, duration: d, ease: "none" }, t);
+              ft(el, { opacity: 0 }, { opacity: 0.75, duration: 0.12, ease: "none" }, t);
+              ft(el, { opacity: 0.75 }, { opacity: 0, duration: 0.18, ease: "none" }, t + d - 0.18);
+              t = snapHalf(t + d + 0.25 + h(0) * 1.1);
+            }
+          }
+          // Grid nodes at intersections, ticking on the beat (alternating groups).
+          const NODES = [[1, 6], [20, 6], [1, 18], [20, 18], [1, 30], [20, 30], [4, 33], [17, 33]];
+          NODES.forEach(([c, r], j) => {
+            const n = document.createElement("div");
+            n.className = "s3-node";
+            n.id = "s3-node" + j;
+            amb.appendChild(n);
+            gsap.set(n, { x: 12 + 48 * c, y: 48 * r, opacity: 0.35, scale: 1 });
+            beats(0.4, tOut - 0.1).forEach((b, bi) => {
+              if (bi % 2 !== j % 2) return;
+              ft(n, { scale: 1, opacity: 0.35 }, { scale: 1.8, opacity: 0.9, duration: 0.06, ease: "power1.out" }, b - 0.03);
+              ft(n, { scale: 1.8, opacity: 0.9 }, { scale: 1, opacity: 0.35, duration: 0.3, ease: "power2.out" }, b + 0.03);
+            });
+          });
+
+          /* ---------- Sentence 1: "Hạng hai, Agent Reach, hơn 7 nghìn sao." ---------- */
+          const tH = A("hang");
+          // Badge "#2": mask rise from below + light sweep across the glyphs.
+          ft("#s3-bin", { y: 300 }, { y: 0, duration: 0.35, ease: "back.out(1.4)" }, tH);
+          ft("#s3-bshine", { backgroundPosition: "100% 0%" }, { backgroundPosition: "0% 0%", duration: 0.8, ease: "power2.inOut" }, tH + 0.2);
+          ft("#s3-blbl", { x: -30, opacity: 0 }, { x: 0, opacity: 1, duration: 0.3, ease: "back.out(1.4)" }, tH + 0.22);
+          ft("#s3-bline", { scaleX: 0 }, { scaleX: 1, duration: 0.45, ease: "power3.out" }, tH + 0.3);
+          pulse("#s3-badge", tH + 0.5, A("lenh") - 0.5, 1.02);
+
+          // Repo card pops in, light sweeps over it, total stars count up (grey).
+          const tR = A("repo");
+          ft("#s3-card", { y: 80, scale: 0.86, opacity: 0 }, { y: 0, scale: 1, opacity: 1, duration: 0.35, ease: "back.out(1.4)" }, tR);
+          ft("#s3-csw", { x: -320 }, { x: 1100, duration: 0.7, ease: "power2.inOut" }, tR + 0.15);
+          count($("s3-stars"), 95266, tR + 0.25, 1.3, "");
+
+          // Weekly chip drops and bounces; the accent number counts up, then ticks on the beat.
+          const tS = A("sao");
+          ft("#s3-chip", { y: -90, opacity: 0 }, { y: 0, opacity: 1, duration: 0.32, ease: "back.out(1.4)" }, tS);
+          count($("s3-chipn"), 7084, tS, 1.0, "+");
+          pulse("#s3-chipn", tS + 0.4, A("lenh") - 0.4, 1.06);
+          // Burst ticks fly out of the chip the moment the count lands.
+          const ticks = $("s3-ticks");
+          for (let j = 0; j < 8; j++) {
+            const a = (j / 8) * Math.PI * 2 + Math.PI / 8;
+            const el = document.createElement("div");
+            el.className = "s3-tick";
+            el.id = "s3-tick" + j;
+            ticks.appendChild(el);
+            const x0 = Math.cos(a) * 300, y0 = Math.sin(a) * 82;
+            const rot = (Math.atan2(y0, x0) * 180) / Math.PI + 90;
+            gsap.set(el, { x: x0, y: y0, rotation: rot, opacity: 0 });
+            ft(el, { x: x0, y: y0, opacity: 1 }, { x: x0 * 1.22, y: y0 * 1.5, opacity: 0, duration: 0.34, ease: "power2.out" }, tS + 1.0);
+          }
+
+          /* ---------- Transition: put-away + whip ---------- */
+          const tL = A("lenh");
+          crt("#s3-card", tL - 0.45, 0.1, 0.08);
+          crt("#s3-bbox", tL - 0.39, 0.1, 0.08);
+          ft("#s3-chip", { scale: 1, opacity: 1 }, { scale: 0, opacity: 0, duration: 0.15, ease: "back.in(1.6)" }, tL - 0.33);
+          ft("#s3-cam", { x: 0, filter: "blur(0px)" }, { x: -70, filter: "blur(6px)", duration: 0.12, ease: "power2.in" }, tL - 0.4);
+          ft("#s3-cam", { x: 70, filter: "blur(6px)" }, { x: 0, filter: "blur(0px)", duration: 0.24, ease: "power3.out" }, tL - 0.28);
+
+          /* ---------- Sentence 2: "Chỉ một lệnh cài, AI đọc được Reddit, YouTube, Twitter..." ---------- */
+          ft("#s3-head", { x: -40, opacity: 0 }, { x: 0, opacity: 1, duration: 0.3, ease: "power3.out" }, tL - 0.27);
+          ft("#s3-hline", { scaleX: 0 }, { scaleX: 1, duration: 0.4, ease: "power3.out" }, tL - 0.22);
+
+          // Terminal expands from a hairline (UI expand), then the command types out.
+          ft("#s3-term", { opacity: 0 }, { opacity: 1, duration: 0.05, ease: "none" }, tL - 0.3);
+          ft("#s3-term", { scaleX: 0.02 }, { scaleX: 1, duration: 0.18, ease: "power3.out" }, tL - 0.3);
+          ft("#s3-term", { scaleY: 0.02 }, { scaleY: 1, duration: 0.24, ease: "back.out(1.4)" }, tL - 0.14);
+          const CMD = "agent-reach install";
+          const typed = $("s3-typed");
+          const ty = { n: 0 };
+          const tType = tL + 0.08;
+          tl.fromTo(ty, { n: 0 }, { n: CMD.length, duration: 0.55, ease: "none", immediateRender: false,
+            onUpdate: () => { typed.textContent = CMD.slice(0, Math.round(ty.n)); } }, tType);
+          // Caret 1 blinks on half beats while idle; solid while typing; gone once OK prints.
+          const tOk = tL + 0.92;
+          [...halfBeats(tL - 0.15, tType - 0.05), ...halfBeats(tType + 0.6, tOk - 0.05)].forEach((b, j) => {
+            tl.set("#s3-caret", { opacity: j % 2 ? 1 : 0 }, b);
+          });
+          tl.set("#s3-caret", { opacity: 1 }, tType);
+          tl.set("#s3-caret", { opacity: 0 }, tOk);
+          // Progress line fills, then the OK line slides in with its check drawn.
+          ft("#s3-l2", { opacity: 0 }, { opacity: 1, duration: 0.12, ease: "none" }, tL + 0.62);
+          ft("#s3-fill", { scaleX: 0 }, { scaleX: 1, duration: 0.28, ease: "power2.inOut" }, tL + 0.64);
+          ft("#s3-l3", { x: -24, opacity: 0 }, { x: 0, opacity: 1, duration: 0.25, ease: "back.out(1.4)" }, tOk);
+          ft("#s3-chk", { strokeDashoffset: 24 }, { strokeDashoffset: 0, duration: 0.22, ease: "power2.out" }, tOk + 0.05);
+          tl.set("#s3-caret2", { opacity: 1 }, tOk + 0.1);
+          const tTermOut = A("ntt") - 0.42;
+          halfBeats(tOk + 0.3, tTermOut - 0.05).forEach((b, j) => {
+            tl.set("#s3-caret2", { opacity: j % 2 ? 1 : 0 }, b);
+          });
+
+          // AI hub pops in on "AI"; dashed orbit turns; ring pings on every beat.
+          const tHub = tL + 0.7;
+          ft("#s3-hub", { scale: 0 }, { scale: 1, duration: 0.32, ease: "back.out(1.6)" }, tHub);
+          ft("#s3-orbit", { scale: 0.6, opacity: 0 }, { scale: 1, opacity: 0.35, duration: 0.4, ease: "back.out(1.4)" }, tHub + 0.08);
+          ft("#s3-orbit", { rotation: 0 }, { rotation: 140, duration: DUR - tHub, ease: "none" }, tHub);
+          beats(tHub + 0.35, tOut - 0.1).forEach((b) => {
+            ft("#s3-ring", { scale: 1, opacity: 0.55 }, { scale: 1.75, opacity: 0, duration: 0.5, ease: "power2.out" }, b);
+          });
+          pulse("#s3-hub", tHub + 0.4, tOut - 0.1, 1.05);
+
+          // Platform tiles fly out of the hub on a curve (x and y on different eases),
+          // the link line draws outward, then data packets run back into the hub, arriving on beats.
+          const HX = 540, HY = 1000, R2 = Math.SQRT1_2;
+          const TILES = [
+            { key: "reddit", cx: 204, cy: 664, path: "s3-l0" },
+            { key: "youtube", cx: 876, cy: 664, path: "s3-l1p" },
+            { key: "twitter", cx: 204, cy: 1336, path: "s3-l2p" },
+            { key: "khac", cx: 876, cy: 1336, path: "s3-l3p" },
+          ];
+          const dots = $("s3-dots");
+          TILES.forEach((T, i) => {
+            const ux = Math.sign(T.cx - HX) * R2, uy = Math.sign(T.cy - HY) * R2;
+            const sx = HX + ux * 108, sy = HY + uy * 108, ex = T.cx - ux * 112, ey = T.cy - uy * 112;
+            const path = $(T.path);
+            path.setAttribute("d", "M" + sx + " " + sy + " L" + ex + " " + ey);
+            const L = Math.hypot(ex - sx, ey - sy);
+            gsap.set(path, { strokeDasharray: L, strokeDashoffset: L });
+            const tile = "#s3-t" + i;
+            gsap.set(tile, { x: HX - T.cx, y: HY - T.cy, scale: 0.3, opacity: 0, transformOrigin: "50% 50%" });
+            gsap.set("#s3-n" + i, { y: 12, opacity: 0 });
+
+            const t0 = A(T.key) - 0.1;
+            ft(tile, { opacity: 0 }, { opacity: 1, duration: 0.1, ease: "none" }, t0);
+            ft(tile, { x: HX - T.cx }, { x: 0, duration: 0.38, ease: "power3.out" }, t0);
+            ft(tile, { y: HY - T.cy }, { y: 0, duration: 0.38, ease: "back.out(1.6)" }, t0);
+            ft(tile, { scale: 0.3 }, { scale: 1, duration: 0.38, ease: "back.out(1.4)" }, t0);
+            ft(path, { strokeDashoffset: L }, { strokeDashoffset: 0, duration: 0.32, ease: "power2.out" }, t0 + 0.04);
+            ft("#s3-n" + i, { y: 12, opacity: 0 }, { y: 0, opacity: 1, duration: 0.25, ease: "power3.out" }, t0 + 0.28);
+            pulse(tile, t0 + 0.5, tOut - 0.1, 1.04);
+
+            const land = t0 + 0.38;
+            const ang = (Math.atan2(HY - T.cy, HX - T.cx) * 180) / Math.PI;
+            const TRAVEL = 0.45;
+            [0, 1].forEach((j) => {
+              const el = makePacket(dots, "s3-d" + (i * 2 + j), i + j, 10);
+              gsap.set(el, { x: T.cx, y: T.cy, rotation: ang, opacity: 0 });
+              const off = j ? BEAT / 2 : 0;
+              const arr = beats(land + 0.5 - off, tOut - 0.1 - off).map((b) => b + off);
+              if (!arr.length) return;
+              const start = arr[0] - TRAVEL;
+              tl.set(el, { opacity: 1 }, start);
+              // Starts under the tile, ends under the hub, so each loop restarts unseen.
+              tl.fromTo(el, { x: T.cx, y: T.cy }, { x: HX, y: HY, duration: TRAVEL, ease: "power1.in",
+                repeat: arr.length - 1, repeatDelay: BEAT - TRAVEL, immediateRender: false }, start);
+            });
+          });
+
+          // "+7 nền tảng": seven small slots pop beside the tile, one after another.
+          const ghosts = $("s3-ghosts");
+          const tK = A("khac");
+          for (let j = 0; j < 7; j++) {
+            const g = document.createElement("div");
+            g.className = "s3-gh";
+            g.id = "s3-g" + j;
+            g.style.top = 1336 - 77 + j * 22 + "px";
+            ghosts.appendChild(g);
+            gsap.set(g, { scale: 0, transformOrigin: "50% 50%" });
+            ft(g, { scale: 0 }, { scale: 1, duration: 0.22, ease: "back.out(1.8)" }, tK + 0.25 + j * 0.06);
+          }
+
+          /* ---------- "...để nghiên cứu thị trường": put the terminal away, lift the network, card rises ---------- */
+          const tN = A("ntt");
+          crt("#s3-term", tTermOut, 0.12, 0.1);
+          ft("#s3-net", { y: 0 }, { y: -240, duration: 0.45, ease: "back.out(1.3)" }, tN - 0.25);
+          ft("#s3-mkt", { y: 140, scale: 0.96, opacity: 0 }, { y: 0, scale: 1, opacity: 1, duration: 0.35, ease: "back.out(1.4)" }, tN);
+          ft("#s3-msw", { x: -320 }, { x: 1100, duration: 0.7, ease: "power2.inOut" }, tN + 0.15);
+          ["#s3-r0", "#s3-r1", "#s3-r2"].forEach((r, j) => {
+            ft(r, { x: -16, opacity: 0 }, { x: 0, opacity: 1, duration: 0.25, ease: "back.out(1.4)" }, tN + 0.22 + j * 0.08);
+            ft("#s3-f" + j, { scaleX: 0 }, { scaleX: 1, duration: 0.4, ease: "power3.out" }, tN + 0.3 + j * 0.1);
+          });
+          // Sentiment sparkline draws left to right, area fades in, end dot pops and ticks on the beat.
+          const PTS = [[0, 96], [40, 88], [80, 100], [120, 70], [160, 78], [200, 52], [240, 60], [280, 34], [320, 42], [360, 18]];
+          const sl = $("s3-sl");
+          sl.setAttribute("d", "M" + PTS.map((p) => p.join(" ")).join(" L"));
+          $("s3-area").setAttribute("d", "M0 118 L" + PTS.map((p) => p.join(" ")).join(" L") + " L360 118 Z");
+          let SL = 0;
+          for (let j = 1; j < PTS.length; j++) SL += Math.hypot(PTS[j][0] - PTS[j - 1][0], PTS[j][1] - PTS[j - 1][1]);
+          gsap.set(sl, { strokeDasharray: SL, strokeDashoffset: SL });
+          ft(sl, { strokeDashoffset: SL }, { strokeDashoffset: 0, duration: 0.6, ease: "power2.out" }, tN + 0.3);
+          ft("#s3-area", { opacity: 0 }, { opacity: 1, duration: 0.3, ease: "power2.out" }, tN + 0.75);
+          ft("#s3-end", { scale: 0 }, { scale: 1, duration: 0.22, ease: "back.out(2)" }, tN + 0.85);
+          pulse("#s3-end", tN + 1.1, tOut - 0.05, 1.4);
+
+          window.__timelines["s3"] = tl;
+        })();
+      </script>
+    </template>
+  </body>
+</html>

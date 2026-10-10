@@ -1,0 +1,429 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <!-- Scene s7. Runtime keeps only <template>; put style, markup and script inside it. -->
+  </head>
+  <body>
+    <template>
+      <style>
+        /* Each scene declares its fonts (HyperFrames lint: font_family_without_font_face). Paths are relative to index.html. */
+        @font-face { font-family: "Be Vietnam Pro"; src: url("fonts/BeVietnamPro-Regular.ttf"); font-weight: 400; }
+        @font-face { font-family: "Be Vietnam Pro"; src: url("fonts/BeVietnamPro-Medium.ttf"); font-weight: 500; }
+        @font-face { font-family: "Be Vietnam Pro"; src: url("fonts/BeVietnamPro-Bold.ttf"); font-weight: 700; }
+        @font-face { font-family: "Be Vietnam Pro"; src: url("fonts/BeVietnamPro-ExtraBold.ttf"); font-weight: 800; }
+        @font-face { font-family: "JetBrains Mono"; src: url("fonts/JetBrainsMono-Variable.ttf"); font-weight: 100 800; }
+
+        #s7-root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          background: transparent;
+          color: var(--ink);
+          font-family: "Be Vietnam Pro", sans-serif;
+        }
+        #s7-root .mono { font-family: "JetBrains Mono", monospace; }
+
+        /* Environment layer: outside the camera so packets stay on the 48px grid of _nen */
+        #s7-env { position: absolute; inset: 0; filter: saturate(0.55); opacity: 0.8; }
+        #s7-env .pk { position: absolute; left: 0; top: 0; width: 0; height: 0; opacity: 0; }
+        #s7-env .pk .tr { position: absolute; right: 0; top: -1px; height: 2px; border-radius: 1px; }
+        #s7-env .pk .dt { position: absolute; border-radius: 50%; }
+        #s7-env .nd { position: absolute; width: 16px; height: 16px; margin: -8px 0 0 -8px; opacity: 0.35; }
+        #s7-env .nd::before, #s7-env .nd::after { content: ""; position: absolute; background: var(--ink2); }
+        #s7-env .nd::before { left: 7px; top: 0; width: 2px; height: 16px; }
+        #s7-env .nd::after { left: 0; top: 7px; width: 16px; height: 2px; }
+
+        #s7-cam, #s7-stage, #s7-main { position: absolute; inset: 0; transform-origin: 50% 50%; }
+
+        /* Header */
+        #s7-head { position: absolute; left: 72px; top: 206px; width: 936px; height: 140px; }
+        #s7-lab { position: absolute; left: 0; top: 0; font-weight: 700; font-size: 24px; letter-spacing: 0.12em; color: var(--ink3); white-space: nowrap; }
+        #s7-date { position: absolute; right: 0; top: 2px; font-size: 22px; letter-spacing: 0.12em; color: var(--ink2); white-space: nowrap; }
+        #s7-tw { position: absolute; left: 0; top: 44px; height: 88px; overflow: hidden; }
+        #s7-title { display: block; font-weight: 800; font-size: 66px; line-height: 88px; letter-spacing: -0.02em; white-space: nowrap; color: var(--ink); }
+        #s7-tsw { position: absolute; top: 0; bottom: 0; left: 0; width: 30%; background: linear-gradient(100deg, transparent, var(--ink), transparent); opacity: 0.18; }
+        #s7-chip { position: absolute; right: 0; top: 56px; width: 300px; height: 64px; border-radius: 32px; background: var(--s3); border: 1px solid var(--line); box-shadow: inset 0 1px 0 var(--hi); overflow: hidden; box-sizing: border-box; }
+        #s7-chip .face { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; gap: 12px; font-weight: 700; font-size: 22px; letter-spacing: 0.12em; color: var(--ink); white-space: nowrap; }
+        #s7-chip svg { width: 26px; height: 26px; color: var(--ink2); }
+
+        /* Ranking board */
+        #s7-board { position: absolute; left: 72px; top: 392px; width: 936px; height: 700px; }
+        #s7-board .row { position: absolute; left: 0; width: 936px; height: 124px; box-sizing: border-box; border-radius: 24px; background: var(--s2); border: 1px solid var(--line); box-shadow: inset 0 1px 0 var(--hi), 0 24px 48px rgba(0, 0, 0, 0.45); display: flex; align-items: center; padding: 0 28px 0 18px; overflow: hidden; }
+        #s7-board .rk { width: 100px; height: 84px; overflow: hidden; flex: none; }
+        #s7-board .rk span { display: block; font-weight: 800; font-size: 66px; line-height: 84px; letter-spacing: -0.04em; background: linear-gradient(180deg, var(--ink) 20%, var(--ink3) 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+        #s7-board .bd { flex: 1; min-width: 0; margin-left: 12px; }
+        #s7-board .tp { display: flex; align-items: center; height: 50px; }
+        #s7-board .bk { width: 26px; height: 26px; color: var(--ink3); flex: none; margin-right: 12px; }
+        #s7-board .rp { font-size: 25px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+        #s7-board .rp .ow { color: var(--ink3); }
+        #s7-board .rp .nm { color: var(--ink); font-weight: 600; }
+        #s7-board .st { margin-left: auto; display: flex; align-items: center; gap: 10px; flex: none; padding-left: 16px; }
+        #s7-board .st svg { width: 24px; height: 24px; color: var(--ink3); }
+        #s7-board .st .n { display: inline-block; font-weight: 800; font-size: 42px; letter-spacing: -0.02em; color: var(--ink); font-variant-numeric: tabular-nums; transform-origin: right center; }
+        #s7-board .tk { position: relative; margin-top: 12px; height: 14px; border-radius: 7px; background: var(--s1); border: 1px solid var(--line); overflow: hidden; }
+        #s7-board .fl { position: absolute; left: 0; top: 0; bottom: 0; width: 0; border-radius: 7px; background: linear-gradient(90deg, var(--s3), var(--ink2)); overflow: hidden; }
+        #s7-board .fl .tip { position: absolute; right: 0; top: 0; bottom: 0; width: 22px; background: linear-gradient(90deg, transparent, var(--ink)); opacity: 0.7; }
+        #s7-board .fl .sk { position: absolute; top: 0; bottom: 0; left: -30%; width: 30%; background: linear-gradient(90deg, transparent, var(--ink), transparent); opacity: 0.9; }
+        #s7-board .row .sw { position: absolute; top: 0; bottom: 0; left: 0; width: 30%; background: linear-gradient(100deg, transparent, var(--ink), transparent); opacity: 0.12; pointer-events: none; }
+        #s7-ring { position: absolute; left: -4px; top: -4px; width: 944px; height: 132px; box-sizing: border-box; border-radius: 28px; border: 2px solid var(--ink2); box-shadow: 0 0 0 6px var(--hi); opacity: 0; pointer-events: none; }
+        #s7-bsw { position: absolute; left: 0; top: 0; width: 936px; height: 160px; background: linear-gradient(180deg, transparent, var(--ink), transparent); opacity: 0; pointer-events: none; }
+
+        /* Weekly total (rhyme with s1) */
+        #s7-total { position: absolute; left: 72px; top: 1104px; width: 936px; height: 72px; }
+        #s7-tline { position: absolute; left: 0; top: 0; width: 100%; height: 1px; background: var(--line); transform-origin: left center; }
+        #s7-tlab { position: absolute; left: 0; top: 28px; font-weight: 700; font-size: 22px; letter-spacing: 0.12em; color: var(--ink3); white-space: nowrap; }
+        #s7-tst { position: absolute; right: 0; top: 8px; display: flex; align-items: center; gap: 12px; }
+        #s7-tst svg { width: 32px; height: 32px; color: var(--ink3); }
+        #s7-tnum { display: inline-block; font-weight: 800; font-size: 58px; line-height: 64px; letter-spacing: -0.04em; color: var(--accent); text-shadow: 0 0 28px var(--accent-glow); font-variant-numeric: tabular-nums; transform-origin: right center; }
+
+        /* Connector total -> CTA */
+        #s7-conn { position: absolute; left: 539px; top: 1182px; width: 2px; height: 54px; background: var(--line); transform-origin: 50% 0; }
+        #s7-cdot { position: absolute; left: 536px; top: 1178px; width: 8px; height: 8px; border-radius: 50%; background: var(--ink2); box-shadow: 0 0 10px var(--ink2); opacity: 0; }
+
+        /* CTA buttons */
+        #s7-save { position: absolute; left: 160px; top: 1240px; width: 760px; height: 150px; border-radius: 44px; background: var(--accent); box-shadow: 0 0 0 1px var(--line), 0 24px 70px var(--accent-glow); overflow: hidden; display: flex; align-items: center; justify-content: center; gap: 24px; color: var(--bg); opacity: 0; }
+        #s7-savel { position: relative; font-weight: 800; font-size: 52px; letter-spacing: 0.06em; white-space: nowrap; }
+        #s7-bm { position: relative; width: 56px; height: 56px; flex: none; }
+        #s7-bm svg { width: 56px; height: 56px; overflow: visible; }
+        #s7-bmo { fill: none; stroke: var(--bg); stroke-width: 2.4; stroke-linejoin: round; }
+        #s7-bmf { fill: var(--bg); opacity: 0; }
+        #s7-rip1 { position: absolute; left: 530px; top: 10px; width: 140px; height: 140px; border-radius: 50%; background: var(--bg); opacity: 0; }
+        #s7-ssw { position: absolute; top: 0; bottom: 0; left: 0; width: 30%; background: linear-gradient(100deg, transparent, var(--ink), transparent); opacity: 0.2; }
+        #s7-try { position: absolute; left: 270px; top: 1420px; width: 540px; height: 100px; box-sizing: border-box; border-radius: 32px; background: var(--s3); border: 1px solid var(--line); box-shadow: inset 0 1px 0 var(--hi), 0 20px 44px rgba(0, 0, 0, 0.45); overflow: hidden; display: flex; align-items: center; justify-content: center; gap: 18px; opacity: 0; }
+        #s7-tryl { position: relative; font-weight: 700; font-size: 38px; letter-spacing: 0.1em; color: var(--ink); white-space: nowrap; }
+        #s7-arr { position: relative; width: 40px; height: 40px; color: var(--ink2); }
+        #s7-rip2 { position: absolute; left: 370px; top: -2px; width: 120px; height: 120px; border-radius: 50%; background: var(--ink); opacity: 0; }
+
+        /* Cursor */
+        #s7-cur { position: absolute; left: 0; top: 0; width: 40px; height: 52px; opacity: 0; filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.5)); }
+        #s7-cur svg { width: 40px; height: 52px; }
+        #s7-cur path { fill: var(--ink); stroke: var(--bg); stroke-width: 1.6; stroke-linejoin: round; }
+      </style>
+
+      <div id="s7-root" data-composition-id="s7" data-width="1080" data-height="1920">
+        <!-- Layer 3: environment (data packets on grid lines, grid nodes) -->
+        <div id="s7-env">
+          <i class="nd" style="left: 108px; top: 144px"></i>
+          <i class="nd" style="left: 540px; top: 144px"></i>
+          <i class="nd" style="left: 972px; top: 144px"></i>
+          <i class="nd" style="left: 60px; top: 864px"></i>
+          <i class="nd" style="left: 1020px; top: 864px"></i>
+          <i class="nd" style="left: 108px; top: 1584px"></i>
+          <i class="nd" style="left: 972px; top: 1584px"></i>
+        </div>
+
+        <div id="s7-cam">
+          <div id="s7-stage">
+            <div id="s7-main">
+              <!-- Header -->
+              <div id="s7-head">
+                <div id="s7-lab">TỔNG KẾT TUẦN</div>
+                <div id="s7-date" class="mono">10/10/2026</div>
+                <div id="s7-tw">
+                  <span id="s7-title">Top 5 tuần này</span>
+                  <i id="s7-tsw"></i>
+                </div>
+                <div id="s7-chip">
+                  <div class="face" id="s7-f1">
+                    <svg id="s7-bolt" viewBox="0 0 24 24"><path d="M13 2L4 14h7l-1 8 9-12h-7z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" /></svg>
+                    <span>NHANH HƠN</span>
+                  </div>
+                  <div class="face" id="s7-f2">
+                    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.8" /><circle cx="12" cy="12" r="4.5" fill="none" stroke="currentColor" stroke-width="1.8" /><circle cx="12" cy="12" r="1.4" fill="currentColor" /></svg>
+                    <span>CHỌN 1 REPO</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Layer 1: ranking board -->
+              <div id="s7-board">
+                <div class="row" id="s7-row1" style="top: 0px">
+                  <div class="rk"><span id="s7-rk1">#1</span></div>
+                  <div class="bd">
+                    <div class="tp">
+                      <svg class="bk" viewBox="0 0 24 24"><path d="M5 19.5V4.5A1.5 1.5 0 0 1 6.5 3H19v15H6.5A1.5 1.5 0 0 0 5 19.5zM5 19.5A1.5 1.5 0 0 0 6.5 21H19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" /></svg>
+                      <span class="rp mono"><span class="ow">DietrichGebert/</span><span class="nm">ponytail</span></span>
+                      <span class="st"><svg viewBox="0 0 24 24"><path d="M12 2.8l2.8 5.7 6.3.9-4.55 4.43 1.07 6.27L12 17.1l-5.62 2.95 1.07-6.27L2.9 9.4l6.3-.9z" fill="currentColor" /></svg><span class="n" id="s7-num1">+0</span></span>
+                    </div>
+                    <div class="tk"><div class="fl" id="s7-fl1"><i class="sk" id="s7-sk1"></i><i class="tip"></i></div></div>
+                  </div>
+                  <i class="sw" id="s7-sw1"></i>
+                </div>
+                <div class="row" id="s7-row2" style="top: 144px">
+                  <div class="rk"><span id="s7-rk2">#2</span></div>
+                  <div class="bd">
+                    <div class="tp">
+                      <svg class="bk" viewBox="0 0 24 24"><path d="M5 19.5V4.5A1.5 1.5 0 0 1 6.5 3H19v15H6.5A1.5 1.5 0 0 0 5 19.5zM5 19.5A1.5 1.5 0 0 0 6.5 21H19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" /></svg>
+                      <span class="rp mono"><span class="ow">Panniantong/</span><span class="nm">Agent-Reach</span></span>
+                      <span class="st"><svg viewBox="0 0 24 24"><path d="M12 2.8l2.8 5.7 6.3.9-4.55 4.43 1.07 6.27L12 17.1l-5.62 2.95 1.07-6.27L2.9 9.4l6.3-.9z" fill="currentColor" /></svg><span class="n" id="s7-num2">+0</span></span>
+                    </div>
+                    <div class="tk"><div class="fl" id="s7-fl2"><i class="sk" id="s7-sk2"></i><i class="tip"></i></div></div>
+                  </div>
+                  <i class="sw" id="s7-sw2"></i>
+                </div>
+                <div class="row" id="s7-row3" style="top: 288px">
+                  <div class="rk"><span id="s7-rk3">#3</span></div>
+                  <div class="bd">
+                    <div class="tp">
+                      <svg class="bk" viewBox="0 0 24 24"><path d="M5 19.5V4.5A1.5 1.5 0 0 1 6.5 3H19v15H6.5A1.5 1.5 0 0 0 5 19.5zM5 19.5A1.5 1.5 0 0 0 6.5 21H19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" /></svg>
+                      <span class="rp mono"><span class="ow">tester-army/</span><span class="nm">e2e</span></span>
+                      <span class="st"><svg viewBox="0 0 24 24"><path d="M12 2.8l2.8 5.7 6.3.9-4.55 4.43 1.07 6.27L12 17.1l-5.62 2.95 1.07-6.27L2.9 9.4l6.3-.9z" fill="currentColor" /></svg><span class="n" id="s7-num3">+0</span></span>
+                    </div>
+                    <div class="tk"><div class="fl" id="s7-fl3"><i class="sk" id="s7-sk3"></i><i class="tip"></i></div></div>
+                  </div>
+                  <i class="sw" id="s7-sw3"></i>
+                </div>
+                <div class="row" id="s7-row4" style="top: 432px">
+                  <div class="rk"><span id="s7-rk4">#4</span></div>
+                  <div class="bd">
+                    <div class="tp">
+                      <svg class="bk" viewBox="0 0 24 24"><path d="M5 19.5V4.5A1.5 1.5 0 0 1 6.5 3H19v15H6.5A1.5 1.5 0 0 0 5 19.5zM5 19.5A1.5 1.5 0 0 0 6.5 21H19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" /></svg>
+                      <span class="rp mono"><span class="ow">heygen-com/</span><span class="nm">hyperframes</span></span>
+                      <span class="st"><svg viewBox="0 0 24 24"><path d="M12 2.8l2.8 5.7 6.3.9-4.55 4.43 1.07 6.27L12 17.1l-5.62 2.95 1.07-6.27L2.9 9.4l6.3-.9z" fill="currentColor" /></svg><span class="n" id="s7-num4">+0</span></span>
+                    </div>
+                    <div class="tk"><div class="fl" id="s7-fl4"><i class="sk" id="s7-sk4"></i><i class="tip"></i></div></div>
+                  </div>
+                  <i class="sw" id="s7-sw4"></i>
+                </div>
+                <div class="row" id="s7-row5" style="top: 576px">
+                  <div class="rk"><span id="s7-rk5">#5</span></div>
+                  <div class="bd">
+                    <div class="tp">
+                      <svg class="bk" viewBox="0 0 24 24"><path d="M5 19.5V4.5A1.5 1.5 0 0 1 6.5 3H19v15H6.5A1.5 1.5 0 0 0 5 19.5zM5 19.5A1.5 1.5 0 0 0 6.5 21H19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" /></svg>
+                      <span class="rp mono"><span class="ow">anthropics/</span><span class="nm">knowledge-work-plugins</span></span>
+                      <span class="st"><svg viewBox="0 0 24 24"><path d="M12 2.8l2.8 5.7 6.3.9-4.55 4.43 1.07 6.27L12 17.1l-5.62 2.95 1.07-6.27L2.9 9.4l6.3-.9z" fill="currentColor" /></svg><span class="n" id="s7-num5">+0</span></span>
+                    </div>
+                    <div class="tk"><div class="fl" id="s7-fl5"><i class="sk" id="s7-sk5"></i><i class="tip"></i></div></div>
+                  </div>
+                  <i class="sw" id="s7-sw5"></i>
+                </div>
+                <i id="s7-bsw"></i>
+                <div id="s7-ring"></div>
+              </div>
+
+              <!-- Weekly total -->
+              <div id="s7-total">
+                <i id="s7-tline"></i>
+                <div id="s7-tlab">TỔNG SAO MỚI TUẦN NÀY</div>
+                <div id="s7-tst">
+                  <svg viewBox="0 0 24 24"><path d="M12 2.8l2.8 5.7 6.3.9-4.55 4.43 1.07 6.27L12 17.1l-5.62 2.95 1.07-6.27L2.9 9.4l6.3-.9z" fill="currentColor" /></svg>
+                  <span id="s7-tnum">+0</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Layer 2: connector with running data dot -->
+            <i id="s7-conn"></i>
+            <i id="s7-cdot"></i>
+
+            <!-- CTA -->
+            <div id="s7-save">
+              <i id="s7-ssw"></i>
+              <i id="s7-rip1"></i>
+              <div id="s7-bm">
+                <svg viewBox="0 0 24 24">
+                  <path id="s7-bmf" d="M6 3h12v18l-6-4.6L6 21z" />
+                  <path id="s7-bmo" d="M6 3h12v18l-6-4.6L6 21z" />
+                </svg>
+              </div>
+              <span id="s7-savel">LƯU VIDEO</span>
+            </div>
+            <div id="s7-try">
+              <i id="s7-rip2"></i>
+              <span id="s7-tryl">THỬ NGAY</span>
+              <svg id="s7-arr" viewBox="0 0 24 24"><path d="M4 12h15M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /></svg>
+            </div>
+
+            <div id="s7-cur">
+              <svg viewBox="0 0 28 36"><path d="M2 2L2 30L9.5 23L14.5 34L19 32L14 21.5L24 21.5Z" /></svg>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <script>
+        (() => {
+          // A("key") = local time (s) of an anchor from timeline.json; never hard-code word times.
+          const A = (key) => window.__vv.local("s7", key);
+          const BEAT = 60 / 104, S = window.__vv.scenes["s7"].start;
+          const beats = (from, to) => { const o = []; for (let k = Math.ceil((S + from) / BEAT); k * BEAT - S <= to; k++) o.push(k * BEAT - S); return o; };
+          const HB = BEAT / 2;
+          const halfBeats = (from, to) => { const o = []; for (let k = Math.ceil((S + from) / HB); k * HB - S <= to; k++) o.push(k * HB - S); return o; };
+          const nextHB = (t) => halfBeats(t, t + 1)[0];
+          const END = 7.54, HOLD = END - 0.3; // last scene: hold the final 0.3 s, no CRT-off
+          const fmt = (n) => String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+          const cssv = (name, fb) => (getComputedStyle(document.documentElement).getPropertyValue(name) || "").trim() || fb;
+          const ACC = cssv("--accent", "#b7f34a"), INK = cssv("--ink", "#f2f4f8"), GLOW = cssv("--accent-glow", "rgba(183, 243, 74, 0.45)");
+          const H = (i, s) => { const v = Math.sin(i * 127.1 + s * 311.7) * 43758.5453; return v - Math.floor(v); };
+
+          const tl = gsap.timeline({ paused: true });
+          const pulse = (el, b, s = 1.04) => {
+            tl.to(el, { scale: s, duration: 0.08, ease: "power2.out" }, b);
+            tl.to(el, { scale: 1, duration: 0.2, ease: "power2.inOut" }, b + 0.08);
+          };
+
+          // ---------- Camera, whip-in entrance ----------
+          tl.fromTo("#s7-stage", { scale: 1.12, x: 160, opacity: 0, filter: "blur(8px)" }, { scale: 1, x: 0, opacity: 1, filter: "blur(0px)", duration: 0.4, ease: "power3.out" }, 0);
+          tl.fromTo("#s7-cam", { scale: 1 }, { scale: 1.05, duration: HOLD, ease: "power1.inOut" }, 0);
+
+          // ---------- Layer 3: data packets on grid lines (hash placement, launch on half-beats) ----------
+          const env = document.getElementById("s7-env");
+          const COLS = ["var(--c1)", "var(--c2)", "var(--c3)"];
+          for (let i = 0; i < 18; i++) {
+            const c = COLS[i % 3];
+            const horiz = H(i, 1) < 0.5;
+            const cells = 6 + Math.floor(H(i, 2) * 8);
+            const dir = H(i, 3) < 0.5 ? 1 : -1;
+            let x0, y0, x1, y1, rot;
+            if (horiz) {
+              const m = 3 + Math.floor(H(i, 4) * 31);
+              y0 = y1 = 48 * m;
+              const a = 1 + Math.floor(H(i, 5) * (21 - cells));
+              const xa = 12 + 48 * a, xb = 12 + 48 * (a + cells);
+              x0 = dir > 0 ? xa : xb; x1 = dir > 0 ? xb : xa; rot = dir > 0 ? 0 : 180;
+            } else {
+              const k = 1 + Math.floor(H(i, 4) * 21);
+              x0 = x1 = 12 + 48 * k;
+              const a = 3 + Math.floor(H(i, 5) * (31 - cells));
+              const ya = 48 * a, yb = 48 * (a + cells);
+              y0 = dir > 0 ? ya : yb; y1 = dir > 0 ? yb : ya; rot = dir > 0 ? 90 : 270;
+            }
+            const size = 6 + Math.floor(H(i, 9) * 5);
+            const trail = 60 + Math.floor(H(i, 10) * 60);
+            const p = document.createElement("div");
+            p.className = "pk";
+            p.innerHTML = '<i class="tr" style="width:' + trail + 'px;background:linear-gradient(90deg,transparent,' + c + ')"></i>' +
+              '<b class="dt" style="width:' + size + 'px;height:' + size + 'px;left:' + (-size / 2) + 'px;top:' + (-size / 2) + 'px;background:' + c + ';box-shadow:0 0 10px ' + c + '"></b>';
+            env.appendChild(p);
+            gsap.set(p, { x: x0, y: y0, rotation: rot, opacity: 0 });
+            const dur = (cells * 48) / (280 + H(i, 6) * 200);
+            const period = Math.ceil((dur + 0.15 + H(i, 7) * 0.6) / HB) * HB;
+            for (let t = nextHB(0.15 + H(i, 8) * 1.4); t + dur <= HOLD - 0.04; t += period) {
+              tl.fromTo(p, { x: x0, y: y0 }, { x: x1, y: y1, duration: dur, ease: "none", immediateRender: false }, t);
+              tl.fromTo(p, { opacity: 0 }, { opacity: 0.9, duration: 0.12, ease: "none", immediateRender: false }, t);
+              tl.to(p, { opacity: 0, duration: 0.15, ease: "none" }, t + dur - 0.15);
+            }
+          }
+          // grid nodes tick on every beat
+          beats(0.5, HOLD - 0.3).forEach((b) => {
+            tl.to("#s7-env .nd", { scale: 1.5, opacity: 0.85, duration: 0.08, ease: "power2.out" }, b);
+            tl.to("#s7-env .nd", { scale: 1, opacity: 0.35, duration: 0.24, ease: "power2.inOut" }, b + 0.08);
+          });
+
+          // ---------- Sentence 1: "Năm repo, năm cách làm việc nhanh hơn" ----------
+          const tA = A("nam");
+          tl.fromTo("#s7-lab", { clipPath: "inset(0 100% 0 0)" }, { clipPath: "inset(0 0% 0 0)", duration: 0.4, ease: "power2.out" }, tA - 0.06);
+          tl.fromTo("#s7-date", { x: 30, opacity: 0 }, { x: 0, opacity: 1, duration: 0.3, ease: "power3.out" }, tA);
+          tl.fromTo("#s7-title", { yPercent: 110 }, { yPercent: 0, duration: 0.42, ease: "back.out(1.4)" }, tA);
+          tl.fromTo("#s7-tsw", { xPercent: -120 }, { xPercent: 450, duration: 0.8, ease: "power2.inOut" }, tA + 0.2);
+
+          // five rows fly in on consecutive half-beats along a curved path (x and y on different eases)
+          const STARS = [8319, 7084, 6566, 4003, 2601];
+          const land = halfBeats(tA + 0.25, 4).slice(0, 5);
+          STARS.forEach((v, i) => {
+            const n = i + 1, L = land[i], t0 = L - 0.34;
+            const row = "#s7-row" + n;
+            tl.fromTo(row, { x: 640 }, { x: 0, duration: 0.34, ease: "power3.out" }, t0);
+            tl.fromTo(row, { y: -70 }, { y: 0, duration: 0.34, ease: "back.out(1.6)" }, t0);
+            tl.fromTo(row, { opacity: 0 }, { opacity: 1, duration: 0.14, ease: "none" }, t0);
+            tl.fromTo("#s7-rk" + n, { yPercent: 110 }, { yPercent: 0, duration: 0.28, ease: "back.out(1.4)" }, L - 0.04);
+            tl.fromTo("#s7-sw" + n, { xPercent: -120 }, { xPercent: 400, duration: 0.6, ease: "power2.inOut" }, L);
+            tl.fromTo("#s7-fl" + n, { width: "0%" }, { width: ((v / STARS[0]) * 100).toFixed(2) + "%", duration: 1.0, ease: "power3.out" }, L);
+            const el = document.getElementById("s7-num" + n), o = { v: 0 };
+            tl.to(o, { v, duration: 1.0, ease: "power3.out", onUpdate: () => { el.textContent = "+" + fmt(o.v); } }, L);
+            beats(L + 1.0, A("luu") - 0.2).forEach((b) => pulse(el, b, 1.06));
+          });
+
+          // "nhanh hơn": chip pops, speed streaks run along every bar, a light band sweeps the board
+          const tN = A("nhanh");
+          tl.fromTo("#s7-chip", { scale: 0.4, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.3, ease: "back.out(1.8)" }, tN - 0.05);
+          tl.fromTo("#s7-bolt", { opacity: 1 }, { opacity: 0.35, duration: 0.08, yoyo: true, repeat: 3, ease: "none", immediateRender: false }, tN + 0.25);
+          STARS.forEach((_, i) => {
+            tl.fromTo("#s7-sk" + (i + 1), { xPercent: 0 }, { xPercent: 467, duration: 0.45, ease: "power2.in", immediateRender: false }, tN + 0.04 * i);
+          });
+          tl.fromTo("#s7-bsw", { y: -160, opacity: 0.1 }, { y: 600, duration: 0.55, ease: "power2.inOut", immediateRender: false }, tN);
+          tl.to("#s7-bsw", { opacity: 0, duration: 0.15, ease: "none" }, tN + 0.4);
+          beats(tN + 0.35, A("luu") - 0.2).forEach((b) => pulse("#s7-chip", b, 1.04));
+
+          // weekly total (8.319 + 7.084 + 6.566 + 4.003 + 2.601 = 28.573), the scene's key number in accent
+          const tT = nextHB(tN + 0.1);
+          tl.fromTo("#s7-tline", { scaleX: 0 }, { scaleX: 1, duration: 0.35, ease: "power3.out" }, tT - 0.1);
+          tl.fromTo("#s7-tlab", { clipPath: "inset(0 100% 0 0)" }, { clipPath: "inset(0 0% 0 0)", duration: 0.35, ease: "power2.out" }, tT - 0.05);
+          tl.fromTo("#s7-tst", { y: 26, opacity: 0 }, { y: 0, opacity: 1, duration: 0.3, ease: "back.out(1.6)" }, tT);
+          const tEl = document.getElementById("s7-tnum"), tO = { v: 0 };
+          tl.to(tO, { v: 28573, duration: 1.0, ease: "power3.out", onUpdate: () => { tEl.textContent = "+" + fmt(tO.v); } }, tT);
+          beats(tT + 0.7, A("luu") - 0.1).forEach((b) => pulse(tEl, b, 1.06));
+
+          // ---------- Sentence 2: "Lưu video lại và thử ngay một repo hợp với công việc của bạn" ----------
+          const tL = A("luu");
+          // whip: the board block snaps up to make room for the CTA, with a short motion blur
+          tl.fromTo("#s7-main", { y: 170 }, { y: 0, duration: 0.34, ease: "power4.inOut" }, tL - 0.17);
+          tl.fromTo("#s7-cam", { filter: "blur(0px)" }, { filter: "blur(6px)", duration: 0.15, ease: "power2.in", immediateRender: false }, tL - 0.17);
+          tl.to("#s7-cam", { filter: "blur(0px)", duration: 0.2, ease: "power2.out" }, tL - 0.02);
+          // accent hands over from the total to the call to action (one accent at a time)
+          tl.fromTo("#s7-tnum", { color: ACC, textShadow: "0px 0px 28px " + GLOW }, { color: INK, textShadow: "0px 0px 0px rgba(0, 0, 0, 0)", duration: 0.3, ease: "power2.out", immediateRender: false }, tL - 0.02);
+
+          tl.fromTo("#s7-save", { scale: 0.6, y: 30, opacity: 0 }, { scale: 1, y: 0, opacity: 1, duration: 0.34, ease: "back.out(1.6)" }, tL);
+          tl.fromTo("#s7-ssw", { xPercent: -120 }, { xPercent: 400, duration: 0.7, ease: "power2.inOut" }, tL + 0.15);
+          tl.fromTo("#s7-conn", { scaleY: 0 }, { scaleY: 1, duration: 0.25, ease: "power3.out" }, tL + 0.1);
+          [tL + 0.2].concat(beats(tL + 0.8, HOLD - 0.5).filter((_, k) => k % 2 === 0)).forEach((t) => {
+            tl.fromTo("#s7-cdot", { y: 0, opacity: 1 }, { y: 54, duration: 0.32, ease: "power1.in", immediateRender: false }, t);
+            tl.to("#s7-cdot", { opacity: 0, duration: 0.06, ease: "none" }, t + 0.3);
+          });
+          // bookmark icon ticks on every beat
+          beats(tL + 0.3, HOLD - 0.25).forEach((b) => pulse("#s7-bm", b, 1.14));
+
+          // cursor flies in on a curve and presses LƯU VIDEO ("video")
+          const c1 = nextHB(tL + 0.55);
+          tl.set("#s7-cur", { x: 1010, y: 1600, opacity: 0, transformOrigin: "3px 3px" }, 0);
+          tl.to("#s7-cur", { opacity: 1, duration: 0.15, ease: "none" }, c1 - 0.47);
+          tl.to("#s7-cur", { x: 757, duration: 0.42, ease: "power2.out" }, c1 - 0.47);
+          tl.to("#s7-cur", { y: 1317, duration: 0.42, ease: "power3.inOut" }, c1 - 0.47);
+          tl.to("#s7-cur", { scale: 0.82, duration: 0.07, ease: "power2.in" }, c1 - 0.05);
+          tl.to("#s7-cur", { scale: 1, duration: 0.18, ease: "back.out(2)" }, c1 + 0.02);
+          tl.to("#s7-save", { scale: 0.965, duration: 0.07, ease: "power2.in" }, c1 - 0.04);
+          tl.to("#s7-save", { scale: 1, duration: 0.25, ease: "back.out(2.2)" }, c1 + 0.03);
+          tl.fromTo("#s7-rip1", { scale: 0, opacity: 0.3 }, { scale: 5, opacity: 0, duration: 0.55, ease: "power2.out", immediateRender: false }, c1);
+          tl.fromTo("#s7-bmf", { opacity: 0, scale: 0.4 }, { opacity: 1, scale: 1, transformOrigin: "50% 50%", duration: 0.25, ease: "back.out(2)", immediateRender: false }, c1 + 0.02);
+
+          // THỬ NGAY slides in ("thử ngay"), cursor presses it
+          const tY = A("thu");
+          tl.fromTo("#s7-try", { x: 320, opacity: 0 }, { x: 0, opacity: 1, duration: 0.32, ease: "back.out(1.4)" }, tY - 0.06);
+          const c2 = nextHB(tY + 0.3);
+          tl.to("#s7-cur", { x: 697, duration: 0.38, ease: "power2.inOut" }, c2 - 0.43);
+          tl.to("#s7-cur", { y: 1475, duration: 0.38, ease: "back.out(1.2)" }, c2 - 0.43);
+          tl.to("#s7-cur", { scale: 0.82, duration: 0.07, ease: "power2.in" }, c2 - 0.05);
+          tl.to("#s7-cur", { scale: 1, duration: 0.18, ease: "back.out(2)" }, c2 + 0.02);
+          tl.to("#s7-try", { scale: 0.96, duration: 0.07, ease: "power2.in" }, c2 - 0.04);
+          tl.to("#s7-try", { scale: 1, duration: 0.25, ease: "back.out(2.2)" }, c2 + 0.03);
+          tl.fromTo("#s7-rip2", { scale: 0, opacity: 0.22 }, { scale: 5, opacity: 0, duration: 0.55, ease: "power2.out", immediateRender: false }, c2);
+          tl.fromTo("#s7-arr", { x: 0 }, { x: 12, duration: 0.12, yoyo: true, repeat: 3, ease: "power1.inOut", immediateRender: false }, c2 + 0.05);
+          tl.to("#s7-cur", { x: "-=14", y: "-=10", duration: 0.45, ease: "sine.inOut" }, c2 + 0.35);
+
+          // "một repo hợp với công việc": chip flips to CHỌN 1 REPO, cursor hovers the rows with a selection ring
+          const tC = A("cv");
+          tl.fromTo("#s7-f1", { yPercent: 0 }, { yPercent: -110, duration: 0.28, ease: "power3.in", immediateRender: false }, tC - 0.05);
+          tl.fromTo("#s7-f2", { yPercent: 110 }, { yPercent: 0, duration: 0.3, ease: "back.out(1.4)" }, tC + 0.1);
+          const order = [4, 3, 2, 1, 2];
+          const hops = halfBeats(tC + 0.05, HOLD).slice(0, order.length);
+          const rowY = (r) => r * 144;
+          const curY = (r) => 392 + r * 144 + 59;
+          tl.to("#s7-cur", { x: 897, duration: 0.3, ease: "power2.out" }, hops[0] - 0.32);
+          tl.to("#s7-cur", { y: curY(order[0]), duration: 0.3, ease: "power3.inOut" }, hops[0] - 0.32);
+          tl.fromTo("#s7-ring", { y: rowY(order[0]), opacity: 0, scale: 1.04 }, { y: rowY(order[0]), opacity: 1, scale: 1, duration: 0.24, ease: "back.out(1.6)" }, hops[0] - 0.04);
+          tl.fromTo("#s7-sk" + (order[0] + 1), { xPercent: 0 }, { xPercent: 467, duration: 0.35, ease: "power2.in", immediateRender: false }, hops[0]);
+          for (let k = 1; k < order.length; k++) {
+            tl.to("#s7-ring", { y: rowY(order[k]), duration: 0.22, ease: "back.out(1.5)" }, hops[k] - 0.1);
+            tl.to("#s7-cur", { x: 880 + (k % 2) * 24, y: curY(order[k]), duration: 0.24, ease: "power3.out" }, hops[k] - 0.12);
+            tl.fromTo("#s7-sk" + (order[k] + 1), { xPercent: 0 }, { xPercent: 467, duration: 0.28, ease: "power2.in", immediateRender: false }, hops[k] - 0.05);
+          }
+
+          // pad the timeline to the scene length; the last 0.3 s is a stable hold (final scene, no CRT-off)
+          tl.set({}, {}, END);
+          window.__timelines["s7"] = tl;
+        })();
+      </script>
+    </template>
+  </body>
+</html>

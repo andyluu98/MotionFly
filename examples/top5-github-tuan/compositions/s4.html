@@ -1,0 +1,680 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <!-- Scene s4. Runtime keeps only <template>; put style, markup and script inside it. -->
+  </head>
+  <body>
+    <template>
+      <style>
+        /* Each scene declares its fonts (HyperFrames lint: font_family_without_font_face). Paths are relative to index.html. */
+        @font-face { font-family: "Be Vietnam Pro"; src: url("fonts/BeVietnamPro-Regular.ttf"); font-weight: 400; }
+        @font-face { font-family: "Be Vietnam Pro"; src: url("fonts/BeVietnamPro-Medium.ttf"); font-weight: 500; }
+        @font-face { font-family: "Be Vietnam Pro"; src: url("fonts/BeVietnamPro-Bold.ttf"); font-weight: 700; }
+        @font-face { font-family: "Be Vietnam Pro"; src: url("fonts/BeVietnamPro-ExtraBold.ttf"); font-weight: 800; }
+        @font-face { font-family: "JetBrains Mono"; src: url("fonts/JetBrainsMono-Variable.ttf"); font-weight: 100 800; }
+
+        #s4-root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          background: transparent;
+          color: var(--ink);
+          font-family: "Be Vietnam Pro", sans-serif;
+        }
+        #s4-root * { box-sizing: border-box; }
+        #s4-cam, #s4-stage { position: absolute; inset: 0; }
+        #s4-root .abs { position: absolute; }
+        #s4-root .mono { font-family: "JetBrains Mono", monospace; }
+        #s4-root .lbl { font-size: 22px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink3); }
+        #s4-root .surf {
+          background: var(--s2);
+          border: 1px solid var(--line);
+          box-shadow: inset 0 1px 0 var(--hi), 0 30px 60px rgba(0, 0, 0, 0.5);
+        }
+        #s4-root .sweep {
+          position: absolute; top: 0; bottom: 0; left: 0; width: 40%;
+          background: linear-gradient(100deg, rgba(255, 255, 255, 0) 0%, var(--hi) 35%, var(--line) 50%, var(--hi) 65%, rgba(255, 255, 255, 0) 100%);
+          pointer-events: none;
+        }
+        #s4-root svg { overflow: visible; }
+
+        /* environment layer: data packets on the 48px grid */
+        #s4-pk { position: absolute; inset: 0; opacity: 0.6; filter: saturate(0.55); }
+        #s4-root .s4-pkt { position: absolute; left: 0; top: 0; width: 0; height: 0; }
+        #s4-root .s4-pkt i { position: absolute; left: -4px; top: -4px; width: 8px; height: 8px; border-radius: 50%; background: currentColor; box-shadow: 0 0 12px currentColor; }
+        #s4-root .s4-pkt b { position: absolute; left: -66px; top: -1px; width: 62px; height: 2px; background: linear-gradient(90deg, rgba(0, 0, 0, 0), currentColor); }
+        #s4-root .s4-k1 { color: var(--c1); }
+        #s4-root .s4-k2 { color: var(--c2); }
+        #s4-root .s4-k3 { color: var(--c3); }
+        #s4-root .s4-node { position: absolute; width: 8px; height: 8px; margin: -4px 0 0 -4px; border-radius: 50%; background: var(--ink3); box-shadow: 0 0 0 4px var(--hi); }
+
+        /* part 1: rank badge, repo card, weekly chip */
+        #s4-badge { left: 0; top: 214px; width: 1080px; height: 300px; overflow: hidden; }
+        #s4-badge-in { position: absolute; inset: 0; }
+        #s4-badge-t, #s4-badge-g {
+          position: absolute; inset: 0; text-align: center;
+          font-size: 280px; line-height: 300px; font-weight: 800; letter-spacing: -0.04em;
+          -webkit-background-clip: text; background-clip: text; color: transparent;
+        }
+        #s4-badge-t { background-image: linear-gradient(180deg, var(--ink) 18%, var(--ink3) 100%); }
+        #s4-badge-g {
+          background-image: linear-gradient(100deg, rgba(255, 255, 255, 0) 40%, var(--ink) 50%, rgba(255, 255, 255, 0) 60%);
+          background-size: 300% 100%; background-repeat: no-repeat;
+        }
+        #s4-rank { left: 0; width: 1080px; top: 540px; height: 10px; display: flex; justify-content: center; gap: 12px; }
+        #s4-root .s4-rk { width: 64px; height: 8px; border-radius: 4px; background: var(--s3); border: 1px solid var(--line); }
+        #s4-rk3 { background: var(--ink) !important; }
+
+        #s4-card { left: 72px; top: 640px; width: 936px; height: 400px; border-radius: 28px; overflow: hidden; }
+        #s4-head { position: absolute; left: 0; top: 0; right: 0; height: 112px; padding: 0 40px; display: flex; align-items: center; gap: 20px; border-bottom: 1px solid var(--line); }
+        #s4-head .repo { font-size: 34px; color: var(--ink2); }
+        #s4-head .repo b { color: var(--ink); font-weight: 700; }
+        #s4-head .tag { margin-left: auto; padding: 6px 18px; border-radius: 999px; border: 1px solid var(--line); background: var(--s3); font-size: 24px; color: var(--ink2); }
+        #s4-desc { left: 40px; top: 142px; font-size: 38px; font-weight: 500; color: var(--ink2); }
+        #s4-stats { left: 40px; top: 210px; height: 96px; display: flex; align-items: center; gap: 20px; }
+        #s4-total { font-size: 76px; font-weight: 800; letter-spacing: -0.04em; color: var(--ink); font-variant-numeric: tabular-nums; min-width: 230px; }
+        #s4-stats .unit { font-size: 24px; font-weight: 700; letter-spacing: 0.12em; color: var(--ink3); }
+        #s4-split { left: 40px; top: 334px; width: 856px; height: 14px; }
+        #s4-seg1 { position: absolute; left: 0; top: 0; height: 14px; width: 23.24%; border-radius: 7px; background: var(--ink3); }
+        #s4-seg2 { position: absolute; left: calc(23.24% + 6px); top: 0; height: 14px; width: calc(76.76% - 6px); border-radius: 7px; background: var(--ink); }
+
+        #s4-con { left: 0; top: 0; width: 1080px; height: 1920px; pointer-events: none; }
+        #s4-con-dot { left: 534px; top: 1034px; width: 12px; height: 12px; border-radius: 50%; background: var(--ink); box-shadow: 0 0 14px var(--ink2); }
+        #s4-chipwrap { left: 0; width: 1080px; top: 1110px; height: 100px; display: flex; justify-content: center; }
+        #s4-chip { position: relative; height: 100px; padding: 0 44px; border-radius: 999px; background: var(--s3); border: 1px solid var(--line); box-shadow: inset 0 1px 0 var(--hi), 0 20px 40px rgba(0, 0, 0, 0.45); display: flex; align-items: center; gap: 18px; overflow: hidden; }
+        #s4-chipn { font-family: "JetBrains Mono", monospace; font-size: 52px; font-weight: 700; color: var(--accent); text-shadow: 0 0 28px var(--accent-glow); font-variant-numeric: tabular-nums; }
+        #s4-chip .sfx { font-size: 36px; font-weight: 500; color: var(--ink2); }
+
+        /* part 2: prompt bubble, web + phone frames */
+        #s4-plabel { left: 72px; top: 346px; color: var(--ink2) !important; }
+        #s4-bubble { left: 72px; top: 392px; width: 936px; height: 120px; border-radius: 28px 28px 28px 8px; background: var(--s3); border: 1px solid var(--line); box-shadow: inset 0 1px 0 var(--hi), 0 20px 40px rgba(0, 0, 0, 0.45); display: flex; align-items: center; padding: 0 28px; gap: 20px; }
+        #s4-avatar { width: 56px; height: 56px; border-radius: 50%; background: var(--s2); border: 1px solid var(--line); display: flex; align-items: center; justify-content: center; flex: none; }
+        #s4-typedrow { display: flex; align-items: center; flex: 1; height: 56px; }
+        #s4-typed { font-size: 38px; font-weight: 500; color: var(--ink); white-space: pre; }
+        #s4-caret { width: 3px; height: 44px; margin-left: 4px; background: var(--ink); }
+        #s4-send { width: 64px; height: 64px; border-radius: 50%; background: var(--ink); display: flex; align-items: center; justify-content: center; flex: none; }
+
+        #s4-web { left: 72px; top: 580px; width: 600px; height: 640px; border-radius: 24px; overflow: hidden; }
+        #s4-web .bar { position: absolute; left: 0; right: 0; top: 0; height: 64px; display: flex; align-items: center; gap: 14px; padding: 0 22px; border-bottom: 1px solid var(--line); }
+        #s4-web .bar span { font-size: 22px; color: var(--ink3); }
+        #s4-web .side { position: absolute; left: 0; top: 64px; bottom: 0; width: 182px; background: var(--s1); border-right: 1px solid var(--line); }
+        #s4-root .s4-nav { position: absolute; left: 12px; width: 158px; height: 52px; border-radius: 12px; display: flex; align-items: center; gap: 12px; padding: 0 14px; font-size: 22px; font-weight: 500; color: var(--ink2); }
+        #s4-root .s4-nav i { width: 14px; height: 14px; border-radius: 4px; background: var(--ink3); flex: none; }
+        #s4-nav3-on { position: absolute; left: 12px; top: 208px; width: 158px; height: 52px; border-radius: 12px; background: var(--s3); border: 1px solid var(--line); }
+        #s4-nav3-bar { position: absolute; left: 12px; top: 220px; width: 4px; height: 28px; border-radius: 2px; background: var(--ink); }
+        #s4-root .sk { position: absolute; border-radius: 8px; background: var(--s3); }
+        #s4-root .st { position: absolute; left: 194px; top: 64px; right: 0; bottom: 0; }
+        #s4-stB h4 { position: absolute; left: 0; top: 20px; margin: 0; font-size: 30px; font-weight: 700; color: var(--ink); }
+        #s4-root .s4-tab { position: absolute; top: 76px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: 700; color: var(--ink2); border: 1px solid var(--line); background: var(--s1); }
+        #s4-tabline { position: absolute; left: 132px; top: 128px; width: 100px; height: 3px; border-radius: 2px; background: var(--ink); }
+        #s4-root .s4-plan { position: absolute; top: 148px; height: 240px; border-radius: 18px; background: var(--s1); border: 1px solid var(--line); }
+        #s4-root .s4-plan b { position: absolute; left: 20px; top: 18px; font-size: 26px; font-weight: 700; color: var(--ink2); }
+        #s4-root .s4-plan.pro b { color: var(--ink); }
+
+        #s4-phone { left: 704px; top: 580px; width: 304px; height: 640px; border-radius: 44px; background: var(--s3); border: 1px solid var(--line); box-shadow: inset 0 1px 0 var(--hi), 0 30px 60px rgba(0, 0, 0, 0.5); }
+        #s4-screen { position: absolute; left: 10px; top: 10px; right: 10px; bottom: 10px; border-radius: 36px; background: var(--s1); overflow: hidden; }
+        #s4-screen .notch { position: absolute; left: 97px; top: 12px; width: 90px; height: 22px; border-radius: 11px; background: var(--bg); }
+        #s4-screen h4 { position: absolute; left: 22px; top: 50px; margin: 0; font-size: 30px; font-weight: 700; color: var(--ink); }
+        #s4-root .s4-row { position: absolute; left: 14px; width: 256px; height: 90px; border-radius: 18px; background: var(--s2); border: 1px solid var(--line); }
+        #s4-root .s4-row b { position: absolute; left: 22px; top: 27px; font-size: 26px; font-weight: 700; color: var(--ink2); }
+        #s4-root .s4-row .radio { position: absolute; right: 22px; top: 31px; width: 28px; height: 28px; border-radius: 50%; border: 2px solid var(--ink3); }
+        #s4-pro-on { position: absolute; inset: -1px; border-radius: 18px; border: 2px solid var(--ink); }
+        #s4-pro-dot { position: absolute; right: 29px; top: 38px; width: 14px; height: 14px; border-radius: 50%; background: var(--ink); }
+        #s4-okpill { position: absolute; left: 14px; top: 370px; width: 256px; height: 56px; border-radius: 16px; background: var(--s3); border: 1px solid var(--line); display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 22px; font-weight: 700; color: var(--ink); }
+        #s4-ok { position: absolute; left: 14px; top: 538px; width: 256px; height: 68px; border-radius: 20px; background: var(--ink); color: var(--bg); display: flex; align-items: center; justify-content: center; font-size: 26px; font-weight: 700; }
+
+        #s4-root .tagwrap { position: absolute; top: 1240px; height: 52px; display: flex; justify-content: center; }
+        #s4-root .s4-tag { height: 52px; padding: 0 22px; border-radius: 999px; background: var(--s3); border: 1px solid var(--line); display: flex; align-items: center; gap: 10px; font-size: 22px; letter-spacing: 0.12em; color: var(--ink); }
+
+        /* fx: ripples, check badges, AI cursor */
+        #s4-root .s4-rp { position: absolute; width: 60px; height: 60px; margin: -30px 0 0 -30px; border-radius: 50%; border: 3px solid var(--ink); }
+        #s4-root .s4-ck { position: absolute; width: 34px; height: 34px; margin: -17px 0 0 -17px; border-radius: 50%; background: var(--ink); box-shadow: 0 6px 16px rgba(0, 0, 0, 0.5); display: flex; align-items: center; justify-content: center; }
+        #s4-cursor { left: 0; top: 0; width: 40px; height: 48px; }
+        #s4-aitag { position: absolute; left: 30px; top: 40px; padding: 4px 12px; border-radius: 10px; background: var(--s3); border: 1px solid var(--line); font-size: 20px; font-weight: 700; color: var(--ink); letter-spacing: 0.08em; }
+
+        /* part 3: replay dock */
+        #s4-dock { left: 72px; top: 1320px; width: 936px; height: 236px; border-radius: 28px; overflow: hidden; }
+        #s4-ricon { position: absolute; left: 28px; top: 24px; width: 104px; height: 104px; border-radius: 50%; background: var(--s3); border: 1px solid var(--line); display: flex; align-items: center; justify-content: center; }
+        #s4-root .s4-step { position: absolute; top: 28px; width: 170px; height: 60px; border-radius: 14px; background: var(--s1); border: 1px solid var(--line); display: flex; align-items: center; gap: 10px; padding: 0 14px; overflow: hidden; }
+        #s4-root .s4-step .n { font-size: 18px; color: var(--ink3); }
+        #s4-root .s4-step .t { font-size: 21px; font-weight: 700; color: var(--ink2); white-space: nowrap; }
+        #s4-root .s4-step .on { position: absolute; inset: 0; border-radius: 14px; border: 2px solid var(--ink); background: var(--hi); }
+        #s4-ff { position: absolute; left: 892px; top: 44px; width: 30px; height: 30px; }
+        #s4-prog { position: absolute; left: 156px; top: 108px; width: 752px; height: 8px; border-radius: 4px; background: var(--s3); overflow: hidden; }
+        #s4-progf { position: absolute; inset: 0; border-radius: 4px; background: var(--ink); }
+        #s4-dock .div { position: absolute; left: 28px; right: 28px; top: 140px; height: 1px; background: var(--line); }
+        #s4-lrow { position: absolute; left: 0; right: 0; top: 152px; height: 72px; display: flex; align-items: center; justify-content: center; gap: 18px; }
+        #s4-lrow .w { font-size: 30px; font-weight: 700; letter-spacing: 0.12em; color: var(--ink2); }
+        #s4-zero { font-size: 60px; font-weight: 800; letter-spacing: -0.04em; color: var(--accent); text-shadow: 0 0 28px var(--accent-glow); line-height: 1; }
+        #s4-mglyph { position: relative; width: 52px; height: 52px; }
+      </style>
+
+      <div id="s4-root" data-composition-id="s4" data-width="1080" data-height="1920">
+        <div id="s4-cam">
+          <div id="s4-stage">
+            <!-- layer 3: environment -->
+            <div id="s4-pk"></div>
+            <div id="s4-nodes">
+              <div class="s4-node" style="left: 60px; top: 336px"></div>
+              <div class="s4-node" style="left: 60px; top: 960px"></div>
+              <div class="s4-node" style="left: 60px; top: 1536px"></div>
+              <div class="s4-node" style="left: 1020px; top: 336px"></div>
+              <div class="s4-node" style="left: 1020px; top: 960px"></div>
+              <div class="s4-node" style="left: 1020px; top: 1536px"></div>
+            </div>
+
+            <!-- part 1 -->
+            <div id="s4-badge" class="abs">
+              <div id="s4-badge-in">
+                <div id="s4-badge-t">#3</div>
+                <div id="s4-badge-g">#3</div>
+              </div>
+            </div>
+            <div id="s4-rank" class="abs">
+              <div class="s4-rk" id="s4-rk1"></div>
+              <div class="s4-rk" id="s4-rk2"></div>
+              <div class="s4-rk" id="s4-rk3"></div>
+              <div class="s4-rk" id="s4-rk4"></div>
+              <div class="s4-rk" id="s4-rk5"></div>
+            </div>
+
+            <svg id="s4-con" class="abs" viewBox="0 0 1080 1920">
+              <path id="s4-con-path" d="M540 1040V1110" stroke="var(--ink3)" stroke-width="2" fill="none" stroke-dasharray="70" stroke-dashoffset="70" />
+              <path id="s4-link-path" d="M372 512V580" stroke="var(--ink3)" stroke-width="2" fill="none" stroke-dasharray="68" stroke-dashoffset="68" />
+            </svg>
+            <div id="s4-con-dot" class="abs"></div>
+            <div id="s4-link-dot" class="abs" style="left: 366px; top: 506px; width: 12px; height: 12px; border-radius: 50%; background: var(--ink); box-shadow: 0 0 14px var(--ink2)"></div>
+
+            <div id="s4-card" class="abs surf">
+              <div id="s4-head">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--ink2)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4.5A2.5 2.5 0 0 1 7.5 2H19v17H7.5A2.5 2.5 0 0 0 5 21.5z" /><path d="M5 21.5V4.5" /><path d="M9 7h6" /></svg>
+                <span class="repo mono">tester-army/<b>e2e</b></span>
+                <span class="tag mono">#3</span>
+              </div>
+              <div id="s4-desc" class="abs">Kiểm thử app bằng lời</div>
+              <div id="s4-stats" class="abs">
+                <svg id="s4-star" width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" stroke-width="1.8" stroke-linejoin="round"><path d="M12 2.8l2.8 5.7 6.3.9-4.6 4.4 1.1 6.2L12 17l-5.6 3 1.1-6.2-4.6-4.4 6.3-.9z" /></svg>
+                <span id="s4-total">0</span>
+                <span class="unit">SAO</span>
+              </div>
+              <div id="s4-split" class="abs"><div id="s4-seg1"></div><div id="s4-seg2"></div></div>
+              <div id="s4-card-sw" class="sweep"></div>
+            </div>
+
+            <div id="s4-chipwrap" class="abs">
+              <div id="s4-chip">
+                <span id="s4-chipn">+0</span>
+                <span class="sfx">tuần này</span>
+                <div id="s4-chip-sw" class="sweep"></div>
+              </div>
+            </div>
+
+            <!-- part 2 -->
+            <div id="s4-plabel" class="abs mono lbl">PROMPT</div>
+            <div id="s4-bubble" class="abs">
+              <div id="s4-avatar">
+                <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="var(--ink2)" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="9" r="4" /><path d="M4.5 20c1.2-3.6 4-5.2 7.5-5.2s6.3 1.6 7.5 5.2" /></svg>
+              </div>
+              <div id="s4-typedrow"><span id="s4-typed"></span><span id="s4-caret"></span></div>
+              <div id="s4-send">
+                <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="var(--bg)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M6 11l6-6 6 6" /></svg>
+              </div>
+            </div>
+
+            <div id="s4-web" class="abs surf">
+              <div class="bar">
+                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--ink3)" stroke-width="1.8"><rect x="3" y="4" width="18" height="16" rx="3" /><path d="M3 9h18" /></svg>
+                <span class="mono">app/workspace</span>
+              </div>
+              <div class="side">
+                <div id="s4-nav3-on"></div>
+                <div id="s4-nav3-bar"></div>
+                <div class="s4-nav" id="s4-nav1" style="top: 20px"><i></i>Tổng quan</div>
+                <div class="s4-nav" id="s4-nav2" style="top: 82px"><i></i>Thành viên</div>
+                <div class="s4-nav" id="s4-nav3" style="top: 144px"><i></i>Cài đặt</div>
+                <div class="sk" style="left: 26px; top: 236px; width: 110px; height: 12px"></div>
+                <div class="sk" style="left: 26px; top: 266px; width: 86px; height: 12px"></div>
+              </div>
+              <div id="s4-stA" class="st">
+                <div class="sk" style="left: 0; top: 28px; width: 220px; height: 22px"></div>
+                <div class="sk" style="left: 0; top: 66px; width: 300px; height: 14px"></div>
+                <div class="sk" style="left: 0; top: 112px; width: 182px; height: 130px; border-radius: 14px"></div>
+                <div class="sk" style="left: 198px; top: 112px; width: 182px; height: 130px; border-radius: 14px"></div>
+                <div class="sk" style="left: 0; top: 270px; width: 380px; height: 14px"></div>
+                <div class="sk" style="left: 0; top: 302px; width: 320px; height: 14px"></div>
+                <div class="sk" style="left: 0; top: 334px; width: 350px; height: 14px"></div>
+              </div>
+              <div id="s4-stB" class="st">
+                <h4>Cài đặt</h4>
+                <div class="s4-tab" id="s4-tab1" style="left: 0; width: 120px">Hồ sơ</div>
+                <div class="s4-tab" id="s4-tab2" style="left: 132px; width: 100px">Gói</div>
+                <div id="s4-tabline"></div>
+                <div id="s4-stC">
+                  <div class="s4-plan" id="s4-plan1" style="left: 0; width: 186px">
+                    <b>Free</b>
+                    <div class="sk" style="left: 20px; top: 74px; width: 120px; height: 12px"></div>
+                    <div class="sk" style="left: 20px; top: 100px; width: 96px; height: 12px"></div>
+                    <div class="sk" style="left: 20px; top: 176px; width: 146px; height: 36px; border-radius: 12px"></div>
+                  </div>
+                  <div class="s4-plan pro" id="s4-plan2" style="left: 198px; width: 188px">
+                    <b>Pro</b>
+                    <div class="sk" style="left: 20px; top: 74px; width: 130px; height: 12px"></div>
+                    <div class="sk" style="left: 20px; top: 100px; width: 104px; height: 12px"></div>
+                    <div class="sk" style="left: 20px; top: 126px; width: 116px; height: 12px"></div>
+                    <div class="sk" style="left: 20px; top: 176px; width: 148px; height: 36px; border-radius: 12px"></div>
+                  </div>
+                  <div class="sk s4-skc" style="left: 0; top: 420px; width: 360px; height: 14px"></div>
+                  <div class="sk s4-skc" style="left: 0; top: 452px; width: 300px; height: 14px"></div>
+                  <div class="sk s4-skc" style="left: 0; top: 484px; width: 340px; height: 14px"></div>
+                </div>
+              </div>
+              <div id="s4-web-sw" class="sweep"></div>
+            </div>
+
+            <div id="s4-phone" class="abs">
+              <div id="s4-screen">
+                <div class="notch"></div>
+                <h4 id="s4-ph-h">Gói</h4>
+                <div class="sk" id="s4-ph-sk" style="left: 22px; top: 98px; width: 140px; height: 12px"></div>
+                <div class="s4-row" id="s4-free" style="top: 130px"><b>Free</b><div class="radio"></div></div>
+                <div class="s4-row" id="s4-pro" style="top: 234px"><b style="color: var(--ink)">Pro</b><div class="radio"></div><div id="s4-pro-dot"></div><div id="s4-pro-on"></div></div>
+                <div id="s4-okpill">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 12.5l4 4 8-9" /></svg>
+                  Đã lên Pro
+                </div>
+                <div class="sk" id="s4-ph-sk2" style="left: 22px; top: 452px; width: 200px; height: 12px"></div>
+                <div class="sk" id="s4-ph-sk3" style="left: 22px; top: 480px; width: 160px; height: 12px"></div>
+                <div id="s4-ok">Xác nhận</div>
+                <div id="s4-ph-sw" class="sweep"></div>
+              </div>
+            </div>
+
+            <div class="tagwrap" style="left: 72px; width: 600px">
+              <div class="s4-tag mono" id="s4-webtag">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 12.5l4 4 8-9" /></svg>WEB
+              </div>
+            </div>
+            <div class="tagwrap" style="left: 704px; width: 304px">
+              <div class="s4-tag mono" id="s4-phtag">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 12.5l4 4 8-9" /></svg>MOBILE
+              </div>
+            </div>
+
+            <!-- part 3 -->
+            <div id="s4-dock" class="abs surf">
+              <div id="s4-ricon">
+                <svg id="s4-rsvg" width="60" height="60" viewBox="0 0 48 48" fill="none" stroke="var(--ink)" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round">
+                  <path id="s4-rarc" d="M38 24a14 14 0 1 1-4.1-9.9" stroke-dasharray="80" stroke-dashoffset="80" />
+                  <path id="s4-rhead" d="M34.5 7.5v7h-7" />
+                  <path id="s4-rplay" d="M21 18.5v11l9-5.5z" fill="var(--ink)" stroke="none" />
+                </svg>
+              </div>
+              <div class="s4-step" id="s4-st1" style="left: 156px"><span class="n mono">01</span><span class="t">Cài đặt</span><div class="on"></div></div>
+              <div class="s4-step" id="s4-st2" style="left: 342px"><span class="n mono">02</span><span class="t">Gói</span><div class="on"></div></div>
+              <div class="s4-step" id="s4-st3" style="left: 528px"><span class="n mono">03</span><span class="t">Pro</span><div class="on"></div></div>
+              <div class="s4-step" id="s4-st4" style="left: 714px"><span class="n mono">04</span><span class="t">Xác nhận</span><div class="on"></div></div>
+              <svg id="s4-ff" viewBox="0 0 24 24"><path d="M3 5l8 7-8 7zM13 5l8 7-8 7z" fill="var(--ink3)" /></svg>
+              <div id="s4-prog"><div id="s4-progf"></div></div>
+              <div class="div"></div>
+              <div id="s4-lrow">
+                <span class="w" id="s4-l1">LẦN SAU:</span>
+                <span id="s4-zero">0</span>
+                <span class="w" id="s4-l2">LẦN GỌI MODEL</span>
+                <div id="s4-mglyph">
+                  <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="var(--ink2)" stroke-width="1.6" stroke-linecap="round"><rect x="6" y="6" width="12" height="12" rx="2" /><path d="M9 2v4M15 2v4M9 18v4M15 18v4M2 9h4M2 15h4M18 9h4M18 15h4" /><path id="s4-slash" d="M3 21L21 3" stroke="var(--ink)" stroke-width="2.4" stroke-dasharray="26" stroke-dashoffset="26" /></svg>
+                </div>
+              </div>
+              <div id="s4-dock-sw" class="sweep"></div>
+            </div>
+
+            <!-- fx layer -->
+            <div class="s4-rp" id="s4-rp1" style="left: 163px; top: 814px"></div>
+            <div class="s4-rp" id="s4-rp2" style="left: 448px; top: 744px"></div>
+            <div class="s4-rp" id="s4-rp3" style="left: 856px; top: 869px"></div>
+            <div class="s4-rp" id="s4-rp4" style="left: 856px; top: 1162px"></div>
+            <div class="s4-ck" id="s4-ck1" style="left: 222px; top: 814px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--bg)" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path id="s4-ck1p" d="M6 12.5l4 4 8-9" stroke-dasharray="20" stroke-dashoffset="20" /></svg></div>
+            <div class="s4-ck" id="s4-ck2" style="left: 492px; top: 722px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--bg)" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path id="s4-ck2p" d="M6 12.5l4 4 8-9" stroke-dasharray="20" stroke-dashoffset="20" /></svg></div>
+            <div class="s4-ck" id="s4-ck3" style="left: 976px; top: 826px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--bg)" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path id="s4-ck3p" d="M6 12.5l4 4 8-9" stroke-dasharray="20" stroke-dashoffset="20" /></svg></div>
+            <div class="s4-ck" id="s4-ck4" style="left: 978px; top: 1130px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--bg)" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path id="s4-ck4p" d="M6 12.5l4 4 8-9" stroke-dasharray="20" stroke-dashoffset="20" /></svg></div>
+
+            <div id="s4-cursor" class="abs">
+              <svg width="40" height="48" viewBox="0 0 40 48"><path d="M4 2v36l9.5-8.5 6.5 15 6.2-2.7-6.5-14.6H33z" fill="var(--ink)" stroke="var(--bg)" stroke-width="2.5" stroke-linejoin="round" /></svg>
+              <div id="s4-aitag" class="mono">AI</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <script>
+        (() => {
+          // A("key") = local time (s) of an anchor from timeline.json; never hard-code word times.
+          const A = (key) => window.__vv.local("s4", key);
+          const SC = window.__vv.scenes["s4"];
+          const DUR = SC.end - SC.start;
+          const BEAT = 60 / 104, S = SC.start;
+          const beats = (from, to) => { const o = []; for (let k = Math.ceil((S + from) / BEAT); k * BEAT - S <= to; k++) o.push(k * BEAT - S); return o; };
+          // Deterministic hash in [0,1) per index/salt (no Math.random).
+          const hash = (i, s) => { const x = Math.sin(i * 127.1 + s * 311.7) * 43758.5453; return x - Math.floor(x); };
+          // Vietnamese thousands separator: 8554 -> "8.554".
+          const fmt = (n) => String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+          const q = (s) => document.querySelector(s);
+          const tl = gsap.timeline({ paused: true });
+
+          // pulse helper: quick scale-up then settle (beat hits)
+          const pulse = (sel, t, s = 1.04) => {
+            tl.to(sel, { scale: s, duration: 0.07, ease: "power2.out" }, t);
+            tl.to(sel, { scale: 1, duration: 0.28, ease: "power2.out" }, t + 0.07);
+          };
+          // light sweep across a surface
+          const sweep = (sel, t, d = 0.8) => {
+            gsap.set(sel, { xPercent: -110 });
+            tl.set(sel, { xPercent: -110 }, t);
+            tl.to(sel, { xPercent: 260, duration: d, ease: "power2.inOut" }, t);
+          };
+
+          /* ---------- camera + stage ---------- */
+          gsap.set(["#s4-cam", "#s4-stage"], { transformOrigin: "50% 50%" });
+          tl.fromTo("#s4-cam", { scale: 1 }, { scale: 1.05, duration: DUR, ease: "none" }, 0);
+          tl.fromTo("#s4-stage",
+            { scale: 1.12, y: 40, opacity: 0, filter: "blur(8px) brightness(1)" },
+            { scale: 1, y: 0, opacity: 1, filter: "blur(0px) brightness(1)", duration: 0.4, ease: "power3.out" }, 0);
+
+          /* ---------- layer 3: data packets on the 48px grid (hash-driven, straight lines) ---------- */
+          const NP = 16;
+          let html = "";
+          for (let i = 0; i < NP; i++) html += '<div class="s4-pkt s4-k' + ((i % 3) + 1) + '" id="s4-pkt' + i + '"><b></b><i></i></div>';
+          q("#s4-pk").innerHTML = html;
+          for (let i = 0; i < NP; i++) {
+            const el = "#s4-pkt" + i;
+            const horiz = hash(i, 1) < 0.55;
+            const dir = hash(i, 2) < 0.5 ? 1 : -1;
+            let sx, sy, ex, ey, rot;
+            if (horiz) {
+              const y = 48 * (5 + Math.floor(hash(i, 3) * 28));
+              sx = dir > 0 ? -80 : 1160; ex = dir > 0 ? 1160 : -80; sy = ey = y; rot = dir > 0 ? 0 : 180;
+            } else {
+              const x = 12 + 48 * (1 + Math.floor(hash(i, 3) * 21));
+              sy = dir > 0 ? 200 : 1580; ey = dir > 0 ? 1580 : 200; sx = ex = x; rot = dir > 0 ? 90 : 270;
+            }
+            const span = Math.abs(ex - sx) + Math.abs(ey - sy);
+            const dp = span / (320 + hash(i, 4) * 200);
+            gsap.set(el, { x: sx, y: sy, rotation: rot, opacity: 0 });
+            let t = 0.15 + hash(i, 5) * 2.6, pass = 0;
+            while (t + dp <= DUR - 0.05) {
+              tl.set(el, { x: sx, y: sy }, t);
+              tl.to(el, { opacity: 1, duration: 0.2, ease: "none" }, t);
+              tl.to(el, { x: ex, y: ey, duration: dp, ease: "none" }, t);
+              tl.to(el, { opacity: 0, duration: 0.25, ease: "none" }, t + dp - 0.25);
+              pass++;
+              t += dp + 0.2 + hash(i, 6 + pass) * 0.8;
+            }
+          }
+
+          /* grid nodes tick on every beat of the scene */
+          gsap.set(".s4-node", { opacity: 0.45, transformOrigin: "50% 50%" });
+          beats(0.35, DUR - 0.35).forEach((b) => {
+            tl.to(".s4-node", { scale: 1.8, opacity: 1, duration: 0.07, ease: "power2.out" }, b);
+            tl.to(".s4-node", { scale: 1, opacity: 0.45, duration: 0.3, ease: "power2.out" }, b + 0.07);
+          });
+
+          /* ---------- sentence 1a: "Hạng ba" ---------- */
+          gsap.set("#s4-badge", { transformOrigin: "50% 50%" });
+          gsap.set("#s4-badge-in", { yPercent: 105 });
+          tl.to("#s4-badge-in", { yPercent: 0, duration: 0.42, ease: "back.out(1.4)" }, A("hang"));
+          gsap.set("#s4-badge-g", { backgroundPosition: "160% 0%" });
+          tl.to("#s4-badge-g", { backgroundPosition: "-60% 0%", duration: 0.75, ease: "power2.inOut" }, A("hang") + 0.25);
+          gsap.set(".s4-rk", { scaleX: 0, transformOrigin: "0% 50%" });
+          tl.to(".s4-rk", { scaleX: 1, duration: 0.22, ease: "back.out(1.4)", stagger: 0.06 }, A("hang") + 0.3);
+          gsap.set("#s4-rk3", { transformOrigin: "50% 50%" });
+
+          /* ---------- sentence 1b: repo card "e2e" ---------- */
+          gsap.set("#s4-card", { y: 90, opacity: 0 });
+          tl.to("#s4-card", { y: 0, opacity: 1, duration: 0.38, ease: "back.out(1.3)" }, A("repo"));
+          gsap.set("#s4-head > *", { opacity: 0, x: -16 });
+          tl.to("#s4-head > *", { opacity: 1, x: 0, duration: 0.25, ease: "power3.out", stagger: 0.06 }, A("repo") + 0.12);
+          sweep("#s4-card-sw", A("repo") + 0.15);
+          gsap.set("#s4-desc", { opacity: 0, y: 14 });
+          tl.to("#s4-desc", { opacity: 1, y: 0, duration: 0.28, ease: "power3.out" }, A("repo") + 0.3);
+
+          /* ---------- sentence 1c: stars count ---------- */
+          gsap.set("#s4-stats", { opacity: 0 });
+          gsap.set("#s4-star", { scale: 0, rotation: -90, transformOrigin: "50% 50%" });
+          tl.to("#s4-stats", { opacity: 1, duration: 0.15 }, A("sao") - 0.25);
+          tl.to("#s4-star", { scale: 1, rotation: 0, duration: 0.32, ease: "back.out(1.8)" }, A("sao") - 0.25);
+          gsap.set(["#s4-seg1", "#s4-seg2"], { scaleX: 0, transformOrigin: "0% 50%" });
+          tl.to("#s4-seg1", { scaleX: 1, duration: 0.25, ease: "power3.out" }, A("sao"));
+          tl.to("#s4-seg2", { scaleX: 1, duration: 1.15, ease: "power3.out" }, A("sao") + 0.1);
+
+          gsap.set("#s4-chip", { scale: 0.3, opacity: 0, transformOrigin: "50% 50%" });
+          tl.to("#s4-chip", { scale: 1, opacity: 1, duration: 0.3, ease: "back.out(1.6)" }, A("sao") - 0.1);
+          tl.to("#s4-con-path", { strokeDashoffset: 0, duration: 0.25, ease: "power2.out" }, A("sao") - 0.25);
+          gsap.set("#s4-con-dot", { opacity: 0, y: 0 });
+          for (let j = 0; j < 3; j++) {
+            const t = A("sao") - 0.15 + j * 0.4;
+            tl.set("#s4-con-dot", { y: 0, opacity: 1 }, t);
+            tl.to("#s4-con-dot", { y: 70, duration: 0.3, ease: "power1.in" }, t);
+            tl.to("#s4-con-dot", { opacity: 0, duration: 0.06 }, t + 0.28);
+          }
+
+          const cWeek = { v: 0 }, cTotal = { v: 0 };
+          tl.to(cWeek, { v: 6566, duration: 1.15, ease: "power3.out", onUpdate: () => { q("#s4-chipn").textContent = "+" + fmt(cWeek.v); } }, A("sao"));
+          tl.to(cTotal, { v: 8554, duration: 1.15, ease: "power3.out", onUpdate: () => { q("#s4-total").textContent = fmt(cTotal.v); } }, A("sao"));
+          sweep("#s4-chip-sw", A("sao") + 1.1, 0.6);
+
+          /* beat hits in part 1 */
+          gsap.set("#s4-total", { transformOrigin: "0% 50%" });
+          beats(A("hang") + 0.5, A("sao") - 0.05).forEach((b) => { pulse("#s4-badge", b, 1.03); pulse("#s4-rk3", b, 1.3); });
+          beats(A("sao") + 1.1, A("sao") + 1.4).forEach((b) => { pulse("#s4-chip", b); pulse("#s4-total", b); pulse("#s4-star", b, 1.15); });
+
+          /* ---------- transition: put-away + whip up to compact header ---------- */
+          const T = A("sao") + 1.38;
+          tl.to(".s4-rk", { scaleX: 0, duration: 0.14, ease: "power2.in", stagger: -0.03 }, T);
+          tl.to("#s4-badge", { scaleY: 0.02, duration: 0.12, ease: "power2.in" }, T + 0.06);
+          tl.to("#s4-badge", { scaleX: 0, duration: 0.1, ease: "power2.in" }, T + 0.18);
+          tl.set("#s4-badge", { opacity: 0 }, T + 0.28);
+          tl.to("#s4-chip", { scale: 0, duration: 0.2, ease: "back.in(1.6)" }, T + 0.1);
+          tl.to("#s4-con-path", { strokeDashoffset: -70, duration: 0.18, ease: "power2.in" }, T + 0.08);
+          tl.to(["#s4-desc", "#s4-stats", "#s4-split"], { opacity: 0, y: -12, duration: 0.16, ease: "power2.in", stagger: 0.04 }, T + 0.1);
+          tl.to("#s4-card", { height: 112, y: -440, duration: 0.42, ease: "power3.inOut" }, T + 0.24);
+          tl.to("#s4-stage", { y: -24, filter: "blur(5px) brightness(1)", duration: 0.14, ease: "power2.in" }, T + 0.26);
+          tl.to("#s4-stage", { y: 0, filter: "blur(0px) brightness(1)", duration: 0.26, ease: "power3.out" }, T + 0.4);
+
+          /* ---------- sentence 2a: "mô tả bằng lời" -> prompt bubble types ---------- */
+          gsap.set("#s4-plabel", { opacity: 0, x: -30 });
+          tl.to("#s4-plabel", { opacity: 1, x: 0, duration: 0.26, ease: "power3.out" }, A("mota") - 0.5);
+          gsap.set("#s4-bubble", { opacity: 0, scale: 0.6, transformOrigin: "0% 100%" });
+          tl.to("#s4-bubble", { opacity: 1, scale: 1, duration: 0.3, ease: "back.out(1.4)" }, A("mota") - 0.45);
+          gsap.set("#s4-send", { scale: 0, transformOrigin: "50% 50%" });
+          tl.to("#s4-send", { scale: 1, duration: 0.26, ease: "back.out(2)" }, A("mota") - 0.3);
+
+          const PROMPT = Array.from("Nâng cấp workspace lên gói Pro");
+          const ty = { n: 0 };
+          tl.to(ty, { n: PROMPT.length, duration: 1.15, ease: "none", onUpdate: () => { q("#s4-typed").textContent = PROMPT.slice(0, Math.floor(ty.n)).join(""); } }, A("mota") - 0.2);
+          gsap.set("#s4-caret", { opacity: 0 });
+          for (let j = 0, t = A("mota") - 0.3; t < A("bam") - 0.2; j++, t += 0.25) tl.set("#s4-caret", { opacity: j % 2 ? 0 : 1 }, t);
+          tl.set("#s4-caret", { opacity: 0 }, A("bam") - 0.18);
+
+          /* send press: data dot travels into the web frame */
+          tl.to("#s4-send", { scale: 0.86, duration: 0.07, ease: "power2.in" }, A("bam") - 0.2);
+          tl.to("#s4-send", { scale: 1, duration: 0.22, ease: "back.out(2)" }, A("bam") - 0.13);
+          tl.to("#s4-link-path", { strokeDashoffset: 0, duration: 0.2, ease: "power2.out" }, A("bam") - 0.3);
+          gsap.set("#s4-link-dot", { opacity: 0, y: 0 });
+          for (let j = 0; j < 2; j++) {
+            const t = A("bam") - 0.2 + j * 0.3;
+            tl.set("#s4-link-dot", { y: 0, opacity: 1 }, t);
+            tl.to("#s4-link-dot", { y: 68, duration: 0.24, ease: "power1.in" }, t);
+            tl.to("#s4-link-dot", { opacity: 0, duration: 0.05 }, t + 0.22);
+          }
+
+          /* frames side by side: web expands, phone drops */
+          gsap.set("#s4-web", { opacity: 0, scaleY: 0.02, transformOrigin: "50% 0%" });
+          tl.to("#s4-web", { opacity: 1, duration: 0.06 }, A("bam") - 0.36);
+          tl.to("#s4-web", { scaleY: 1, duration: 0.34, ease: "power3.out" }, A("bam") - 0.36);
+          gsap.set(".s4-nav", { opacity: 0, x: -14 });
+          tl.to(".s4-nav", { opacity: 1, x: 0, duration: 0.22, ease: "power3.out", stagger: 0.05 }, A("bam") - 0.18);
+          gsap.set("#s4-stA", { opacity: 0 });
+          tl.to("#s4-stA", { opacity: 1, duration: 0.25 }, A("bam") - 0.12);
+          gsap.set(["#s4-stB", "#s4-stC", ".s4-skc"], { opacity: 0 });
+          gsap.set(["#s4-nav3-on"], { opacity: 0 });
+          gsap.set("#s4-nav3-bar", { scaleY: 0, transformOrigin: "50% 50%" });
+          gsap.set("#s4-tabline", { scaleX: 0, transformOrigin: "0% 50%" });
+
+          gsap.set("#s4-phone", { opacity: 0, y: -120 });
+          tl.to("#s4-phone", { opacity: 1, duration: 0.1 }, A("bam") - 0.2);
+          tl.to("#s4-phone", { y: 0, duration: 0.38, ease: "back.out(1.6)" }, A("bam") - 0.2);
+          gsap.set(["#s4-ph-h", "#s4-ph-sk", "#s4-free", "#s4-pro", "#s4-ph-sk2", "#s4-ph-sk3", "#s4-ok"], { opacity: 0, y: 16 });
+          tl.to(["#s4-ph-h", "#s4-ph-sk", "#s4-free", "#s4-pro", "#s4-ph-sk2", "#s4-ph-sk3", "#s4-ok"], { opacity: 1, y: 0, duration: 0.22, ease: "power3.out", stagger: 0.04 }, A("bam") + 0.05);
+          gsap.set(["#s4-pro-on", "#s4-okpill"], { opacity: 0 });
+          gsap.set("#s4-pro-dot", { scale: 0, transformOrigin: "50% 50%" });
+          gsap.set("#s4-okpill", { scaleX: 0.2, transformOrigin: "50% 50%" });
+
+          /* ---------- sentence 2b: AI cursor clicks through the flow ---------- */
+          const CUR = "#s4-cursor";
+          const at = (p) => ({ x: p[0] - 4, y: p[1] - 2 }); // cursor tip sits at (4,2) inside its svg
+          const P = { send: [948, 452], c1: [163, 814], c2: [448, 744], c3: [856, 869], c4: [856, 1162] };
+          gsap.set(CUR, { ...at(P.send), scale: 0, opacity: 0, transformOrigin: "4px 2px" });
+          gsap.set("#s4-aitag", { transformOrigin: "0% 50%" });
+          tl.to(CUR, { scale: 1, opacity: 1, duration: 0.2, ease: "back.out(2)" }, A("bam"));
+
+          const fly = (p, t, d) => {
+            const g = at(p);
+            tl.to(CUR, { x: g.x, duration: d, ease: "power2.inOut" }, t);
+            tl.to(CUR, { y: g.y, duration: d, ease: "back.out(1.3)" }, t);
+          };
+          gsap.set(".s4-rp", { scale: 0.3, opacity: 0, transformOrigin: "50% 50%" });
+          gsap.set(".s4-ck", { scale: 0, transformOrigin: "50% 50%" });
+          const click = (n, btn, t) => {
+            tl.to(CUR, { scale: 0.82, duration: 0.06, ease: "power2.in" }, t);
+            tl.to(CUR, { scale: 1, duration: 0.2, ease: "back.out(2.5)" }, t + 0.06);
+            tl.set("#s4-rp" + n, { scale: 0.3, opacity: 0.85 }, t + 0.04);
+            tl.to("#s4-rp" + n, { scale: 2.6, opacity: 0, duration: 0.5, ease: "power2.out" }, t + 0.04);
+            tl.to(btn, { scale: 0.94, duration: 0.06, ease: "power2.in" }, t);
+            tl.to(btn, { scale: 1, duration: 0.22, ease: "back.out(2)" }, t + 0.06);
+            tl.to("#s4-ck" + n, { scale: 1, duration: 0.24, ease: "back.out(2)" }, t + 0.12);
+            tl.to("#s4-ck" + n + "p", { strokeDashoffset: 0, duration: 0.2, ease: "power2.out" }, t + 0.2);
+          };
+          gsap.set(["#s4-nav3", "#s4-tab2", "#s4-pro", "#s4-ok"], { transformOrigin: "50% 50%" });
+
+          // click 1: "Cài đặt" (web)
+          const t1 = A("bam") + 0.46;
+          fly(P.c1, A("bam") + 0.07, 0.36);
+          click(1, "#s4-nav3", t1);
+          tl.to("#s4-nav3-on", { opacity: 1, duration: 0.12 }, t1 + 0.06);
+          tl.to("#s4-nav3-bar", { scaleY: 1, duration: 0.2, ease: "back.out(2)" }, t1 + 0.06);
+          tl.to("#s4-stA", { opacity: 0, x: -20, duration: 0.16, ease: "power2.in" }, t1 + 0.08);
+          gsap.set("#s4-stB", { x: 24 });
+          tl.to("#s4-stB", { opacity: 1, x: 0, duration: 0.26, ease: "power3.out" }, t1 + 0.16);
+
+          // click 2: "Gói" tab (web)
+          const t2 = A("web") - 0.25;
+          fly(P.c2, t1 + 0.15, 0.32);
+          click(2, "#s4-tab2", t2);
+          tl.to("#s4-tabline", { scaleX: 1, duration: 0.2, ease: "power3.out" }, t2 + 0.06);
+          tl.set("#s4-stC", { opacity: 1 }, t2 + 0.1);
+          gsap.set(["#s4-plan1", "#s4-plan2"], { opacity: 0, y: -30 });
+          tl.to(["#s4-plan1", "#s4-plan2"], { opacity: 1, y: 0, duration: 0.28, ease: "back.out(1.4)", stagger: 0.07 }, t2 + 0.12);
+          tl.to(".s4-skc", { opacity: 1, duration: 0.2, stagger: 0.05 }, t2 + 0.3);
+
+          // "web": tag + light sweep on the web frame
+          gsap.set(["#s4-webtag", "#s4-phtag"], { opacity: 0, scale: 0.5, y: 12, transformOrigin: "50% 50%" });
+          tl.to("#s4-webtag", { opacity: 1, scale: 1, y: 0, duration: 0.28, ease: "back.out(1.6)" }, A("web"));
+          sweep("#s4-web-sw", A("web") - 0.05);
+
+          // click 3: "Pro" (phone)
+          const t3 = A("dt") + 0.23;
+          fly(P.c3, A("dt") - 0.15, 0.34);
+          tl.to("#s4-phtag", { opacity: 1, scale: 1, y: 0, duration: 0.28, ease: "back.out(1.6)" }, A("dt"));
+          sweep("#s4-ph-sw", A("dt") - 0.02);
+          click(3, "#s4-pro", t3);
+          tl.to("#s4-pro-on", { opacity: 1, duration: 0.12 }, t3 + 0.06);
+          tl.to("#s4-pro-dot", { scale: 1, duration: 0.22, ease: "back.out(2.5)" }, t3 + 0.06);
+
+          // click 4: "Xác nhận" (phone)
+          const t4 = A("dt") + 0.71;
+          fly(P.c4, t3 + 0.12, 0.3);
+          click(4, "#s4-ok", t4);
+          tl.to("#s4-okpill", { opacity: 1, scaleX: 1, duration: 0.26, ease: "back.out(1.6)" }, t4 + 0.16);
+
+          // AI tag + check badges hit on the beat
+          const pops = [{ s: "#s4-ck1", t: t1 }, { s: "#s4-ck2", t: t2 }, { s: "#s4-ck3", t: t3 }, { s: "#s4-ck4", t: t4 }];
+          beats(A("bam") + 0.3, A("replay") - 0.3).forEach((b) => {
+            pulse("#s4-aitag", b, 1.14);
+            const live = pops.filter((p) => p.t + 0.4 < b).map((p) => p.s);
+            if (live.length) pulse(live, b, 1.14);
+          });
+
+          // cursor leaves: CRT squash into a point (replay runs without AI)
+          tl.to(CUR, { scaleY: 0.1, duration: 0.1, ease: "power2.in" }, A("replay") - 0.22);
+          tl.to(CUR, { scale: 0, opacity: 0, duration: 0.1, ease: "power2.in" }, A("replay") - 0.12);
+
+          /* ---------- sentence 2c: replay without the model ---------- */
+          gsap.set("#s4-dock", { opacity: 0, scaleX: 0.02, scaleY: 0.04, transformOrigin: "50% 50%" });
+          tl.to("#s4-dock", { opacity: 1, scaleX: 1, duration: 0.2, ease: "power3.out" }, A("replay") - 0.16);
+          tl.to("#s4-dock", { scaleY: 1, duration: 0.22, ease: "back.out(1.3)" }, A("replay") + 0.04);
+          sweep("#s4-dock-sw", A("replay") + 0.2, 0.9);
+          gsap.set("#s4-rsvg", { rotation: 0, transformOrigin: "50% 50%" });
+          gsap.set(["#s4-rhead", "#s4-rplay"], { opacity: 0 });
+          tl.to("#s4-rarc", { strokeDashoffset: 0, duration: 0.3, ease: "power2.out" }, A("replay") + 0.08);
+          tl.to(["#s4-rhead", "#s4-rplay"], { opacity: 1, duration: 0.12 }, A("replay") + 0.3);
+          gsap.set(".s4-step", { opacity: 0, y: 16 });
+          tl.to(".s4-step", { opacity: 1, y: 0, duration: 0.24, ease: "back.out(1.4)", stagger: 0.05 }, A("replay") + 0.12);
+          gsap.set(".s4-step .on", { opacity: 0 });
+          gsap.set("#s4-ff", { opacity: 0, x: -10, transformOrigin: "50% 50%" });
+          tl.to("#s4-ff", { opacity: 1, x: 0, duration: 0.2, ease: "power3.out" }, A("replay") + 0.3);
+          gsap.set("#s4-progf", { scaleX: 0, transformOrigin: "0% 50%" });
+
+          // two fast-forward passes: progress fills, steps light, frame buttons flash
+          const passes = [{ t: A("replay") + 0.19, d: 0.44 }, { t: A("replay") + 0.67, d: 0.4 }];
+          const btns = ["#s4-nav3", "#s4-tab2", "#s4-pro", "#s4-ok"];
+          passes.forEach((ps, k) => {
+            if (k > 0) {
+              tl.to(".s4-step .on", { opacity: 0, duration: 0.05 }, ps.t - 0.03);
+              tl.set("#s4-progf", { scaleX: 0 }, ps.t);
+            }
+            tl.to("#s4-progf", { scaleX: 1, duration: ps.d, ease: "none" }, ps.t);
+            tl.to("#s4-rsvg", { rotation: "-=360", duration: ps.d, ease: "power2.inOut" }, ps.t);
+            tl.to("#s4-ff", { x: 8, duration: ps.d * 0.5, ease: "power2.out" }, ps.t);
+            tl.to("#s4-ff", { x: 0, duration: ps.d * 0.5, ease: "power2.in" }, ps.t + ps.d * 0.5);
+            for (let j = 0; j < 4; j++) {
+              const tj = ps.t + (ps.d / 4) * (j + 0.6);
+              tl.to("#s4-st" + (j + 1) + " .on", { opacity: 1, duration: 0.06 }, tj);
+              tl.set("#s4-rp" + (j + 1), { scale: 0.3, opacity: 0.6 }, tj);
+              tl.to("#s4-rp" + (j + 1), { scale: 1.8, opacity: 0, duration: 0.28, ease: "power2.out" }, tj);
+              pulse("#s4-ck" + (j + 1), tj, 1.2);
+              tl.to(btns[j], { scale: 0.96, duration: 0.05 }, tj);
+              tl.to(btns[j], { scale: 1, duration: 0.14, ease: "back.out(2)" }, tj + 0.05);
+            }
+          });
+
+          // "không gọi model": label with the key number 0 (accent), model glyph struck out
+          gsap.set("#s4-l1", { opacity: 0, x: -24 });
+          gsap.set("#s4-l2", { opacity: 0, x: 24 });
+          gsap.set("#s4-zero", { opacity: 0, scale: 0.3, transformOrigin: "50% 60%" });
+          gsap.set("#s4-mglyph", { opacity: 0, scale: 0.4, transformOrigin: "50% 50%" });
+          tl.to("#s4-l1", { opacity: 1, x: 0, duration: 0.26, ease: "power3.out" }, A("model"));
+          tl.to("#s4-zero", { opacity: 1, scale: 1, duration: 0.26, ease: "back.out(2)" }, A("model") + 0.1);
+          const SCR = ["7", "3", "9", "1", "5", "2", "8", "4", "0"];
+          const zs = { k: 0 };
+          tl.to(zs, { k: SCR.length - 1, duration: 0.28, ease: "none", onUpdate: () => { q("#s4-zero").textContent = SCR[Math.round(zs.k)]; } }, A("model") + 0.1);
+          tl.to("#s4-l2", { opacity: 1, x: 0, duration: 0.26, ease: "power3.out" }, A("model") + 0.2);
+          tl.to("#s4-mglyph", { opacity: 1, scale: 1, duration: 0.24, ease: "back.out(2)" }, A("model") + 0.32);
+          tl.to("#s4-slash", { strokeDashoffset: 0, duration: 0.22, ease: "power2.out" }, A("model") + 0.44);
+          beats(A("model") + 0.36, DUR - 0.32).forEach((b) => {
+            pulse("#s4-zero", b, 1.08);
+            pulse("#s4-ricon", b, 1.05);
+            if (b > A("model") + 0.6) pulse("#s4-mglyph", b, 1.06);
+          });
+
+          /* ---------- exit: CRT-off of the whole stage in the last 0.3 s ---------- */
+          const T2 = DUR - 0.3;
+          tl.to("#s4-stage", { scaleY: 0.02, filter: "blur(0px) brightness(1.8)", duration: 0.16, ease: "power2.in" }, T2);
+          tl.to("#s4-stage", { scaleX: 0, duration: 0.12, ease: "power2.in" }, T2 + 0.16);
+          tl.to("#s4-stage", { opacity: 0, duration: 0.02 }, T2 + 0.27);
+
+          window.__timelines["s4"] = tl;
+        })();
+      </script>
+    </template>
+  </body>
+</html>

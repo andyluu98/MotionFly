@@ -1,0 +1,11 @@
+{"title": "5 repo GitHub hot nhất tuần", "voice": "Mai Anh", "aspect": "9:16",
+ "scenes": [
+  {"id": "s1", "say": "Tuần này trên GitHub, năm repo AI nóng nhất đã nhận thêm hơn 28 nghìn sao. | Cùng xem chúng giúp gì cho công việc của bạn.", "intent": "hook: con số tổng, năm thẻ repo"},
+  {"id": "s2", "say": "Hạng một là Ponytail, tăng hơn 8 nghìn sao. | Bộ luật này buộc AI viết ít code hơn, tác giả đo được giảm 53% code và 45% token.", "intent": "#1 ponytail, số đếm, thanh trước sau"},
+  {"id": "s3", "say": "Hạng hai, Agent Reach, hơn 7 nghìn sao. | Chỉ một lệnh cài, AI đọc được Reddit, YouTube, Twitter và nhiều nền tảng khác để nghiên cứu thị trường.", "intent": "#2 agent-reach, terminal, các nền tảng sáng lên"},
+  {"id": "s4", "say": "Hạng ba thuộc về e2e, hơn 6 nghìn 5 trăm sao. | Bạn chỉ cần mô tả bằng lời, AI tự bấm thử ứng dụng web và điện thoại, lần sau phát lại các bước mà không gọi model.", "intent": "#3 e2e, lời mô tả thành các cú bấm tự động"},
+  {"id": "s5", "say": "Hạng tư là HyperFrames của HeyGen, thêm 4 nghìn sao. | AI viết HTML rồi xuất thành video, và chính video bạn đang xem được dựng bằng nó.", "intent": "#4 hyperframes, code thành video, khung trong khung"},
+  {"id": "s6", "say": "Hạng năm là bộ plugin chính chủ của Anthropic, hơn 2 nghìn 6 trăm sao. | Mười một plugin biến Claude thành trợ lý sales, kế toán, pháp chế mà không cần viết code.", "intent": "#5 knowledge-work-plugins, lưới 11 ô"},
+  {"id": "s7", "say": "Năm repo, năm cách làm việc nhanh hơn. | Lưu video lại và thử ngay một repo hợp với công việc của bạn.", "intent": "tổng kết bảng xếp hạng, kêu gọi"}
+ ],
+ "pron": {"e2e": "i tu i", "Ponytail": "Pô ni teo", "Agent Reach": "Ây dần Rích"}}

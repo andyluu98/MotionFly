@@ -23,6 +23,7 @@ from voice import display_words, norm  # noqa: E402
 SIZES = {"9:16": (1080, 1920), "16:9": (1920, 1080), "1:1": (1080, 1080)}
 SCENE_LEAD = 0.25
 CAP_CHARS = 44
+CAP_CHARS_PORTRAIT = 34   # one line at 46 px Be Vietnam Pro on a 1080 px wide frame
 CAP_MIN = 1.8
 
 
@@ -50,24 +51,44 @@ def find_kw(words: list[dict], kw: str, nth: int = 1) -> float | None:
     return None
 
 
-def captions(segments: list[dict], words: list[dict]) -> list[dict]:
+def captions(segments: list[dict], words: list[dict], limit: int = CAP_CHARS) -> list[dict]:
+    """Balanced split: a sentence of L chars becomes ceil(L / limit) chunks of about
+    equal length (no one-word orphan line), each at most `limit` characters."""
     out = []
     for seg in segments:
         sw = [w for w in words if w["seg"] == seg["id"]]
         raw = seg["text"].split()
+        n_chunks = max(1, -(-len(seg["text"]) // limit))
+        target = len(seg["text"]) / n_chunks
         chunks, cur, cur_words, wi = [], [], [], 0
-        for tok in raw:
+        for ti, tok in enumerate(raw):
             n = len(display_words(tok))
             tw = sw[wi:wi + n]
             wi += n
-            if cur and len(" ".join(cur + [tok])) > CAP_CHARS:
+            joined = len(" ".join(cur + [tok]))
+            if cur and len(chunks) < n_chunks - 1 and (joined > limit or joined > target + 4):
                 chunks.append((cur, cur_words))
                 cur, cur_words = [], []
             cur.append(tok)
             cur_words += tw
+            # prefer breaking right after a comma, colon or period once the chunk is long enough
+            rest = len(" ".join(raw[ti + 1:]))
+            slots_after = n_chunks - len(chunks) - 1
+            if (tok[-1] in ",.:;!?" and slots_after > 0 and len(" ".join(cur)) >= target * 0.6
+                    and 12 < rest <= (limit - 6) * slots_after):
+                chunks.append((cur, cur_words))
+                cur, cur_words = [], []
         if cur:
             chunks.append((cur, cur_words))
-        for toks, tw in chunks:
+        fixed = []
+        for toks, tw in chunks:   # safety net: a chunk still over the limit is halved at a word boundary
+            if len(" ".join(toks)) > limit and len(toks) > 1:
+                cut = min(range(1, len(toks)), key=lambda k: abs(len(" ".join(toks[:k])) - len(" ".join(toks[k:]))))
+                nw = sum(len(display_words(t)) for t in toks[:cut])
+                fixed += [(toks[:cut], tw[:nw]), (toks[cut:], tw[nw:])]
+            else:
+                fixed.append((toks, tw))
+        for toks, tw in fixed:
             if not tw:
                 continue
             out.append({"text": " ".join(toks), "start": tw[0]["start"], "end": tw[-1]["end"]})
@@ -99,7 +120,8 @@ def build(project: Path, fps: int = 30) -> tuple[dict, list[str]]:
             anchors[a["id"]] = round(max(spans[sc["id"]]["start"], t + a.get("off", -0.1)), 3)
         scenes.append({**spans[sc["id"]], "anchors": anchors})
     tl = {"fps": fps, "width": width, "height": height, "duration": wj["total"], "style": sb.get("style"),
-          "scenes": scenes, "captions": captions(wj["segments"], wj["words"]), "words": wj["words"]}
+          "scenes": scenes, "captions": captions(wj["segments"], wj["words"], CAP_CHARS_PORTRAIT if height > width
+                                                 else CAP_CHARS), "words": wj["words"]}
     (project / "timeline.json").write_text(json.dumps(tl, ensure_ascii=False, indent=1), encoding="utf-8")
     return tl, misses
 

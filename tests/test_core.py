@@ -65,6 +65,15 @@ def test_captions_split_and_hold():
     assert caps[-1]["end"] - caps[-1]["start"] >= 1.8 - 1e-9
 
 
+def test_captions_no_orphan_word():
+    text = "Skill là cuốn sổ tay quy trình của nhân viên đó."
+    seg = {"id": "a", "text": text}
+    words = [{"seg": "a", "w": w, "start": i * 0.3, "end": i * 0.3 + 0.2} for i, w in enumerate(display_words(text))]
+    caps = captions([seg], words, limit=34)
+    assert len(caps) == 2
+    assert min(len(c["text"]) for c in caps) >= 15 and all(len(c["text"]) <= 34 for c in caps)
+
+
 def test_duck_envelope_and_srt():
     mask = speech_mask([{"start": 1.0, "end": 1.5}, {"start": 1.6, "end": 2.0}], 4.0)
     assert mask[150] == 1.0 and mask[155] == 1.0 and mask[300] == 0.0   # 0.1 s gap bridged

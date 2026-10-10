@@ -8,6 +8,7 @@
   because HyperFrames' own audio mix needs ffmpeg filters that minimal builds lack
   and re-encoding would move the true peak; mix.py final muxes mix.wav instead
 - fonts copied from the plugin (Be Vietnam Pro, OFL)
+- optional compositions/_nen.html: a shared background layer under all scenes
 
 Usage: python assemble.py <project_dir> [--no-audio]
 """
@@ -57,6 +58,10 @@ def build(project: Path, audio: bool = True) -> Path:
 
     vv = {s["id"]: {"start": s["start"], "end": s["end"], "anchors": s["anchors"]} for s in tl["scenes"]}
     hosts = []
+    if (comp / "_nen.html").exists():
+        # Optional shared background (board, paper, grid) under every scene for the whole video.
+        hosts.append(f'      <div id="host-nen" data-composition-id="_nen" data-composition-src="compositions/_nen.html"'
+                     f' data-start="0" data-duration="{dur}" data-track-index="0" data-width="{w}" data-height="{h}"></div>')
     for i, s in enumerate(tl["scenes"]):
         f = comp / f"{s['id']}.html"
         if not f.exists():

@@ -1,0 +1,73 @@
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+for p in ("tools", "tools/voice", "tools/audio"):
+    sys.path.insert(0, str(ROOT / p))
+
+from mix import smooth, speech_mask, to_srt  # noqa: E402
+from pron import spoken  # noqa: E402
+from timeline import captions, find_kw, scene_spans  # noqa: E402
+from voice import display_words, has_english, map_words, split_segments  # noqa: E402
+
+
+def test_split_segments_pauses():
+    segs = split_segments("s1", "Câu một. Câu hai! | Câu ba.")
+    assert [s["text"] for s in segs] == ["Câu một.", "Câu hai!", "Câu ba."]
+    assert segs[0]["pause_after"] == 0.35
+    assert segs[1]["pause_after"] == 0.55
+    assert [s["id"] for s in segs] == ["s1_1", "s1_2", "s1_3"]
+
+
+def test_spoken_units_and_overrides():
+    assert spoken("Tăng 46% & $52.6B") == "Tăng 46 phần trăm và 52.6 tỷ đô la"
+    assert spoken("MCP giúp AI", {"MCP": "em xi pi"}) == "em xi pi giúp AI"
+    assert spoken("ai cũng dùng AI", {"AI": "ây ai"}) == "ai cũng dùng ây ai"
+
+
+def test_display_words_strip_punctuation():
+    assert display_words("Skill, MCP và Agent.") == ["Skill", "MCP", "và", "Agent"]
+    assert has_english("Claude rất mạnh") and has_english("dùng MCP") and has_english("một agent")
+    assert not has_english("xin chào các bạn, con gà trong nhà")
+
+
+def test_map_words_matches_and_interpolates():
+    heard = [{"w": "em", "start": 0.0, "end": 0.2}, {"w": "xi", "start": 0.2, "end": 0.4},
+             {"w": "pi", "start": 0.4, "end": 0.6}, {"w": "giúp", "start": 0.7, "end": 0.9},
+             {"w": "AI", "start": 1.3, "end": 1.6}]
+    out = map_words(["MCP", "giúp", "máy", "AI"], {"MCP": "em xi pi"}, heard)
+    assert out[0] == {"w": "MCP", "start": 0.0, "end": 0.6}
+    assert out[1]["start"] == 0.7
+    assert 0.9 <= out[2]["start"] < out[2]["end"] <= 1.3   # "máy" not heard: interpolated
+    assert out[3]["start"] == 1.3
+
+
+def test_find_kw_nth():
+    words = [{"w": w, "start": i} for i, w in enumerate(["Agent", "gọi", "MCP", "rồi", "gọi", "MCP"])]
+    assert find_kw(words, "gọi MCP") == 1
+    assert find_kw(words, "gọi MCP", 2) == 4
+    assert find_kw(words, "Skill") is None
+
+
+def test_scene_spans_tile_track():
+    spans = scene_spans([{"id": "a", "start": 0.5}, {"id": "b", "start": 5.0}], ["a", "b"], 9.0)
+    assert spans == [{"id": "a", "start": 0.0, "end": 4.75}, {"id": "b", "start": 4.75, "end": 9.0}]
+
+
+def test_captions_split_and_hold():
+    text = "Một hai ba bốn năm sáu bảy tám chín mười mười một mười hai mười ba"
+    seg = {"id": "s1_1", "text": text}
+    words = [{"seg": "s1_1", "w": w, "start": i * 0.2, "end": i * 0.2 + 0.15}
+             for i, w in enumerate(display_words(text))]
+    caps = captions([seg], words)
+    assert len(caps) == 2 and all(len(c["text"]) <= 44 for c in caps)
+    assert caps[0]["end"] <= caps[1]["start"]
+    assert caps[-1]["end"] - caps[-1]["start"] >= 1.8 - 1e-9
+
+
+def test_duck_envelope_and_srt():
+    mask = speech_mask([{"start": 1.0, "end": 1.5}, {"start": 1.6, "end": 2.0}], 4.0)
+    assert mask[150] == 1.0 and mask[155] == 1.0 and mask[300] == 0.0   # 0.1 s gap bridged
+    env = smooth(mask)
+    assert 0 < env[90] < 1 and env[150] == 1.0 and 0 < env[230] < 1
+    assert to_srt([{"start": 1.5, "end": 3.25, "text": "Xin chào"}]) == "1\n00:00:01,500 --> 00:00:03,250\nXin chào\n\n"

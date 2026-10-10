@@ -1,0 +1,25 @@
+# Video projects and outputs (large, per-user)
+videos/
+*.mp4
+*.wav
+*.mov
+renders/
+snapshots/
+
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+
+# Node
+node_modules/
+
+# Secrets
+.env
+.env.*
+!.env.example
+
+# OS
+.DS_Store
+Thumbs.db

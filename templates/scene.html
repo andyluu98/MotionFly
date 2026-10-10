@@ -1,0 +1,56 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <!-- Scene {{SID}}. Runtime keeps only <template>; put style, markup and script inside it. -->
+  </head>
+  <body>
+    <template>
+      <style>
+        /* Each scene declares its fonts (HyperFrames lint: font_family_without_font_face). Paths are relative to index.html. */
+        @font-face { font-family: "Be Vietnam Pro"; src: url("fonts/BeVietnamPro-Regular.ttf"); font-weight: 400; }
+        @font-face { font-family: "Be Vietnam Pro"; src: url("fonts/BeVietnamPro-Medium.ttf"); font-weight: 500; }
+        @font-face { font-family: "Be Vietnam Pro"; src: url("fonts/BeVietnamPro-Bold.ttf"); font-weight: 700; }
+        @font-face { font-family: "Be Vietnam Pro"; src: url("fonts/BeVietnamPro-ExtraBold.ttf"); font-weight: 800; }
+        #{{SID}}-root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          background: var(--bg, #0e1116);
+          color: var(--ink, #f4f1ea);
+          font-family: "Be Vietnam Pro", sans-serif;
+        }
+        #{{SID}}-root .placeholder {
+          position: absolute;
+          inset: 0;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          gap: 24px;
+          text-align: center;
+          padding: 0 8%;
+        }
+        #{{SID}}-root .placeholder h2 { margin: 0; font-size: 72px; font-weight: 800; }
+        #{{SID}}-root .placeholder p { margin: 0; font-size: 34px; opacity: 0.7; }
+      </style>
+
+      <div id="{{SID}}-root" data-composition-id="{{SID}}" data-width="{{W}}" data-height="{{H}}">
+        <div class="placeholder">
+          <h2 id="{{SID}}-title">{{SID}}</h2>
+          <p id="{{SID}}-note">{{NOTE}}</p>
+        </div>
+      </div>
+
+      <script>
+        (() => {
+          // A("key") = local time (s) of an anchor from timeline.json; never hard-code word times.
+          const A = (key) => window.__vv.local("{{SID}}", key);
+          const tl = gsap.timeline({ paused: true });
+          tl.fromTo("#{{SID}}-title", { y: 40, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, ease: "power3.out" }, 0.1);
+          window.__timelines["{{SID}}"] = tl;
+        })();
+      </script>
+    </template>
+  </body>
+</html>

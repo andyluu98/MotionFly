@@ -1,0 +1,24 @@
+/* blueprint: blue and white only; one stamp red, used exactly once (scene s6) */
+:root {
+  --paper1: #18336b;
+  --paper2: #2a58a6;
+  --bg: #1f4386;
+  --line: #e7f0f9;
+  --line-soft: rgba(231, 240, 249, 0.62);
+  --hair: rgba(231, 240, 249, 0.3);
+  --fill: #22488f;          /* "paper" fill painted under an outline so it hides lines behind it */
+  --stamp: #d7392b;         /* ONLY for the ĐÃ DUYỆT stamp in s6 */
+  --table: #0d1116;
+  --w-out: 5px;             /* outline */
+  --w-det: 3px;             /* detail */
+  --w-thin: 2px;            /* thin, dimension lines */
+  --w-hair: 1.2px;          /* hatching, hair */
+  --cap-bg: rgba(16, 38, 86, 0.82);
+  --cap-ink: #e7f0f9;
+}
+/* captions as drawing notes: translucent box, double white rule, a small NOTE cell */
+#captions .cap span { border: 3px double rgba(231, 240, 249, 0.85); border-radius: 6px; font-weight: 600; letter-spacing: 0.01em;
+  box-shadow: 0 8px 22px rgba(5, 15, 40, 0.45); position: relative; padding-left: 92px; }
+#captions .cap span::before { content: "NOTE"; position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
+  font: 600 18px "JetBrains Mono", monospace; letter-spacing: 0.14em; color: rgba(231, 240, 249, 0.8);
+  border-right: 2px solid rgba(231, 240, 249, 0.5); padding-right: 12px; }

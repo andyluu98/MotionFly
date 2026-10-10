@@ -1,0 +1,11 @@
+{"title": "AI trong ngành xây dựng: Agent, Skill và MCP", "voice": "Hải Đăng", "aspect": "9:16",
+ "scenes": [
+  {"id": "s1", "say": "Trong ngành xây dựng, AI không chỉ để trò chuyện. | Ba khái niệm Agent, Skill và MCP đang biến nó thành một kỹ sư trợ lý thật sự.", "intent": "hook: tờ bản vẽ mở ra, ba khối chú thích"},
+  {"id": "s2", "say": "Agent giống như một kỹ sư trợ lý. | Bạn giao mục tiêu lập hồ sơ một căn nhà phố, nó tự chia việc, làm từng bước và tự soát lại.", "intent": "agent: sơ đồ chia việc trên bản vẽ nhà phố"},
+  {"id": "s3", "say": "Skill là sổ tay quy trình của công ty bạn. | Trong đó ghi cách bóc khối lượng, mẫu dự toán và các tiêu chuẩn như TCVN 5574 về kết cấu bê tông.", "intent": "skill: sổ tay, tiêu chuẩn, mặt cắt dầm"},
+  {"id": "s4", "say": "Còn MCP là cổng kết nối, cho AI làm việc trực tiếp với phần mềm. | AutoCAD, Revit, bảng tính Excel hay dữ liệu công trường đều có thể nối vào.", "intent": "MCP: ổ cắm trung tâm nối phần mềm"},
+  {"id": "s5", "say": "Ví dụ, Agent dùng MCP mở bản vẽ AutoCAD, đọc mặt bằng và kích thước. | Rồi nó làm theo Skill để tính thép, bóc khối lượng và xuất bảng dự toán.", "intent": "luồng ví dụ: bản vẽ, kích thước, thép, bảng dự toán"},
+  {"id": "s6", "say": "Kỹ sư vẫn là người duyệt cuối cùng, ký tên và chịu trách nhiệm. | AI làm phần lặp lại, con người giữ phần phán đoán.", "intent": "khung tên, chữ ký, dấu đỏ ĐÃ DUYỆT (màu đỏ duy nhất)"},
+  {"id": "s7", "say": "Nhớ ba chữ: Agent làm việc, Skill dạy cách làm, MCP trao công cụ. | Công trường của bạn đã sẵn sàng chưa?", "intent": "tổng kết ba chú thích, toàn tờ bản vẽ"}
+ ],
+ "pron": {"TCVN 5574": "tê xê vê en năm năm bảy tư", "TCVN": "tê xê vê en"}}

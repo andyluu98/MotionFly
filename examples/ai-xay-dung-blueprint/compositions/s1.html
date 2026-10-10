@@ -1,0 +1,408 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <!-- Scene s1. Runtime keeps only <template>; put style, markup and script inside it. -->
+  </head>
+  <body>
+    <template>
+      <style>
+        /* Each scene declares its fonts (HyperFrames lint: font_family_without_font_face). Paths are relative to index.html. */
+        @font-face { font-family: "Be Vietnam Pro"; src: url("fonts/BeVietnamPro-Regular.ttf"); font-weight: 400; }
+        @font-face { font-family: "Be Vietnam Pro"; src: url("fonts/BeVietnamPro-Medium.ttf"); font-weight: 500; }
+        @font-face { font-family: "Be Vietnam Pro"; src: url("fonts/BeVietnamPro-Bold.ttf"); font-weight: 700; }
+        @font-face { font-family: "Be Vietnam Pro"; src: url("fonts/BeVietnamPro-ExtraBold.ttf"); font-weight: 800; }
+        @font-face { font-family: "JetBrains Mono"; src: url("fonts/JetBrainsMono-Variable.ttf"); font-weight: 100 800; }
+        #s1-root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          background: transparent;
+          color: var(--line);
+          font-family: "Be Vietnam Pro", sans-serif;
+        }
+        #s1-stage { position: absolute; inset: 0; transform-origin: 56% 48%; }
+        #s1-svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+        /* line work: four weights, round caps */
+        #s1-root .ln { fill: none; stroke: var(--line); stroke-linecap: round; stroke-linejoin: round; }
+        #s1-root .out { stroke-width: var(--w-out); }
+        #s1-root .det { stroke-width: var(--w-det); }
+        #s1-root .thin { stroke-width: var(--w-thin); }
+        #s1-root .hair { stroke-width: var(--w-hair); }
+        #s1-root .soft { stroke: var(--line-soft); }
+        #s1-root .cl { stroke-dasharray: 22 6 4 6; }   /* centre line */
+        #s1-root .hid { stroke-dasharray: 10 7; }      /* hidden line */
+        /* "paper" fill painted under an outline (painter's order) */
+        #s1-root .pf { fill: var(--fill); stroke: none; opacity: 0; }
+        #s1-root .pff { fill: var(--fill); stroke: none; }
+        #s1-root .dot { fill: var(--line); stroke: none; }
+        #s1-root .nib { fill: var(--line); stroke: none; opacity: 0; }
+        #s1-root svg text {
+          font-family: "JetBrains Mono", monospace; font-weight: 700; fill: var(--line);
+          text-anchor: middle; dominant-baseline: central;
+        }
+        /* labels are lettered on left to right with clip-path */
+        #s1-root .tx { position: absolute; white-space: nowrap; line-height: 1.3; padding: 6px 4px; clip-path: inset(0 100% 0 0); }
+        #s1-root .vi { font-family: "Be Vietnam Pro", sans-serif; font-weight: 700; letter-spacing: 0.06em; }
+        #s1-root .mono { font-family: "JetBrains Mono", monospace; font-weight: 700; letter-spacing: 0.06em; }
+        #s1-root .num { width: 92px; text-align: center; font-size: 26px; font-weight: 600; transform: rotate(-90deg); }
+        #s1-root .ctr { transform: translateX(-50%); }
+      </style>
+
+      <div id="s1-root" data-composition-id="s1" data-width="1080" data-height="1920">
+        <div id="s1-stage">
+          <svg id="s1-svg" viewBox="0 0 1080 1920" xmlns="http://www.w3.org/2000/svg">
+            <defs id="s1-defs">
+              <filter id="s1-glow" x="-300%" y="-300%" width="700%" height="700%">
+                <feGaussianBlur stdDeviation="3.5" result="b" />
+                <feMerge><feMergeNode in="b" /><feMergeNode in="b" /><feMergeNode in="SourceGraphic" /></feMerge>
+              </filter>
+            </defs>
+
+            <!-- figure frame: crop corners that draw themselves at the opening -->
+            <path id="s1-c1" class="ln thin soft" d="M80 296 V250 H126" />
+            <path id="s1-c2" class="ln thin soft" d="M954 250 H1000 V296" />
+            <path id="s1-c3" class="ln thin soft" d="M1000 1534 V1580 H954" />
+            <path id="s1-c4" class="ln thin soft" d="M126 1580 H80 V1534" />
+            <path id="s1-ul" class="ln thin" d="M80 216 H920" />
+
+            <!-- L0: grid axes A, B (centre lines) -->
+            <path id="s1-axA" class="ln thin soft cl" data-dash="1" d="M480 498 V1425" />
+            <path id="s1-axB" class="ln thin soft cl" data-dash="1" d="M860 498 V1425" />
+            <circle id="s1-axAc" class="ln thin" cx="480" cy="474" r="22" />
+            <circle id="s1-axBc" class="ln thin" cx="860" cy="474" r="22" />
+            <text id="s1-axAt" x="480" y="475" font-size="24">A</text>
+            <text id="s1-axBt" x="860" y="475" font-size="24">B</text>
+
+            <!-- the townhouse elevation: 3 storeys + parapet -->
+            <g id="s1-bld">
+              <path id="s1-bf" class="pf" d="M480 578 H860 V1380 H480 Z" />
+              <path id="s1-bwl" class="ln out" d="M480 1380 V650" />
+              <path id="s1-bwr" class="ln out" d="M860 650 V1380" />
+              <path id="s1-par" class="ln det" d="M492 650 V592 H848 V650" />
+              <path id="s1-copf" class="pf" d="M482 578 H858 V592 H482 Z" />
+              <path id="s1-cop" class="ln det" d="M482 578 H858 V592 H482 Z" />
+              <path id="s1-sl0f" class="pf" d="M468 650 H872 V664 H468 Z" />
+              <path id="s1-sl0" class="ln det" d="M468 650 H872 V664 H468 Z" />
+              <path id="s1-sl1f" class="pf" d="M468 880 H872 V894 H468 Z" />
+              <path id="s1-sl1" class="ln det" d="M468 880 H872 V894 H468 Z" />
+              <path id="s1-sl2f" class="pf" d="M468 1120 H872 V1134 H468 Z" />
+              <path id="s1-sl2" class="ln det" d="M468 1120 H872 V1134 H468 Z" />
+              <!-- roof water tank -->
+              <path id="s1-tkf" class="pf" d="M756 526 H804 Q822 526 822 544 V548 Q822 566 804 566 H756 Q738 566 738 548 V544 Q738 526 756 526 Z" />
+              <path id="s1-tk" class="ln det" d="M756 526 H804 Q822 526 822 544 V548 Q822 566 804 566 H756 Q738 566 738 548 V544 Q738 526 756 526 Z" />
+              <path id="s1-tkl" class="ln thin" d="M752 566 V578 M808 566 V578" />
+              <!-- floor 3 -->
+              <path id="s1-d3" class="ln det" d="M585 880 V690 H755 V880" />
+              <path id="s1-d3m" class="ln thin" d="M670 725 V880" />
+              <path id="s1-d3t" class="ln thin" d="M585 725 H755" />
+              <path id="s1-w3l" class="ln det" d="M505 705 H560 V775 H505 Z" />
+              <path id="s1-w3lm" class="ln thin" d="M532 705 V775" />
+              <path id="s1-w3r" class="ln det" d="M780 705 H835 V775 H780 Z" />
+              <path id="s1-w3rm" class="ln thin" d="M808 705 V775" />
+              <!-- floor 2 -->
+              <path id="s1-d2" class="ln det" d="M585 1120 V925 H755 V1120" />
+              <path id="s1-d2m" class="ln thin" d="M670 960 V1120" />
+              <path id="s1-d2t" class="ln thin" d="M585 960 H755" />
+              <path id="s1-w2l" class="ln det" d="M505 945 H560 V1015 H505 Z" />
+              <path id="s1-w2lm" class="ln thin" d="M532 945 V1015" />
+              <path id="s1-w2r" class="ln det" d="M780 945 H835 V1015 H780 Z" />
+              <path id="s1-w2rm" class="ln thin" d="M808 945 V1015" />
+              <!-- ground floor shopfront -->
+              <path id="s1-g" class="ln det" d="M545 1366 V1180 H795 V1366" />
+              <path id="s1-gt" class="ln thin" d="M545 1215 H795" />
+              <path id="s1-g1" class="ln thin" d="M607 1215 V1366" />
+              <path id="s1-g2" class="ln thin" d="M670 1215 V1366" />
+              <path id="s1-g3" class="ln thin" d="M733 1215 V1366" />
+              <path id="s1-stp" class="ln det" d="M530 1380 V1366 H810 V1380" />
+              <!-- balcony railings: paper fill hides the door behind -->
+              <path id="s1-r3f" class="pf" d="M500 805 H840 V880 H500 Z" />
+              <path id="s1-r3" class="ln det" d="M500 880 V805 H840 V880" />
+              <path id="s1-r2f" class="pf" d="M500 1045 H840 V1120 H500 Z" />
+              <path id="s1-r2" class="ln det" d="M500 1120 V1045 H840 V1120" />
+              <g id="s1-bals"></g>
+            </g>
+            <path id="s1-gnd" class="ln out" d="M420 1380 H920" />
+            <g id="s1-hatch"></g>
+            <path id="s1-mdu" class="ln thin" d="M520 1494 H820" />
+
+            <!-- dimensions (illustrative, labelled VÍ DỤ) -->
+            <g id="s1-dims">
+              <path id="s1-ex0" class="ln hair soft" d="M884 578 H990" />
+              <path id="s1-ex1" class="ln hair soft" d="M884 650 H945" />
+              <path id="s1-ex2" class="ln hair soft" d="M884 880 H945" />
+              <path id="s1-ex3" class="ln hair soft" d="M884 1120 H945" />
+              <path id="s1-ex4" class="ln hair soft" d="M924 1380 H990" />
+              <path id="s1-dm1" class="ln thin" d="M930 578 V1380" />
+              <path id="s1-dm2" class="ln thin" d="M975 578 V1380" />
+            </g>
+
+            <!-- chat bubble (hidden-line dashes), struck through on "trò chuyện" -->
+            <g id="s1-bub">
+              <path id="s1-bubf" class="pf" d="M126 280 H414 Q440 280 440 306 V414 Q440 440 414 440 H200 L132 492 L158 440 H126 Q100 440 100 414 V306 Q100 280 126 280 Z" />
+              <path id="s1-bubo" class="ln det hid" data-dash="1" d="M126 280 H414 Q440 280 440 306 V414 Q440 440 414 440 H200 L132 492 L158 440 H126 Q100 440 100 414 V306 Q100 280 126 280 Z" />
+              <path id="s1-bl1" class="ln thin soft" d="M132 326 H408" />
+              <path id="s1-bl2" class="ln thin soft" d="M132 362 H360" />
+              <circle id="s1-bd1" class="dot" cx="142" cy="402" r="6" />
+              <circle id="s1-bd2" class="dot" cx="166" cy="402" r="6" />
+              <circle id="s1-bd3" class="dot" cx="190" cy="402" r="6" />
+              <path id="s1-x1" class="ln out" d="M112 290 L428 432" />
+              <path id="s1-x2" class="ln out" d="M428 290 L112 432" />
+            </g>
+
+            <!-- safety helmet, front elevation -->
+            <g id="s1-helm">
+              <path id="s1-hcl" class="ln thin soft cl" data-dash="1" d="M270 262 V470" />
+              <path id="s1-hshf" class="pf" d="M150 424 C150 342 200 296 270 296 C340 296 390 342 390 424 Z" />
+              <path id="s1-hsh" class="ln out" d="M150 424 C150 342 200 296 270 296 C340 296 390 342 390 424" />
+              <path id="s1-hbrf" class="pf" d="M112 424 H428 Q436 424 434 434 L430 446 H110 L106 434 Q104 424 112 424 Z" />
+              <path id="s1-hbr" class="ln det" d="M112 424 H428 Q436 424 434 434 L430 446 H110 L106 434 Q104 424 112 424 Z" />
+              <path id="s1-hr1" class="ln det" d="M250 424 C248 366 254 322 270 298" />
+              <path id="s1-hr2" class="ln det" d="M290 424 C292 366 286 322 270 298" />
+              <path id="s1-hs1" class="ln thin" d="M192 424 C194 382 210 348 236 324" />
+              <path id="s1-hs2" class="ln thin" d="M348 424 C346 382 330 348 304 324" />
+              <path id="s1-hband" class="ln thin soft hid" data-dash="1" d="M162 446 C186 472 354 472 378 446" />
+              <path id="s1-kr1" class="ln thin" d="M104 548 H436" />
+              <path id="s1-kr2" class="ln hair" d="M104 555 H436" />
+              <path id="s1-hld" class="ln thin" d="M436 436 H520 L572 586" />
+              <circle id="s1-hdt" class="dot" cx="572" cy="586" r="7" />
+            </g>
+
+            <!-- "Ba": three placement marks, then balloons with leaders -->
+            <path id="s1-pk1" class="ln thin soft" d="M112 700 H148 M130 682 V718" />
+            <path id="s1-pk2" class="ln thin soft" d="M112 930 H148 M130 912 V948" />
+            <path id="s1-pk3" class="ln thin soft" d="M112 1160 H148 M130 1142 V1178" />
+            <path id="s1-ld1" class="ln thin" d="M168 700 H330 L600 770" />
+            <path id="s1-ld2" class="ln thin" d="M168 930 H330 L560 1078" />
+            <path id="s1-ld3" class="ln thin" d="M168 1160 H330 L600 1290" />
+            <circle id="s1-dt1" class="dot" cx="600" cy="770" r="7" />
+            <circle id="s1-dt2" class="dot" cx="560" cy="1078" r="7" />
+            <circle id="s1-dt3" class="dot" cx="600" cy="1290" r="7" />
+            <g id="s1-b1">
+              <circle class="pff" cx="130" cy="700" r="38" />
+              <circle class="ln det" cx="130" cy="700" r="38" />
+              <text x="130" y="701" font-size="36">1</text>
+            </g>
+            <g id="s1-b2">
+              <circle class="pff" cx="130" cy="930" r="38" />
+              <circle class="ln det" cx="130" cy="930" r="38" />
+              <text x="130" y="931" font-size="36">2</text>
+            </g>
+            <g id="s1-b3">
+              <circle class="pff" cx="130" cy="1160" r="38" />
+              <circle class="ln det" cx="130" cy="1160" r="38" />
+              <text x="130" y="1161" font-size="36">3</text>
+            </g>
+
+            <g id="s1-nibs"></g>
+          </svg>
+
+          <!-- lettering -->
+          <div id="s1-title" class="tx vi" style="left: 76px; top: 146px; font-size: 44px;">HÌNH 1: AI TRONG XÂY DỰNG</div>
+          <div id="s1-md" class="tx vi ctr" style="left: 670px; top: 1430px; font-size: 32px;">MẶT ĐỨNG NHÀ PHỐ</div>
+          <div id="s1-lb1" class="tx mono" style="left: 182px; top: 640px; font-size: 34px;">AGENT</div>
+          <div id="s1-lb2" class="tx mono" style="left: 182px; top: 870px; font-size: 34px;">SKILL</div>
+          <div id="s1-lb3" class="tx mono" style="left: 182px; top: 1100px; font-size: 34px;">MCP</div>
+          <div id="s1-n1" class="tx mono num" style="left: 864px; top: 593px;">1000</div>
+          <div id="s1-n2" class="tx mono num" style="left: 864px; top: 744px;">3200</div>
+          <div id="s1-n3" class="tx mono num" style="left: 864px; top: 979px;">3300</div>
+          <div id="s1-n4" class="tx mono num" style="left: 864px; top: 1229px;">3600</div>
+          <div id="s1-n5" class="tx mono num" style="left: 903px; top: 958px;">11100</div>
+          <div id="s1-vd" class="tx vi" style="left: 896px; top: 516px; font-size: 24px;">VÍ DỤ</div>
+          <div id="s1-ks" class="tx vi ctr" style="left: 270px; top: 482px; font-size: 40px;">KỸ SƯ TRỢ LÝ</div>
+        </div>
+      </div>
+
+      <script>
+        (() => {
+          // A("key") = local time (s) of an anchor from timeline.json; never hard-code word times.
+          const A = (key) => window.__vv.local("s1", key);
+          const NS = "http://www.w3.org/2000/svg";
+          const $ = (id) => document.getElementById("s1-" + id);
+          const sc = window.__vv.scenes["s1"];
+          const S = sc.start, D = sc.end - sc.start;
+          const BEAT = 60 / 104;
+          const beats = (from, to) => { const o = []; for (let k = Math.ceil((S + from) / BEAT); k * BEAT - S <= to; k++) o.push(k * BEAT - S); return o; };
+          const nb = (t) => Math.round((S + t) / BEAT) * BEAT - S; // nearest beat
+          const defs = $("defs"), nibs = $("nibs");
+          const mk = (tag, attrs, parent) => {
+            const e = document.createElementNS(NS, tag);
+            for (const k in attrs) e.setAttribute(k, attrs[k]);
+            if (parent) parent.appendChild(e);
+            return e;
+          };
+
+          // generated line work (deterministic loops)
+          [[805, 880], [1045, 1120]].forEach(([y0, y1], f) => {
+            for (let x = 518, i = 0; x <= 824; x += 19, i++) mk("path", { id: `s1-bal${f}-${i}`, class: "ln thin soft", d: `M${x} ${y0 + 9} V${y1 - 3}` }, $("bals"));
+          });
+          for (let x = 432, i = 0; x <= 890; x += 12, i++) mk("path", { id: `s1-ht${i}`, class: "ln hair soft", d: `M${x} 1408 L${x + 28} 1380` }, $("hatch"));
+          const tick = (x, y, id) => mk("path", { id, class: "ln det", d: `M${x - 8} ${y + 8} L${x + 8} ${y - 8}` }, $("dims"));
+          [578, 650, 880, 1120, 1380].forEach((y, i) => tick(930, y, `s1-tk1-${i}`));
+          [578, 1380].forEach((y, i) => tick(975, y, `s1-tk2-${i}`));
+
+          const tl = gsap.timeline({ paused: true });
+          let mid = 0;
+
+          // draw-on by arc length with a glowing nib riding the head of the stroke
+          function draw(el, t, dur, o = {}) {
+            if (typeof el === "string") el = $(el);
+            let tgt = el;
+            if (el.dataset.dash) {
+              // dashed convention lines: reveal through a solid mask path so the dash pattern stays put
+              const m = mk("mask", { id: "s1-mk" + mid++, maskUnits: "userSpaceOnUse", x: 0, y: 0, width: 1080, height: 1920 }, defs);
+              tgt = mk("path", { d: el.getAttribute("d"), fill: "none", stroke: "#fff", "stroke-width": 16, "stroke-linecap": "round" }, m);
+              el.setAttribute("mask", "url(#" + m.id + ")");
+            }
+            const L = tgt.getTotalLength();
+            tgt.style.strokeDasharray = L + " " + (L + 2);
+            const tw = { strokeDashoffset: 0, duration: dur, ease: o.ease || "power1.inOut" };
+            if (o.nib !== false) {
+              const p0 = tgt.getPointAtLength(0);
+              const nib = mk("circle", { r: 4, cx: p0.x, cy: p0.y, class: "nib", filter: "url(#s1-glow)" }, nibs);
+              tw.onUpdate = function () {
+                const p = tgt.getPointAtLength(L * this.ratio);
+                nib.setAttribute("cx", p.x);
+                nib.setAttribute("cy", p.y);
+              };
+              tl.fromTo(nib, { opacity: 0 }, { opacity: 1, duration: 0.03, ease: "none" }, t);
+              tl.to(nib, { opacity: 0, duration: 0.08, ease: "none" }, t + dur - 0.02);
+            }
+            tl.fromTo(tgt, { strokeDashoffset: L }, tw, t);
+          }
+          const paper = (id, t) => tl.fromTo($(id), { opacity: 0 }, { opacity: 1, duration: 0.12, ease: "none" }, t);
+          const write = (id, t, dur) => tl.fromTo($(id), { clipPath: "inset(0 100% 0 0)" }, { clipPath: "inset(0 0% 0 0)", duration: dur, ease: "power1.inOut" }, t);
+          const pop = (id, t, dur = 0.4) => tl.fromTo($(id), { scale: 0, opacity: 0, transformOrigin: "50% 50%" }, { scale: 1, opacity: 1, duration: dur, ease: "back.out(1.6)" }, t);
+          const pulse = (id, t, k = 1.07) => {
+            tl.fromTo($(id), { scale: 1 }, { scale: k, duration: 0.08, ease: "power2.out", immediateRender: false }, t);
+            tl.fromTo($(id), { scale: k }, { scale: 1, duration: 0.22, ease: "power2.out", immediateRender: false }, t + 0.08);
+          };
+          // a signal pulse running along a leader into the house
+          const signal = (pathId, dotId, t) => {
+            const p = $(pathId), L = p.getTotalLength(), p0 = p.getPointAtLength(0);
+            const c = mk("circle", { r: 6, cx: p0.x, cy: p0.y, class: "nib", filter: "url(#s1-glow)" }, nibs);
+            const o = { v: 0 };
+            tl.fromTo(o, { v: 0 }, {
+              v: 1, duration: 0.45, ease: "power1.in", immediateRender: false,
+              onUpdate: () => { const q = p.getPointAtLength(L * o.v); c.setAttribute("cx", q.x); c.setAttribute("cy", q.y); },
+            }, t);
+            tl.fromTo(c, { opacity: 0 }, { opacity: 1, duration: 0.05, ease: "none" }, t);
+            tl.to(c, { opacity: 0, duration: 0.08, ease: "none" }, t + 0.42);
+            pulse(dotId, t + 0.44, 1.7);
+          };
+
+          // camera: very slow push-in over the whole scene
+          tl.fromTo("#s1-stage", { scale: 1 }, { scale: 1.03, duration: D, ease: "none" }, 0);
+
+          // opening: the figure frame draws itself, title lettered on
+          ["c1", "c2", "c3", "c4"].forEach((id, i) => draw(id, 0.02 + i * 0.06, 0.4));
+          write("title", 0.05, 0.45);
+          draw("ul", 0.2, 0.45);
+
+          // "Trong ngành xây dựng": drafting order, one layer per beat
+          const T0 = nb(A("xd"));            // centre lines + ground
+          draw("axA", T0, 0.55);
+          draw("axB", T0 + 0.08, 0.55);
+          draw("axAc", T0 + 0.12, 0.3);
+          draw("axBc", T0 + 0.2, 0.3);
+          tl.fromTo(["#s1-axAt", "#s1-axBt"], { opacity: 0 }, { opacity: 1, duration: 0.2, stagger: 0.08, ease: "none" }, T0 + 0.38);
+          draw("gnd", T0 + 0.05, 0.5);
+
+          const T1 = T0 + BEAT;              // outlines (paper first)
+          paper("bf", T1);
+          draw("bwl", T1, 0.55);
+          draw("bwr", T1 + 0.06, 0.55);
+          draw("par", T1 + 0.18, 0.35);
+          paper("copf", T1 + 0.26); draw("cop", T1 + 0.26, 0.3);
+          ["sl0", "sl1", "sl2"].forEach((id, i) => { paper(id + "f", T1 + 0.3 + i * 0.06); draw(id, T1 + 0.3 + i * 0.06, 0.3); });
+
+          const T2 = T0 + 2 * BEAT;          // details: doors, windows
+          ["d3", "w3l", "w3r", "d2", "w2l", "w2r", "g", "stp"].forEach((id, i) => draw(id, T2 + i * 0.045, 0.3));
+          ["d3m", "d3t", "w3lm", "w3rm", "d2m", "d2t", "w2lm", "w2rm", "gt", "g1", "g2", "g3"].forEach((id, i) => draw(id, T2 + 0.2 + i * 0.025, 0.16, { nib: false }));
+
+          // "AI không chỉ để trò chuyện": a chat bubble, then struck through
+          const TB = nb(A("chat") - 0.55);
+          paper("bubf", TB);
+          draw("bubo", TB, 0.32);
+          draw("bl1", TB + 0.22, 0.12);
+          draw("bl2", TB + 0.29, 0.1);
+          ["bd1", "bd2", "bd3"].forEach((id, i) => {
+            pop(id, TB + 0.33 + i * 0.04, 0.16);
+            tl.fromTo($(id), { y: 0 }, { y: -8, duration: 0.09, yoyo: true, repeat: 1, ease: "power2.out", immediateRender: false }, TB + 0.45 + i * 0.05);
+          });
+          const TC = nb(A("chat"));
+          draw("x1", TC, 0.22, { ease: "power2.in" });
+          draw("x2", TC + BEAT / 2, 0.22, { ease: "power2.in" });
+          tl.fromTo("#s1-bub", { opacity: 1 }, { opacity: 0.3, duration: 0.35, ease: "power1.out", immediateRender: false }, TC + BEAT);
+          tl.fromTo("#s1-bub", { y: 0 }, { y: -12, duration: A("ks") - TC - BEAT, ease: "none", immediateRender: false }, TC + BEAT);
+
+          const T3 = TC + BEAT;              // balconies, roof tank, figure label
+          paper("r3f", T3); draw("r3", T3, 0.35);
+          paper("r2f", T3 + 0.12); draw("r2", T3 + 0.12, 0.35);
+          gsap.utils.toArray("#s1-bals path").forEach((el, i) => draw(el, T3 + 0.2 + i * 0.012, 0.1, { nib: false }));
+          paper("tkf", T3 + 0.08); draw("tk", T3 + 0.08, 0.32); draw("tkl", T3 + 0.36, 0.12, { nib: false });
+          write("md", T3 + 0.15, 0.5);
+          draw("mdu", T3 + 0.3, 0.4);
+
+          // "Ba khái niệm": soil hatching + three placement marks
+          const T4 = T3 + BEAT;
+          gsap.utils.toArray("#s1-hatch path").forEach((el, i) => draw(el, T4 + i * 0.01, 0.12, { nib: false }));
+          ["pk1", "pk2", "pk3"].forEach((id, i) => {
+            draw(id, T4 + 0.06 + i * 0.1, 0.2, { nib: false });
+            tl.fromTo($(id), { rotation: 0, transformOrigin: "50% 50%" }, { rotation: 90, duration: 0.5, ease: "power2.inOut", immediateRender: false }, T4 + 0.3 + i * 0.1);
+          });
+
+          // ① AGENT  ② SKILL  ③ MCP: balloons pop on each word, leaders point into the house
+          const BAL = [["b1", "ld1", "dt1", "lb1", "agent"], ["b2", "ld2", "dt2", "lb2", "skill"], ["b3", "ld3", "dt3", "lb3", "mcp"]];
+          BAL.forEach(([b, ld, dt, lb, key]) => {
+            const t = A(key);
+            pop(b, t);
+            draw(ld, t + 0.08, 0.38);
+            pop(dt, t + 0.44, 0.22);
+            write(lb, t + 0.12, 0.35);
+            beats(t + 0.5, 7.9).forEach((bt) => pulse(b, bt));
+          });
+
+          // "đang biến nó thành": height dimension chain measures the house
+          const T5 = nb(A("mcp") + 0.6);
+          ["ex0", "ex1", "ex2", "ex3", "ex4"].forEach((id, i) => draw(id, T5 + i * 0.04, 0.22, { nib: false }));
+          draw("dm1", T5 + 0.12, 0.5);
+          [0, 1, 2, 3, 4].forEach((i) => draw("tk1-" + i, T5 + 0.3 + i * 0.05, 0.1, { nib: false }));
+          ["n1", "n2", "n3", "n4"].forEach((id, i) => write(id, T5 + 0.4 + i * 0.07, 0.3));
+          BAL.forEach(([, ld, dt]) => signal(ld, dt, T5));
+          const T6 = T5 + BEAT;
+          draw("dm2", T6, 0.4);
+          draw("tk2-0", T6 + 0.02, 0.1, { nib: false });
+          draw("tk2-1", T6 + 0.36, 0.1, { nib: false });
+          write("vd", T6 + 0.06, 0.3);
+          write("n5", T6 + 0.2, 0.35);
+
+          // "kỹ sư trợ lý thật sự": the chat bubble gives way to a safety helmet
+          const TK = A("ks");
+          tl.fromTo("#s1-bub", { opacity: 0.3 }, { opacity: 0, duration: 0.25, ease: "power1.in", immediateRender: false }, TK - 0.05);
+          draw("hcl", TK, 0.4);
+          paper("hshf", TK + 0.05); draw("hsh", TK + 0.05, 0.45);
+          paper("hbrf", TK + 0.22); draw("hbr", TK + 0.22, 0.35);
+          draw("hr1", TK + 0.36, 0.24);
+          draw("hr2", TK + 0.4, 0.24);
+          draw("hs1", TK + 0.46, 0.2, { nib: false });
+          draw("hs2", TK + 0.5, 0.2, { nib: false });
+          draw("hband", TK + 0.52, 0.3);
+          write("ks", TK + 0.3, 0.55);
+          draw("kr1", TK + 0.7, 0.3, { nib: false });
+          draw("kr2", TK + 0.76, 0.3, { nib: false });
+          const TK2 = nb(TK + 0.2);
+          BAL.forEach(([, ld, dt]) => signal(ld, dt, TK2));
+          const TH = nb(TK + 0.75);
+          draw("hld", TH, 0.3);
+          pop("hdt", TH + 0.28, 0.2);
+
+          // exit: lateral pan to the left, to the next figure on the same sheet
+          tl.fromTo("#s1-stage", { x: 0, opacity: 1 }, { x: -220, opacity: 0, duration: 0.3, ease: "power2.in", immediateRender: false }, D - 0.3);
+
+          window.__timelines["s1"] = tl;
+        })();
+      </script>
+    </template>
+  </body>
+</html>

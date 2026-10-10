@@ -1,0 +1,515 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <!-- Scene s2: HINH 2 AGENT. Robot drafting arm draws a stroke that becomes the goal title block; task tree with 4 steps; self-check loop with magnifier. Runtime keeps only <template>. -->
+  </head>
+  <body>
+    <template>
+      <style>
+        /* Each scene declares its fonts (HyperFrames lint: font_family_without_font_face). Paths are relative to index.html. */
+        @font-face { font-family: "Be Vietnam Pro"; src: url("fonts/BeVietnamPro-Regular.ttf"); font-weight: 400; }
+        @font-face { font-family: "Be Vietnam Pro"; src: url("fonts/BeVietnamPro-Medium.ttf"); font-weight: 500; }
+        @font-face { font-family: "Be Vietnam Pro"; src: url("fonts/BeVietnamPro-Bold.ttf"); font-weight: 700; }
+        @font-face { font-family: "Be Vietnam Pro"; src: url("fonts/BeVietnamPro-ExtraBold.ttf"); font-weight: 800; }
+        @font-face { font-family: "JetBrains Mono"; src: url("fonts/JetBrainsMono-Variable.ttf"); font-weight: 100 800; }
+        #s2-root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          background: transparent;
+          color: var(--line);
+          font-family: "Be Vietnam Pro", sans-serif;
+        }
+        #s2-stage { position: absolute; inset: 0; transform-origin: 50% 45%; }
+        #s2-svg { position: absolute; left: 0; top: 0; width: 100%; height: 100%; overflow: visible; }
+
+        /* line weights and dash conventions */
+        #s2-root .o { fill: none; stroke: var(--line); stroke-width: var(--w-out); stroke-linecap: round; stroke-linejoin: round; }
+        #s2-root .d { fill: none; stroke: var(--line); stroke-width: var(--w-det); stroke-linecap: round; stroke-linejoin: round; }
+        #s2-root .t { fill: none; stroke: var(--line); stroke-width: var(--w-thin); stroke-linecap: round; stroke-linejoin: round; }
+        #s2-root .h { fill: none; stroke: var(--line-soft); stroke-width: var(--w-hair); stroke-linecap: round; }
+        #s2-root .cl { fill: none; stroke: var(--line-soft); stroke-width: var(--w-thin); stroke-dasharray: 22 6 4 6; }
+        #s2-root .ph { fill: none; stroke: var(--line-soft); stroke-width: var(--w-thin); stroke-dasharray: 28 6 6 6 6 6; }
+        #s2-root .hid { fill: none; stroke: var(--line-soft); stroke-width: var(--w-thin); stroke-dasharray: 10 7; }
+        #s2-root .pf { fill: var(--fill); }
+        #s2-root .lit { fill: var(--line); stroke: none; }
+        #s2-root .dotf { fill: var(--line); stroke: none; }
+        #s2-root .ghost { fill: none; stroke: none; }
+        #s2-root .nib { fill: var(--line); stroke: none; filter: drop-shadow(0 0 6px rgba(231, 240, 249, 0.5)); }
+        #s2-root .bnt {
+          font-family: "JetBrains Mono", monospace; font-weight: 700; font-size: 24px;
+          fill: var(--line); text-anchor: middle; dominant-baseline: central;
+        }
+
+        /* lettering */
+        #s2-root .tx {
+          position: absolute; margin: 0; white-space: nowrap; line-height: 1.3;
+          font-weight: 700; letter-spacing: 0.06em; color: var(--line);
+        }
+        #s2-root .mono { font-family: "JetBrains Mono", monospace; font-weight: 600; letter-spacing: 0.1em; color: var(--line-soft); }
+        #s2-root .tn {
+          position: absolute; left: 0; top: 0; width: 8px; height: 8px; border-radius: 50%;
+          background: var(--line); filter: drop-shadow(0 0 6px rgba(231, 240, 249, 0.5)); opacity: 0;
+        }
+        #s2-title { left: 80px; top: 144px; font-size: 52px; }
+        #s2-fig { right: 80px; top: 168px; font-size: 24px; }
+        #s2-l1 { left: 614px; top: 284px; font-size: 34px; }
+        #s2-l1s { left: 616px; top: 334px; font-size: 24px; color: var(--line) !important; }
+        #s2-g1 { left: 502px; top: 658px; font-size: 30px; }
+        #s2-g2 { left: 722px; top: 664px; font-size: 24px; color: var(--line) !important; }
+        #s2-g3 { left: 500px; top: 750px; font-size: 40px; }
+        #s2-root .row { left: 330px; font-size: 34px; }
+        #s2-loopl { left: 90px; top: 1416px; width: 180px; text-align: center; font-size: 34px; }
+        #s2-cnt { left: 740px; top: 1432px; font-size: 30px; }
+        #s2-root .cn { left: 856px; top: 1434px; font-size: 30px; color: var(--line); }
+        #s2-c1, #s2-c2, #s2-c3, #s2-c4 { opacity: 0; }
+      </style>
+
+      <div id="s2-root" data-composition-id="s2" data-width="1080" data-height="1920">
+        <div id="s2-stage">
+          <svg id="s2-svg" viewBox="0 0 1080 1920" xmlns="http://www.w3.org/2000/svg">
+            <defs id="s2-defs"></defs>
+
+            <!-- figure title underline -->
+            <path id="s2-uline" class="t" d="M80 226 H500" />
+
+            <!-- reach envelope of the arm (phantom line) -->
+            <path id="s2-reach" class="ph" d="M456.6 301.5 A440 440 0 0 1 683.3 613.6" />
+
+            <!-- balloon A + leader (leader end follows the elbow) -->
+            <line id="s2-leader" class="t" x1="0" y1="0" x2="0" y2="0" opacity="0" />
+            <circle id="s2-leadend" class="dotf" r="5" cx="0" cy="0" opacity="0" />
+            <g id="s2-bnA">
+              <circle class="d pf" cx="578" cy="312" r="24" />
+              <text class="bnt" x="578" y="313">A</text>
+            </g>
+
+            <!-- goal title block: top edge starts with the stroke drawn by the pen -->
+            <g id="s2-goal">
+              <path id="s2-pstroke" class="o" d="M560 650 H760" />
+              <path id="s2-box" class="o" d="M760 650 H990 V850 H480 V650 H560" />
+              <path id="s2-div1" class="t" d="M480 705 H990" />
+              <path id="s2-div2" class="d" d="M700 650 V705" />
+              <path id="s2-div3" class="d" d="M860 705 V850" />
+              <!-- townhouse elevation icon -->
+              <path id="s2-hgr" class="t" d="M872 832 H978" />
+              <path id="s2-hcl" class="cl" d="M925 720 V842" />
+              <path id="s2-hout" class="d" d="M897 832 V738 H953 V832" />
+              <path id="s2-hpar" class="d" d="M891 738 H959" />
+              <path id="s2-hf1" class="t" d="M897 770 H953" />
+              <path id="s2-hf2" class="t" d="M897 802 H953" />
+              <rect id="s2-hw1" class="t" x="909" y="746" width="32" height="16" />
+              <rect id="s2-hw2" class="t" x="909" y="778" width="32" height="16" />
+              <rect id="s2-hdo" class="t" x="917" y="810" width="16" height="22" />
+            </g>
+
+            <!-- task tree (rows generated in script) -->
+            <path id="s2-trunk" class="d" d="M925 850 V1370" />
+            <g id="s2-tree"></g>
+
+            <!-- self-check loop -->
+            <path id="s2-loop" class="d" d="M110 1320 V1000 A70 70 0 0 1 250 1000 V1320 A70 70 0 0 1 119.4 1355" />
+            <path id="s2-loopa1" class="d" d="M240 1150 L250 1170 L260 1150" />
+            <path id="s2-loopa2" class="d" d="M119.4 1377 L119.4 1355 L138.5 1366" />
+
+            <!-- magnifier (local origin = lens centre) -->
+            <g id="s2-mag" opacity="0">
+              <g id="s2-magi">
+                <path class="d pf" d="M25 35 L35 25 L73 63 L63 73 Z" />
+                <circle class="o" cx="0" cy="0" r="40" />
+                <path class="t" d="M-26 -10 A28 28 0 0 1 -10 -26" />
+              </g>
+            </g>
+
+            <!-- pulse running along the tree -->
+            <circle id="s2-pulse" class="nib" r="6" cx="925" cy="850" opacity="0" />
+
+            <!-- robot drafting arm -->
+            <g id="s2-arm">
+              <path id="s2-ground" class="t" d="M100 750 H440" />
+              <path id="s2-ghatch" class="h" d="" />
+              <path id="s2-bcl" class="cl" d="M250 636 V772" />
+              <rect id="s2-plinth" class="d pf" x="140" y="730" width="260" height="20" fill-opacity="0" />
+              <path id="s2-turret" class="o pf" d="M185 730 L210 690 H290 L315 730 Z" fill-opacity="0" />
+              <g id="s2-gear">
+                <path id="s2-gearp" class="d pf" d="" fill-opacity="0" />
+                <circle id="s2-gearh" class="t" cx="356" cy="706" r="6" />
+                <path id="s2-gears" class="t" d="M356 700 V688" />
+              </g>
+              <g id="s2-link1">
+                <path id="s2-l1cl" class="cl" d="M-40 0 H350" />
+                <rect id="s2-l1r" class="o pf" x="-22" y="-17" width="354" height="34" rx="17" fill-opacity="0" />
+                <circle id="s2-j1" class="o pf" cx="0" cy="0" r="26" fill-opacity="0" />
+                <circle id="s2-j1i" class="t" cx="0" cy="0" r="8" />
+                <path id="s2-j1x" class="h" d="M-14 0 H14 M0 -14 V14" />
+                <g id="s2-link2">
+                  <path id="s2-l2cl" class="cl" d="M-30 0 H310" />
+                  <rect id="s2-l2r" class="o pf" x="-16" y="-13" width="312" height="26" rx="13" fill-opacity="0" />
+                  <circle id="s2-j2" class="o pf" cx="0" cy="0" r="21" fill-opacity="0" />
+                  <circle id="s2-j2i" class="t" cx="0" cy="0" r="7" />
+                </g>
+              </g>
+              <g id="s2-pen">
+                <rect id="s2-pbody" class="d pf" x="-9" y="14" width="18" height="30" fill-opacity="0" />
+                <path id="s2-pnib" class="d pf" d="M-9 44 L0 56 L9 44 Z" fill-opacity="0" />
+                <circle id="s2-j3" class="d pf" cx="0" cy="0" r="15" fill-opacity="0" />
+                <circle id="s2-j3i" class="t" cx="0" cy="0" r="5" />
+                <circle id="s2-pglow" class="nib" cx="0" cy="56" r="6" opacity="0" />
+              </g>
+            </g>
+          </svg>
+
+          <!-- lettering -->
+          <div id="s2-title" class="tx">HÌNH 2: AGENT</div>
+          <div id="s2-fig" class="tx mono">FIG. 02 / 07</div>
+          <div id="s2-l1" class="tx">KỸ SƯ TRỢ LÝ</div>
+          <div id="s2-l1s" class="tx mono">AGENT · A-01</div>
+          <div id="s2-g1" class="tx">MỤC TIÊU</div>
+          <div id="s2-g2" class="tx mono">BRIEF / 01</div>
+          <div id="s2-g3" class="tx">HỒ SƠ NHÀ PHỐ</div>
+          <div id="s2-rows"></div>
+          <div id="s2-loopl" class="tx">TỰ SOÁT</div>
+          <div id="s2-cnt" class="tx">BƯỚC</div>
+          <div id="s2-c0" class="tx mono cn">0/4</div>
+          <div id="s2-c1" class="tx mono cn">1/4</div>
+          <div id="s2-c2" class="tx mono cn">2/4</div>
+          <div id="s2-c3" class="tx mono cn">3/4</div>
+          <div id="s2-c4" class="tx mono cn">4/4</div>
+        </div>
+      </div>
+
+      <script>
+        (() => {
+          // A("key") = local time (s) of an anchor from timeline.json; never hard-code word times.
+          const A = (key) => window.__vv.local("s2", key);
+          const SC = window.__vv.scenes["s2"];
+          const D = SC.end - SC.start;
+          const BEAT = 60 / 104, S0 = SC.start;
+          const beats = (from, to, step = BEAT) => { const o = []; for (let k = Math.ceil((S0 + from) / step); k * step - S0 <= to; k++) o.push(k * step - S0); return o; };
+          const halfBeats = (from, to) => beats(from, to, BEAT / 2);
+
+          const NS = "http://www.w3.org/2000/svg";
+          const $ = (id) => document.getElementById("s2-" + id);
+          const stage = $("stage"), defs = $("defs"), tree = $("tree"), rowsBox = $("rows");
+          const tl = gsap.timeline({ paused: true });
+
+          const tA = A("agent"), tK = A("ks"), tM = A("mt"), tN = A("nha"), tC = A("chia"), tB = A("buoc"), tS = A("soat");
+
+          // ---------- geometry builders (deterministic) ----------
+          const hatch = (x0, y0, x1, y1, s) => {
+            let d = "";
+            for (let c = x0 + y0 + s / 2; c < x1 + y1; c += s) {
+              const xa = Math.max(x0, c - y1), xb = Math.min(x1, c - y0);
+              if (xb - xa < 1) continue;
+              d += "M" + xa.toFixed(1) + " " + (c - xa).toFixed(1) + "L" + xb.toFixed(1) + " " + (c - xb).toFixed(1);
+            }
+            return d;
+          };
+          const gearD = (cx, cy, n, ro, ri) => {
+            let d = "";
+            const s = (2 * Math.PI) / n;
+            for (let i = 0; i < n; i++) {
+              const a0 = i * s;
+              [[ri, a0], [ro, a0 + s * 0.18], [ro, a0 + s * 0.45], [ri, a0 + s * 0.63]].forEach(([r, a], j) => {
+                d += (i === 0 && j === 0 ? "M" : "L") + (cx + r * Math.cos(a)).toFixed(1) + " " + (cy + r * Math.sin(a)).toFixed(1) + " ";
+              });
+            }
+            return d + "Z";
+          };
+          $("ghatch").setAttribute("d", hatch(100, 752, 440, 770, 12));
+          $("gearp").setAttribute("d", gearD(356, 706, 10, 22, 16));
+
+          // ---------- task rows ----------
+          const ROWS = ["KIẾN TRÚC", "KẾT CẤU", "ĐIỆN NƯỚC", "DỰ TOÁN"];
+          const Y = [950, 1090, 1230, 1370];
+          let svgRows = "";
+          let htmlRows = "";
+          Y.forEach((y, k) => {
+            svgRows +=
+              '<rect id="s2-act' + k + '" class="hid" x="290" y="' + (y - 56) + '" width="480" height="112" opacity="0" />' +
+              '<path id="s2-br' + k + '" class="t" d="M925 ' + y + ' H762" />' +
+              '<path id="s2-ar' + k + '" class="t" d="M776 ' + (y - 8) + " L762 " + y + " L776 " + (y + 8) + '" />' +
+              '<circle id="s2-jn' + k + '" class="dotf" cx="925" cy="' + y + '" r="6" />' +
+              '<rect id="s2-bx' + k + '" class="d pf" x="300" y="' + (y - 46) + '" width="460" height="92" fill-opacity="0" />' +
+              '<rect id="s2-lit' + k + '" class="lit" x="302" y="' + (y - 44) + '" width="456" height="88" opacity="0" />' +
+              '<path id="s2-sd' + k + '" class="t" d="M680 ' + (y - 46) + " V" + (y + 46) + '" />' +
+              '<path id="s2-ht' + k + '" class="h" d="' + hatch(682, y - 44, 758, y + 44, 12) + '" />' +
+              '<path id="s2-pg' + k + '" class="t" d="M330 ' + (y + 30) + ' H650" />' +
+              '<path id="s2-ck' + k + '" class="o" d="M698 ' + (y + 2) + " L714 " + (y + 18) + " L742 " + (y - 16) + '" />' +
+              '<path id="s2-gp' + k + '" class="ghost" d="M925 850 V' + y + ' H762" />' +
+              '<g id="s2-bn' + k + '"><circle class="d pf" cx="843" cy="' + y + '" r="22" />' +
+              '<text class="bnt" x="843" y="' + (y + 1) + '">' + (k + 1) + "</text></g>";
+            htmlRows += '<div id="s2-rl' + k + '" class="tx row" style="top:' + (y - 23) + 'px">' + ROWS[k] + "</div>";
+          });
+          tree.innerHTML = svgRows;
+          rowsBox.innerHTML = htmlRows;
+
+          // ---------- draw-on with a glowing nib ----------
+          let mk = 0;
+          const nibDot = (parent) => {
+            const c = document.createElementNS(NS, "circle");
+            c.setAttribute("r", "4");
+            c.setAttribute("class", "nib");
+            c.setAttribute("opacity", "0");
+            parent.appendChild(c);
+            return c;
+          };
+          const draw = (id, t, dur, o = {}) => {
+            const el = typeof id === "string" ? $(id) : id;
+            let g = el;
+            if (o.dashed) {
+              // dashed conventions keep their pattern: reveal through a mask drawn on underneath
+              const m = document.createElementNS(NS, "mask");
+              const mid = "s2-mk" + mk++;
+              m.setAttribute("id", mid);
+              m.setAttribute("maskUnits", "userSpaceOnUse");
+              m.setAttribute("x", "-3000"); m.setAttribute("y", "-3000");
+              m.setAttribute("width", "8000"); m.setAttribute("height", "8000");
+              g = el.cloneNode(false);
+              g.removeAttribute("id"); g.removeAttribute("class"); g.removeAttribute("mask");
+              g.setAttribute("style", "fill:none;stroke:#fff;stroke-width:12;stroke-linecap:butt");
+              m.appendChild(g);
+              defs.appendChild(m);
+              el.setAttribute("mask", "url(#" + mid + ")");
+            }
+            const L = g.getTotalLength();
+            g.style.strokeDasharray = L + " " + (L + 40);
+            const dot = o.nib === false ? null : nibDot(el.parentNode);
+            tl.fromTo(g, { strokeDashoffset: L }, {
+              strokeDashoffset: 0, duration: dur, ease: o.ease || "power1.inOut",
+              onUpdate: dot ? function () {
+                const r = this.ratio;
+                const p = g.getPointAtLength(L * r);
+                dot.setAttribute("cx", p.x.toFixed(2));
+                dot.setAttribute("cy", p.y.toFixed(2));
+                dot.setAttribute("opacity", r > 0 && r < 1 ? Math.min(1, r * 10, (1 - r) * 10).toFixed(3) : "0");
+              } : undefined,
+            }, t);
+            if (el.hasAttribute("fill-opacity")) {
+              tl.fromTo(el, { attr: { "fill-opacity": 0 } }, { attr: { "fill-opacity": 1 }, duration: Math.min(0.18, dur), ease: "none" }, t);
+            }
+          };
+
+          // lettering written left to right, nib riding the head
+          const write = (id, t, dur) => {
+            const el = $(id);
+            const dot = document.createElement("div");
+            dot.className = "tn";
+            stage.appendChild(dot);
+            tl.fromTo(el, { clipPath: "inset(-24px 100% -24px 0px)" }, {
+              clipPath: "inset(-24px 0% -24px 0px)", duration: dur, ease: "power1.inOut",
+              onUpdate: function () {
+                const r = this.ratio;
+                const x = el.offsetLeft + el.offsetWidth * r - 4, y = el.offsetTop + el.offsetHeight * 0.52 - 4;
+                dot.style.transform = "translate(" + x.toFixed(1) + "px," + y.toFixed(1) + "px)";
+                dot.style.opacity = r > 0 && r < 1 ? Math.min(1, r * 10, (1 - r) * 10).toFixed(3) : "0";
+              },
+            }, t);
+          };
+          const pop = (id, t, ox, oy) =>
+            tl.fromTo($(id), { scale: 0, opacity: 0, svgOrigin: ox + " " + oy }, { scale: 1, opacity: 1, svgOrigin: ox + " " + oy, duration: 0.32, ease: "back.out(1.6)" }, t);
+
+          // ---------- robot arm: 2-link IK, pen hangs vertically ----------
+          const SH = [250, 690], L1 = 310, L2 = 280, PH = 56;
+          const link1 = $("link1"), link2 = $("link2"), pen = $("pen");
+          const deg = (r) => ((r * 180) / Math.PI).toFixed(3);
+          let elbow = [SH[0], SH[1]];
+          const lead = { p: 0 };
+          const BA = [578, 312], BR = 24;
+          const leaderEl = $("leader"), leadEnd = $("leadend");
+          const updLeader = () => {
+            const dx = elbow[0] - BA[0], dy = elbow[1] - BA[1], len = Math.hypot(dx, dy) || 1;
+            const sx = BA[0] + (dx / len) * BR, sy = BA[1] + (dy / len) * BR;
+            const qx = sx + (elbow[0] - sx) * lead.p, qy = sy + (elbow[1] - sy) * lead.p;
+            leaderEl.setAttribute("x1", sx.toFixed(2)); leaderEl.setAttribute("y1", sy.toFixed(2));
+            leaderEl.setAttribute("x2", qx.toFixed(2)); leaderEl.setAttribute("y2", qy.toFixed(2));
+            leaderEl.setAttribute("opacity", lead.p > 0.001 ? "1" : "0");
+            leadEnd.setAttribute("cx", qx.toFixed(2)); leadEnd.setAttribute("cy", qy.toFixed(2));
+            leadEnd.setAttribute("opacity", lead.p > 0.001 ? (lead.p < 1 ? "0.9" : "1") : "0");
+          };
+          const armAt = (tx, ty) => {
+            const dx = tx - SH[0], dy = ty - PH - SH[1];
+            const phi = Math.atan2(dy, dx);
+            const d = Math.min(Math.max(Math.hypot(dx, dy), Math.abs(L1 - L2) + 1), L1 + L2 - 1);
+            const b = Math.acos(Math.max(-1, Math.min(1, (L1 * L1 + d * d - L2 * L2) / (2 * L1 * d))));
+            const a1 = phi - b;
+            const ex = SH[0] + L1 * Math.cos(a1), ey = SH[1] + L1 * Math.sin(a1);
+            const wx = SH[0] + d * Math.cos(phi), wy = SH[1] + d * Math.sin(phi);
+            const a2 = Math.atan2(wy - ey, wx - ex) - a1;
+            link1.setAttribute("transform", "translate(" + SH[0] + " " + SH[1] + ") rotate(" + deg(a1) + ")");
+            link2.setAttribute("transform", "translate(" + L1 + " 0) rotate(" + deg(a2) + ")");
+            pen.setAttribute("transform", "translate(" + wx.toFixed(2) + " " + wy.toFixed(2) + ")");
+            elbow = [ex, ey];
+            updLeader();
+          };
+          const pose = { x: 420, y: 560 };
+          let last = { x: 420, y: 560, end: 0 };
+          const move = (x, y, t, dur, ease) => {
+            if (t < last.end - 1e-6) console.warn("s2 arm move overlap at " + t.toFixed(2));
+            tl.fromTo(pose, { x: last.x, y: last.y }, { x, y, duration: dur, ease, immediateRender: false, onUpdate: () => armAt(pose.x, pose.y) }, t);
+            last = { x, y, end: t + dur };
+          };
+          armAt(pose.x, pose.y);
+
+          // ---------- camera: lateral pan in from the right, slow push-in ----------
+          tl.fromTo(stage, { x: 220, opacity: 0 }, { x: 0, opacity: 1, duration: 0.45, ease: "power3.out" }, 0);
+          tl.fromTo(stage, { scale: 1 }, { scale: 1.03, duration: D, ease: "none" }, 0);
+
+          // ---------- figure title ----------
+          write("title", 0.05, 0.5);
+          draw("uline", 0.15, 0.45);
+          write("fig", 0.3, 0.35);
+
+          // ---------- sentence 1: "Agent ... ky su tro ly" : the arm draws itself in drafting order ----------
+          draw("bcl", tA, 0.25, { dashed: true });
+          draw("l1cl", tA + 0.04, 0.25, { dashed: true });
+          draw("l2cl", tA + 0.08, 0.25, { dashed: true });
+          draw("ground", tA + 0.08, 0.25);
+          draw("plinth", tA + 0.15, 0.25);
+          draw("ghatch", tA + 0.18, 0.3, { ease: "none" });
+          draw("turret", tA + 0.22, 0.22);
+          draw("l1r", tA + 0.28, 0.28);
+          draw("gearp", tA + 0.34, 0.3);
+          draw("j1", tA + 0.4, 0.18);
+          draw("l2r", tA + 0.4, 0.26);
+          draw("j1i", tA + 0.5, 0.1, { nib: false });
+          draw("j1x", tA + 0.52, 0.1, { nib: false });
+          draw("j2", tA + 0.52, 0.16);
+          draw("gearh", tA + 0.55, 0.1, { nib: false });
+          draw("gears", tA + 0.58, 0.08, { nib: false });
+          draw("j2i", tA + 0.6, 0.1, { nib: false });
+          draw("pbody", tA + 0.55, 0.12);
+          draw("pnib", tA + 0.6, 0.1);
+          draw("j3", tA + 0.62, 0.12);
+          draw("j3i", tA + 0.7, 0.08, { nib: false });
+
+          // "ky su": the arm unfolds with inertia and its pen draws a real stroke
+          move(560, 650, tK, 0.42, "back.out(1.2)");
+          move(760, 650, tK + 0.45, 0.38, "power1.inOut");
+          draw("pstroke", tK + 0.45, 0.38, { nib: false });
+          tl.fromTo("#s2-pglow", { opacity: 0 }, { opacity: 1, duration: 0.05, ease: "none" }, tK + 0.42);
+          tl.fromTo("#s2-pglow", { opacity: 1 }, { opacity: 0, duration: 0.12, ease: "none", immediateRender: false }, tK + 0.84);
+          move(700, 590, tK + 0.86, 0.3, "power2.out");
+
+          // balloon A, label, leader that follows the elbow
+          pop("bnA", tK + 0.12, 578, 312);
+          write("l1", tK + 0.2, 0.45);
+          write("l1s", tK + 0.5, 0.35);
+          tl.fromTo(lead, { p: 0 }, { p: 1, duration: 0.3, ease: "power1.inOut", immediateRender: false, onUpdate: updLeader }, tK + 0.9);
+
+          // pause between sentences: reach envelope on the beat, a nod on the half beat, balloon tick
+          const bReach = beats(tK + 0.8, tK + 1.2)[0] ?? tK + 0.95;
+          draw("reach", bReach, 0.55, { dashed: true });
+          const nodT = halfBeats(tK + 1.18, tM - 0.42)[0];
+          if (nodT !== undefined) {
+            move(700, 604, nodT, 0.1, "power2.out");
+            move(700, 590, nodT + 0.11, 0.16, "power2.out");
+          }
+          beats(tK + 1.3, tM - 0.05).forEach((b) => {
+            tl.fromTo("#s2-bnA", { scale: 1, svgOrigin: "578 312" }, { scale: 1.12, svgOrigin: "578 312", duration: 0.09, ease: "power2.out", immediateRender: false }, b);
+            tl.fromTo("#s2-bnA", { scale: 1.12, svgOrigin: "578 312" }, { scale: 1, svgOrigin: "578 312", duration: 0.18, ease: "power2.in", immediateRender: false }, b + 0.09);
+          });
+
+          // ---------- sentence 2a: "Ban giao muc tieu lap ho so" : pen taps, the stroke grows into the title block ----------
+          move(700, 630, tM - 0.12, 0.13, "power2.in");
+          move(700, 590, tM + 0.03, 0.28, "back.out(2)");
+          tl.fromTo("#s2-pglow", { opacity: 0 }, { opacity: 1, duration: 0.04, ease: "none", immediateRender: false }, tM - 0.01);
+          tl.fromTo("#s2-pglow", { opacity: 1 }, { opacity: 0, duration: 0.14, ease: "none", immediateRender: false }, tM + 0.06);
+          draw("box", tM - 0.08, 0.42);
+          write("g1", tM + 0.05, 0.35);
+          draw("div1", tM + 0.25, 0.2);
+          draw("div2", tM + 0.38, 0.1, { nib: false });
+          draw("div3", tM + 0.42, 0.15);
+          write("g2", tM + 0.45, 0.3);
+          write("g3", tM + 0.6, 0.6);
+          move(735, 582, tM + 0.45, 0.7, "sine.inOut");
+
+          // ---------- sentence 2b: "mot can nha pho" : townhouse icon in the title block ----------
+          draw("hgr", tN - 0.08, 0.15);
+          draw("hcl", tN - 0.04, 0.2, { dashed: true });
+          draw("hout", tN, 0.32);
+          draw("hpar", tN + 0.28, 0.12);
+          draw("hf1", tN + 0.36, 0.1, { nib: false });
+          draw("hf2", tN + 0.42, 0.1, { nib: false });
+          draw("hw1", tN + 0.46, 0.1, { nib: false });
+          draw("hw2", tN + 0.52, 0.1, { nib: false });
+          draw("hdo", tN + 0.58, 0.1, { nib: false });
+          move(752, 598, tN - 0.06, 0.12, "power2.out");
+          move(735, 582, tN + 0.08, 0.22, "power2.out");
+
+          // ---------- sentence 2c: "no tu chia viec" : the tree splits into 4 tasks ----------
+          move(640, 520, tC - 0.15, 0.4, "back.out(1.4)");
+          draw("trunk", tC - 0.05, 0.38, { ease: "power1.in" });
+          Y.forEach((y, k) => {
+            const tb = tC + 0.12 + 0.08 * k;
+            tl.fromTo("#s2-jn" + k, { scale: 0, svgOrigin: "925 " + y }, { scale: 1, svgOrigin: "925 " + y, duration: 0.16, ease: "back.out(2)" }, tb);
+            draw("br" + k, tb, 0.16);
+            draw("ar" + k, tb + 0.14, 0.08, { nib: false });
+            draw("bx" + k, tC + 0.2 + 0.08 * k, 0.3);
+            draw("sd" + k, tC + 0.45 + 0.08 * k, 0.1, { nib: false });
+            write("rl" + k, tC + 0.3 + 0.08 * k, 0.3);
+          });
+          write("cnt", tC + 0.5, 0.3);
+          tl.fromTo("#s2-c0", { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.15, ease: "power2.out" }, tC + 0.55);
+
+          // ---------- sentence 3a: "lam tung buoc" : steps 1 to 4 light up in turn ----------
+          const pulse = $("pulse");
+          const stepT = Y.map((_, k) => tB - 0.15 + 0.24 * k);
+          Y.forEach((y, k) => {
+            const t = stepT[k];
+            const gp = $("gp" + k), GL = gp.getTotalLength(), pr = { p: 0 };
+            tl.fromTo(pr, { p: 0 }, {
+              p: 1, duration: 0.2, ease: "power1.in", immediateRender: false,
+              onUpdate: () => {
+                const pt = gp.getPointAtLength(GL * pr.p);
+                pulse.setAttribute("cx", pt.x.toFixed(2));
+                pulse.setAttribute("cy", pt.y.toFixed(2));
+                pulse.setAttribute("opacity", Math.sin(Math.PI * pr.p).toFixed(3));
+              },
+            }, t - 0.2);
+            pop("bn" + k, t, 843, y);
+            tl.fromTo("#s2-lit" + k, { opacity: 0 }, { opacity: 0.16, duration: 0.12, ease: "power2.out" }, t);
+            tl.fromTo("#s2-act" + k, { opacity: 0 }, { opacity: 1, duration: 0.08, ease: "none" }, t);
+            draw("ht" + k, t, 0.2, { ease: "none", nib: false });
+            draw("pg" + k, t, 0.22, { ease: "none" });
+            const tEnd = k < 3 ? stepT[k + 1] : tS - 0.2;
+            tl.fromTo("#s2-lit" + k, { opacity: 0.16 }, { opacity: 0.06, duration: 0.15, ease: "power1.out", immediateRender: false }, tEnd);
+            tl.fromTo("#s2-act" + k, { opacity: 1 }, { opacity: 0, duration: 0.1, ease: "none", immediateRender: false }, tEnd);
+            tl.fromTo("#s2-c" + k, { opacity: 1 }, { opacity: 0, duration: 0.06, ease: "none", immediateRender: false }, t);
+            tl.fromTo("#s2-c" + (k + 1), { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.12, ease: "power2.out", immediateRender: false }, t + 0.02);
+            move(648, 536, t, 0.1, "power2.out");
+            move(640, 520, t + 0.11, 0.12, "power2.out");
+          });
+
+          // ---------- sentence 3b: "va tu soat lai" : loop arrow, magnifier sweeps, white ticks ----------
+          draw("loop", tS - 0.2, 0.45);
+          draw("loopa1", tS + 0.05, 0.08, { nib: false });
+          draw("loopa2", tS + 0.24, 0.08, { nib: false });
+          write("loopl", tS - 0.08, 0.35);
+          move(605, 560, tS - 0.1, 0.35, "power2.inOut");
+          const mag = $("mag"), m0 = tS - 0.06, mDur = 0.42, y0 = 860, y1 = 1400;
+          tl.fromTo(mag, { x: 600, y: y0, opacity: 0 }, { opacity: 1, duration: 0.12, ease: "power1.out" }, tS - 0.14);
+          tl.fromTo("#s2-magi", { scale: 0.6, transformOrigin: "50% 50%" }, { scale: 1, transformOrigin: "50% 50%", duration: 0.16, ease: "back.out(1.6)" }, tS - 0.14);
+          tl.fromTo(mag, { y: y0 }, { y: y1, duration: mDur, ease: "none", immediateRender: false }, m0);
+          Y.forEach((y, k) => {
+            const tc = m0 + ((y - y0) / (y1 - y0)) * mDur;
+            draw("ck" + k, tc, 0.1);
+            tl.fromTo("#s2-ht" + k, { opacity: 1 }, { opacity: 0.35, duration: 0.1, ease: "none", immediateRender: false }, tc);
+            tl.fromTo("#s2-lit" + k, { opacity: 0.06 }, { opacity: 0.12, duration: 0.1, ease: "power2.out", immediateRender: false }, tc);
+          });
+
+          // ---------- ambient life: escapement gear advances one tooth per half beat ----------
+          halfBeats(tA + 0.7, D).forEach((t, i) => {
+            tl.fromTo("#s2-gear", { rotation: 36 * i, svgOrigin: "356 706" }, { rotation: 36 * (i + 1), svgOrigin: "356 706", duration: 0.14, ease: "power3.out", immediateRender: false }, t);
+          });
+
+          // ---------- exit: pan on to the next figure ----------
+          tl.fromTo(stage, { x: 0, opacity: 1 }, { x: -220, opacity: 0, duration: 0.3, ease: "power2.in", immediateRender: false }, D - 0.3);
+
+          window.__timelines["s2"] = tl;
+        })();
+      </script>
+    </template>
+  </body>
+</html>

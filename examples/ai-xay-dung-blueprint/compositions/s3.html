@@ -1,0 +1,389 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <!-- Scene s3. Runtime keeps only <template>; put style, markup and script inside it. -->
+  </head>
+  <body>
+    <template>
+      <style>
+        /* Each scene declares its fonts (HyperFrames lint: font_family_without_font_face). Paths are relative to index.html. */
+        @font-face { font-family: "Be Vietnam Pro"; src: url("fonts/BeVietnamPro-Regular.ttf"); font-weight: 400; }
+        @font-face { font-family: "Be Vietnam Pro"; src: url("fonts/BeVietnamPro-Medium.ttf"); font-weight: 500; }
+        @font-face { font-family: "Be Vietnam Pro"; src: url("fonts/BeVietnamPro-Bold.ttf"); font-weight: 700; }
+        @font-face { font-family: "Be Vietnam Pro"; src: url("fonts/BeVietnamPro-ExtraBold.ttf"); font-weight: 800; }
+        @font-face { font-family: "JetBrains Mono"; src: url("fonts/JetBrainsMono-Variable.ttf"); font-weight: 100 800; }
+
+        #s3-root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          background: transparent;
+          color: var(--line);
+          font-family: "Be Vietnam Pro", sans-serif;
+        }
+        #s3-stage { position: absolute; inset: 0; transform-origin: 50% 46%; }
+        #s3-svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+
+        /* line weights (drafting convention) */
+        #s3-root .s3-o, #s3-root .s3-d, #s3-root .s3-t, #s3-root .s3-h,
+        #s3-root .s3-cl, #s3-root .s3-hid, #s3-root .s3-blank {
+          fill: none; stroke: var(--line); stroke-linecap: round; stroke-linejoin: round;
+        }
+        #s3-root .s3-o { stroke-width: var(--w-out); }
+        #s3-root .s3-d { stroke-width: var(--w-det); }
+        #s3-root .s3-t { stroke-width: var(--w-thin); }
+        #s3-root .s3-h { stroke-width: var(--w-hair); }
+        #s3-root .s3-soft { stroke: var(--line-soft); }
+        #s3-root .s3-cl { stroke: var(--line-soft); stroke-width: var(--w-thin); stroke-dasharray: 22 6 4 6; stroke-linecap: butt; }
+        #s3-root .s3-hid { stroke-width: var(--w-thin); stroke-dasharray: 10 7; stroke-linecap: butt; }
+        #s3-root .s3-ghost { stroke: var(--line-soft); }
+        #s3-root .s3-blank { stroke: var(--line-soft); stroke-width: var(--w-thin); stroke-dasharray: 6 6; stroke-linecap: butt; }
+        #s3-root .s3-fill { fill: var(--fill); stroke: none; }
+        #s3-root .s3-tab { fill: var(--fill); stroke: var(--line); stroke-width: var(--w-det); stroke-linejoin: round; }
+        #s3-root .s3-bar { fill: var(--line); stroke: none; }
+        #s3-root .s3-bal circle { fill: var(--fill); stroke: var(--line); stroke-width: var(--w-thin); }
+        #s3-root .s3-bal text { fill: var(--line); font: 600 22px "JetBrains Mono", monospace; text-anchor: middle; dominant-baseline: central; }
+        #s3-root .s3-nib { fill: var(--line); filter: drop-shadow(0 0 6px rgba(231, 240, 249, 0.5)); }
+
+        /* lettering */
+        #s3-root .s3-tx { position: absolute; white-space: nowrap; color: var(--line); line-height: 1.2; }
+        #s3-root .s3-vn { font-family: "Be Vietnam Pro", sans-serif; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; }
+        #s3-root .s3-mono { font-family: "JetBrains Mono", monospace; font-weight: 600; letter-spacing: 0.04em; }
+
+        #s3-title { left: 80px; top: 150px; font-size: 52px; }
+        #s3-lb-so { left: 230px; top: 466px; width: 260px; text-align: center; font-size: 40px; }
+        #s3-lb-qt { left: 230px; top: 528px; width: 260px; text-align: center; font-size: 34px; }
+        #s3-lb-ct { left: 200px; top: 820px; width: 185px; height: 65px; line-height: 65px; text-align: center; font-size: 30px; }
+        #s3-lb-t1, #s3-lb-t2, #s3-lb-t3 { left: 552px; height: 70px; line-height: 70px; font-size: 30px; }
+        #s3-lb-t1 { top: 470px; }
+        #s3-lb-t2 { top: 590px; }
+        #s3-lb-t3 { top: 710px; }
+        #s3-lb-mc { left: 600px; top: 1044px; font-size: 36px; }
+        #s3-lb-vd { left: 600px; top: 1108px; font-size: 30px; padding: 2px 12px; border: var(--w-thin) solid var(--line-soft); border-radius: 4px; }
+        #s3-lb-220 { left: 370px; top: 1024px; width: 80px; text-align: center; font-size: 26px; }
+        #s3-lb-400 { left: 190px; top: 1294px; width: 80px; height: 32px; text-align: center; font-size: 26px; transform: rotate(-90deg); }
+        #s3-lb-4016 { left: 610px; top: 1166px; font-size: 30px; }
+        #s3-lb-thep { left: 610px; top: 1212px; font-size: 30px; }
+        #s3-lb-dai { left: 610px; top: 1288px; font-size: 30px; }
+        #s3-lb-dai span { font-family: "JetBrains Mono", monospace; font-weight: 600; letter-spacing: 0.04em; }
+        #s3-lb-25 { left: 610px; top: 1402px; font-size: 26px; }
+        #s3-lb-bv { left: 660px; top: 1400px; font-size: 30px; }
+      </style>
+
+      <div id="s3-root" data-composition-id="s3" data-width="1080" data-height="1920">
+        <div id="s3-stage">
+          <svg id="s3-svg" viewBox="0 0 1080 1920" xmlns="http://www.w3.org/2000/svg">
+            <defs id="s3-defs">
+              <clipPath id="s3-tabclip"><rect x="531" y="300" width="500" height="600" /></clipPath>
+              <!-- hatch must not run over the longitudinal bars: a clear ring around each bar -->
+              <mask id="s3-hatchmask" maskUnits="userSpaceOnUse" x="0" y="0" width="1080" height="1920">
+                <rect x="0" y="0" width="1080" height="1920" fill="#fff" />
+                <circle cx="339" cy="1149" r="13" fill="#000" />
+                <circle cx="481" cy="1149" r="13" fill="#000" />
+                <circle cx="339" cy="1471" r="13" fill="#000" />
+                <circle cx="481" cy="1471" r="13" fill="#000" />
+              </mask>
+            </defs>
+
+            <!-- figure title underline -->
+            <path id="s3-ul" class="s3-t" d="M80 226 H520" />
+
+            <!-- ===== FIG: lever-arch binder, oblique projection (depth vector -64, -48) ===== -->
+            <!-- index tabs live between the boards, so they are clipped to the right of the front cover -->
+            <g clip-path="url(#s3-tabclip)">
+              <path id="s3-ghost3" class="s3-hid s3-ghost" d="M500 710 H888 A12 12 0 0 1 900 722 V768 A12 12 0 0 1 888 780 H500 Z" />
+              <g id="s3-tab1"><path class="s3-tab" d="M500 470 H888 A12 12 0 0 1 900 482 V528 A12 12 0 0 1 888 540 H500 Z" /></g>
+              <g id="s3-tab2"><path class="s3-tab" d="M500 590 H888 A12 12 0 0 1 900 602 V648 A12 12 0 0 1 888 660 H500 Z" /></g>
+              <g id="s3-tab3"><path class="s3-tab" d="M500 710 H888 A12 12 0 0 1 900 722 V768 A12 12 0 0 1 888 780 H500 Z" /></g>
+            </g>
+
+            <!-- paper fills first (painter's order), then outlines -->
+            <polygon id="s3-f-top" class="s3-fill" points="170,370 530,370 466,322 106,322" />
+            <polygon id="s3-f-spine" class="s3-fill" points="170,370 106,322 106,882 170,930" />
+            <polygon id="s3-f-front" class="s3-fill" points="170,370 530,370 530,930 170,930" />
+            <path id="s3-nb-front" class="s3-o" d="M170 370 H530 V930 H170 Z" />
+            <path id="s3-nb-top" class="s3-o" d="M170 370 L106 322 H466 L530 370" />
+            <path id="s3-nb-spine" class="s3-o" d="M106 322 V882 L170 930" />
+
+            <!-- detail: cover plate, hinge groove, boards and page block on the top face, title block, metal edge -->
+            <path id="s3-plate" class="s3-d" d="M238 450 H482 A8 8 0 0 1 490 458 V592 A8 8 0 0 1 482 600 H238 A8 8 0 0 1 230 592 V458 A8 8 0 0 1 238 450 Z" />
+            <path id="s3-plate-in" class="s3-h" d="M238 458 H482 V592 H238 Z" />
+            <path id="s3-hinge" class="s3-h s3-soft" d="M192 378 V922" />
+            <path id="s3-boards" class="s3-h" d="" />
+            <path id="s3-pages" class="s3-h s3-soft" d="" />
+            <path id="s3-kt" class="s3-d" d="M200 820 H500 V885 H200 Z M385 820 V885" />
+            <path id="s3-blank" class="s3-blank" d="M400 866 H485" />
+            <path id="s3-edge" class="s3-h" d="M176 914 H524" />
+            <!-- spine: label slot and finger hole (circles on the receding face are sheared) -->
+            <path id="s3-slot" class="s3-d" d="" />
+            <path id="s3-hole-cl" class="s3-cl" d="" />
+            <path id="s3-hole" class="s3-d" d="" />
+            <!-- hidden lines: the two arch rings inside the closed binder -->
+            <path id="s3-ring1" class="s3-hid" d="" />
+            <path id="s3-ring2" class="s3-hid" d="" />
+
+            <!-- balloons for the three tabs -->
+            <path id="s3-bl1" class="s3-t" d="M900 505 H932" />
+            <path id="s3-bl2" class="s3-t" d="M900 625 H932" />
+            <path id="s3-bl3" class="s3-t" d="M900 745 H932" />
+            <g id="s3-bal1" class="s3-bal"><circle cx="952" cy="505" r="20" /><text x="952" y="506">1</text></g>
+            <g id="s3-bal2" class="s3-bal"><circle cx="952" cy="625" r="20" /><text x="952" y="626">2</text></g>
+            <g id="s3-bal3" class="s3-bal"><circle cx="952" cy="745" r="20" /><text x="952" y="746">3</text></g>
+
+            <!-- leader from the TCVN tab down to the example section -->
+            <path id="s3-lead" class="s3-t" d="M760 782 V1036" />
+            <path id="s3-arrow" class="s3-t" d="M751 1020 L760 1038 L769 1020" />
+            <path id="s3-mc-ul" class="s3-h" d="M600 1096 H880" />
+
+            <!-- ===== FIG: RC beam cross-section, scale 1 px = 1 mm (example 220 x 400) ===== -->
+            <!-- 1 centre lines -->
+            <path id="s3-cl-v" class="s3-cl" d="M410 1086 V1534" />
+            <path id="s3-cl-h" class="s3-cl" d="M276 1310 H544" />
+            <!-- 2 outline (paper fill under it) -->
+            <rect id="s3-f-beam" class="s3-fill" x="300" y="1110" width="220" height="400" />
+            <path id="s3-beam" class="s3-o" d="M300 1110 H520 V1510 H300 Z" />
+            <!-- 3 detail: stirrup (cover 25 to its outer face, centreline 28 in), 135 deg hooks at top-left, 4 bars -->
+            <path id="s3-stir" class="s3-d" d="M328 1149 V1471 A11 11 0 0 0 339 1482 H481 A11 11 0 0 0 492 1471 V1149 A11 11 0 0 0 481 1138 H339 A11 11 0 0 0 328 1149 Z" />
+            <path id="s3-hook" class="s3-d" d="M339 1138 L363 1162 M328 1149 L352 1173" />
+            <!-- 4 concrete hatch, 45 deg, 12 px pitch (path built in script) -->
+            <path id="s3-hatch" class="s3-h" d="" mask="url(#s3-hatchmask)" />
+            <circle id="s3-b1" class="s3-bar" cx="339" cy="1149" r="8" />
+            <circle id="s3-b2" class="s3-bar" cx="481" cy="1149" r="8" />
+            <circle id="s3-b3" class="s3-bar" cx="339" cy="1471" r="8" />
+            <circle id="s3-b4" class="s3-bar" cx="481" cy="1471" r="8" />
+            <!-- 5 dimensions with oblique ticks -->
+            <path id="s3-dim-b" class="s3-t" d="M300 1102 V1052 M520 1102 V1052 M292 1062 H528 M292 1070 L308 1054 M512 1070 L528 1054" />
+            <path id="s3-dim-h" class="s3-t" d="M292 1110 H240 M292 1510 H240 M250 1102 V1518 M242 1118 L258 1102 M242 1518 L258 1502" />
+            <path id="s3-dim-c" class="s3-t" d="M487 1428 L503 1412 M512 1428 L528 1412 M487 1420 H600" />
+            <!-- 6 leaders to the labels -->
+            <path id="s3-ld-bar" class="s3-t" d="M488 1152 L600 1206 H790" />
+            <path id="s3-ld-dai" class="s3-t" d="M492 1268 L600 1330 H790" />
+
+            <g id="s3-nibs"></g>
+          </svg>
+
+          <div id="s3-title" class="s3-tx s3-vn">HÌNH 3: SKILL</div>
+          <div id="s3-lb-so" class="s3-tx s3-vn">SỔ TAY</div>
+          <div id="s3-lb-qt" class="s3-tx s3-vn">QUY TRÌNH</div>
+          <div id="s3-lb-ct" class="s3-tx s3-vn">CÔNG TY</div>
+          <div id="s3-lb-t1" class="s3-tx s3-vn">BÓC KHỐI LƯỢNG</div>
+          <div id="s3-lb-t2" class="s3-tx s3-vn">MẪU DỰ TOÁN</div>
+          <div id="s3-lb-t3" class="s3-tx s3-mono">TCVN 5574:2018</div>
+          <div id="s3-lb-mc" class="s3-tx s3-vn">MẶT CẮT DẦM</div>
+          <div id="s3-lb-vd" class="s3-tx s3-vn">VÍ DỤ</div>
+          <div id="s3-lb-220" class="s3-tx s3-mono">220</div>
+          <div id="s3-lb-400" class="s3-tx s3-mono">400</div>
+          <div id="s3-lb-4016" class="s3-tx s3-mono">4Ø16</div>
+          <div id="s3-lb-thep" class="s3-tx s3-vn">THÉP DỌC</div>
+          <div id="s3-lb-dai" class="s3-tx s3-vn">ĐAI <span>Ø6</span></div>
+          <div id="s3-lb-25" class="s3-tx s3-mono">25</div>
+          <div id="s3-lb-bv" class="s3-tx s3-vn">LỚP BẢO VỆ</div>
+        </div>
+      </div>
+
+      <script>
+        (() => {
+          // A("key") = local time (s) of an anchor from timeline.json; never hard-code word times.
+          const A = (key) => window.__vv.local("s3", key);
+          const SC = window.__vv.scenes["s3"];
+          const DUR = SC.end - SC.start;
+          const BEAT = 60 / 104, S = SC.start;
+          const beats = (from, to) => { const o = []; for (let k = Math.ceil((S + from) / BEAT); k * BEAT - S <= to; k++) o.push(k * BEAT - S); return o; };
+          const NS = "http://www.w3.org/2000/svg";
+          const $ = (id) => document.getElementById("s3-" + id);
+          const tl = gsap.timeline({ paused: true });
+
+          // ---------- geometry built from the oblique projection ----------
+          // w along the cover width from the spine, v down from the top edge, u depth (0 front board, 1 back board)
+          const DX = -64, DY = -48;
+          const ob = (w, v, u) => [170 + w + DX * u, 370 + v + DY * u];
+          const P = (p) => p[0].toFixed(1) + " " + p[1].toFixed(1);
+          const poly = (pts, close) => "M" + pts.map(P).join(" L") + (close ? " Z" : "");
+
+          $("boards").setAttribute("d", poly([ob(0, 0, 0.1), ob(360, 0, 0.1)]) + " " + poly([ob(360, 0, 0.9), ob(0, 0, 0.9)]));
+          let pages = "";
+          for (let i = 0, u = 0.18; u < 0.83; u += 0.08, i++) {
+            const a = ob(8, 0, u), b = ob(348, 0, u);
+            pages += i % 2 ? poly([b, a]) : poly([a, b]);
+          }
+          pages += poly([ob(348, 0, 0.14), ob(348, 0, 0.86)]);
+          $("pages").setAttribute("d", pages);
+
+          $("slot").setAttribute("d", poly([ob(0, 70, 0.22), ob(0, 70, 0.78), ob(0, 270, 0.78), ob(0, 270, 0.22)], true));
+          const hole = [];
+          for (let i = 0; i < 48; i++) { const th = (Math.PI * 2 * i) / 48; hole.push(ob(0, 455 + 36 * Math.sin(th), 0.5 + 0.225 * Math.cos(th))); }
+          $("hole").setAttribute("d", poly(hole, true));
+          $("hole-cl").setAttribute("d", poly([ob(0, 455, 0.1), ob(0, 455, 0.9)]) + " " + poly([ob(0, 403, 0.5), ob(0, 507, 0.5)]));
+          const ring = (v) => {
+            const pts = [];
+            for (let i = 0; i <= 24; i++) { const th = -Math.PI / 2 + (Math.PI * i) / 24; pts.push(ob(24 + 46 * Math.cos(th), v, 0.5 + 0.32 * Math.sin(th))); }
+            return poly(pts, true);
+          };
+          $("ring1").setAttribute("d", ring(170));
+          $("ring2").setAttribute("d", ring(330));
+
+          // concrete hatch: lines x + y = c, 12 px apart, clipped to the section, drawn back and forth like a plotter
+          (() => {
+            const X0 = 300, X1 = 520, Y0 = 1110, Y1 = 1510, step = 12 * Math.SQRT2;
+            let d = "", flip = false;
+            for (let c = X0 + Y0 + step * 0.6; c < X1 + Y1; c += step) {
+              const xa = Math.max(X0, c - Y1), xb = Math.min(X1, c - Y0);
+              if (xb - xa < 3) continue;
+              const p = [[xa, c - xa], [xb, c - xb]];
+              if (flip) p.reverse();
+              flip = !flip;
+              d += "M" + P(p[0]) + " L" + P(p[1]) + " ";
+            }
+            $("hatch").setAttribute("d", d.trim());
+          })();
+
+          // ---------- helpers ----------
+          const nibs = $("nibs"), defs = $("defs");
+          const newNib = () => {
+            const c = document.createElementNS(NS, "circle");
+            c.setAttribute("r", "4");
+            c.setAttribute("class", "s3-nib");
+            c.style.opacity = "0";
+            nibs.appendChild(c);
+            return c;
+          };
+          // draw-on by arc length; the nib rides the head of the stroke (tween progress, not clock time)
+          const draw = (el, t, dur, ease) => {
+            if (typeof el === "string") el = $(el);
+            const L = el.getTotalLength();
+            el.style.strokeDasharray = L + " " + (L + 2);
+            const nib = newNib();
+            tl.fromTo(el, { strokeDashoffset: L }, {
+              strokeDashoffset: 0, duration: dur, ease: ease || "power1.inOut",
+              onUpdate: function () { const p = el.getPointAtLength(L * this.ratio); nib.setAttribute("cx", p.x); nib.setAttribute("cy", p.y); },
+            }, t);
+            tl.set(nib, { opacity: 1 }, t);
+            tl.set(nib, { opacity: 0 }, t + dur);
+          };
+          // dashed lines keep their pattern: reveal them through a mask whose solid copy is drawn on
+          const drawDashed = (id, t, dur, ease) => {
+            const el = $(id);
+            const m = document.createElementNS(NS, "mask");
+            m.setAttribute("id", el.id + "-mask");
+            m.setAttribute("maskUnits", "userSpaceOnUse");
+            m.setAttribute("x", "0"); m.setAttribute("y", "0"); m.setAttribute("width", "1080"); m.setAttribute("height", "1920");
+            const c = document.createElementNS(NS, "path");
+            c.setAttribute("d", el.getAttribute("d"));
+            c.setAttribute("fill", "none");
+            c.setAttribute("stroke", "#fff");
+            c.setAttribute("stroke-width", "14");
+            c.setAttribute("stroke-linecap", "round");
+            c.setAttribute("stroke-linejoin", "round");
+            m.appendChild(c);
+            defs.appendChild(m);
+            el.setAttribute("mask", "url(#" + m.id + ")");
+            draw(c, t, dur, ease);
+          };
+          // lettering written left to right
+          const write = (id, t, dur) => {
+            tl.fromTo($(id), { clipPath: "inset(-14px 100% -14px -6px)" }, { clipPath: "inset(-14px 0% -14px -6px)", duration: dur, ease: "power1.inOut" }, t);
+          };
+          const fadeIn = (ids, t, dur) => tl.fromTo(ids.map($), { opacity: 0 }, { opacity: 1, duration: dur, ease: "power1.out" }, t);
+          const pop = (id, t) => tl.fromTo($(id), { scale: 0, transformOrigin: "50% 50%" }, { scale: 1, duration: 0.34, ease: "back.out(1.6)" }, t);
+          const slide = (id, t) => tl.fromTo($(id), { x: -380 }, { x: 0, duration: 0.42, ease: "back.out(1.4)" }, t);
+
+          const stage = $("stage");
+          const tSkill = A("skill"), tSo = A("so"), tBoc = A("boc"), tMau = A("mau"), tTc = A("tc"), tBt = A("bt");
+
+          // ---------- camera: lateral pan in from the right, very slow push-in, pan out to the left ----------
+          tl.fromTo(stage, { x: 220, opacity: 0 }, { x: 0, opacity: 1, duration: 0.45, ease: "power3.out" }, 0);
+          tl.fromTo(stage, { scale: 1 }, { scale: 1.03, duration: DUR, ease: "none" }, 0);
+
+          // ---------- "Skill": figure title ----------
+          write("title", Math.max(0.05, tSkill - 0.1), 0.45);
+          draw("ul", tSkill + 0.2, 0.35);
+
+          // ---------- "sổ tay quy trình": the binder, in drafting order ----------
+          fadeIn(["f-front", "f-top", "f-spine"], tSo, 0.25);
+          draw("nb-front", tSo, 0.45);
+          draw("nb-top", tSo + 0.2, 0.3);
+          draw("nb-spine", tSo + 0.3, 0.3);
+          draw("plate", tSo + 0.35, 0.3);
+          draw("plate-in", tSo + 0.5, 0.25);
+          write("lb-so", tSo + 0.45, 0.35);
+          write("lb-qt", tSo + 0.62, 0.4);
+          draw("hinge", tSo + 0.7, 0.25);
+          draw("boards", tSo + 0.75, 0.3);
+          draw("pages", tSo + 0.8, 0.45);
+          // "của công ty bạn": title-block field with a blank waiting to be filled
+          draw("kt", tSo + 1.1, 0.3);
+          write("lb-ct", tSo + 1.2, 0.35);
+          drawDashed("blank", tSo + 1.4, 0.25);
+          draw("edge", tSo + 1.5, 0.25);
+          draw("slot", tSo + 1.38, 0.3);
+          drawDashed("hole-cl", tSo + 1.6, 0.25);
+          draw("hole", tSo + 1.75, 0.35);
+          // "Trong đó": hidden lines show what sits inside the closed binder
+          drawDashed("ring1", tBoc - 0.66, 0.4);
+          drawDashed("ring2", tBoc - 0.5, 0.4);
+
+          // ---------- three tabs pop out ----------
+          slide("tab1", tBoc);
+          write("lb-t1", tBoc + 0.3, 0.4);
+          draw("bl1", tBoc + 0.36, 0.12);
+          pop("bal1", tBoc + 0.44);
+
+          slide("tab2", tMau);
+          write("lb-t2", tMau + 0.3, 0.4);
+          draw("bl2", tMau + 0.36, 0.12);
+          pop("bal2", tMau + 0.44);
+
+          // balloons tick on the beat while the standards are introduced
+          beats(tMau + 0.5, tTc - 0.15).forEach((b, i) => {
+            const g = $(i % 2 ? "bal2" : "bal1");
+            tl.to(g, { scale: 1.16, duration: 0.1, ease: "power2.out" }, b);
+            tl.to(g, { scale: 1, duration: 0.22, ease: "power2.in" }, b + 0.1);
+          });
+          // "tiêu chuẩn": the third tab is sketched first as a hidden outline
+          drawDashed("ghost3", tMau + 1.26, 0.45);
+
+          slide("tab3", tTc);
+          tl.to($("ghost3"), { opacity: 0, duration: 0.2, ease: "power1.out" }, tTc + 0.2);
+          write("lb-t3", tTc + 0.28, 0.5);
+          draw("bl3", tTc + 0.34, 0.12);
+          pop("bal3", tTc + 0.42);
+
+          // ---------- leader to the example: RC beam section ----------
+          draw("lead", tTc + 0.5, 0.32);
+          draw("arrow", tTc + 0.82, 0.12);
+          drawDashed("cl-v", tTc + 0.55, 0.32);
+          drawDashed("cl-h", tTc + 0.62, 0.3);
+          write("lb-mc", tTc + 0.75, 0.4);
+          draw("mc-ul", tTc + 0.95, 0.25);
+
+          // "kết cấu bê tông": outline, detail, hatch, dimensions, labels
+          fadeIn(["f-beam"], tBt - 0.2, 0.2);
+          draw("beam", tBt - 0.15, 0.3);
+          draw("stir", tBt + 0.01, 0.28);
+          draw("hook", tBt + 0.26, 0.1);
+          ["b1", "b2", "b3", "b4"].forEach((id, i) => pop(id, tBt + 0.11 + i * 0.05));
+          draw("hatch", tBt + 0.16, 0.36);
+          write("lb-vd", tBt + 0.19, 0.3);
+          draw("dim-b", tBt + 0.26, 0.22);
+          draw("dim-h", tBt + 0.31, 0.22);
+          draw("dim-c", tBt + 0.36, 0.2);
+          write("lb-220", tBt + 0.41, 0.2);
+          write("lb-400", tBt + 0.45, 0.2);
+          write("lb-25", tBt + 0.49, 0.18);
+          draw("ld-bar", tBt + 0.39, 0.16);
+          draw("ld-dai", tBt + 0.44, 0.16);
+          write("lb-4016", tBt + 0.47, 0.22);
+          write("lb-thep", tBt + 0.53, 0.22);
+          write("lb-dai", tBt + 0.53, 0.22);
+          write("lb-bv", tBt + 0.55, 0.22);
+
+          // ---------- exit: pan on to the next figure ----------
+          tl.to(stage, { x: -220, opacity: 0, duration: 0.3, ease: "power2.in" }, DUR - 0.3);
+
+          window.__timelines["s3"] = tl;
+        })();
+      </script>
+    </template>
+  </body>
+</html>

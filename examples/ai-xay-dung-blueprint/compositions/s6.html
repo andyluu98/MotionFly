@@ -1,0 +1,475 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <!-- Scene s6 (HINH 6: PHE DUYET). Runtime keeps only <template>; style, markup and script live inside it. -->
+  </head>
+  <body>
+    <template>
+      <style>
+        /* Each scene declares its fonts (HyperFrames lint: font_family_without_font_face). Paths are relative to index.html. */
+        @font-face { font-family: "Be Vietnam Pro"; src: url("fonts/BeVietnamPro-Regular.ttf"); font-weight: 400; }
+        @font-face { font-family: "Be Vietnam Pro"; src: url("fonts/BeVietnamPro-Medium.ttf"); font-weight: 500; }
+        @font-face { font-family: "Be Vietnam Pro"; src: url("fonts/BeVietnamPro-Bold.ttf"); font-weight: 700; }
+        @font-face { font-family: "Be Vietnam Pro"; src: url("fonts/BeVietnamPro-ExtraBold.ttf"); font-weight: 800; }
+        @font-face { font-family: "JetBrains Mono"; src: url("fonts/JetBrainsMono-Variable.ttf"); font-weight: 100 800; }
+
+        #s6-root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          background: transparent;
+          color: var(--line);
+          font-family: "Be Vietnam Pro", sans-serif;
+        }
+        #s6-stage, #s6-cam, #s6-shake { position: absolute; inset: 0; }
+        #s6-svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+
+        /* line weights and dash conventions */
+        #s6-root .s6-o { fill: none; stroke: var(--line); stroke-width: var(--w-out); stroke-linecap: round; stroke-linejoin: round; }
+        #s6-root .s6-d { fill: none; stroke: var(--line); stroke-width: var(--w-det); stroke-linecap: round; stroke-linejoin: round; }
+        #s6-root .s6-t { fill: none; stroke: var(--line); stroke-width: var(--w-thin); stroke-linecap: round; stroke-linejoin: round; }
+        #s6-root .s6-h { fill: none; stroke: var(--line-soft); stroke-width: var(--w-hair); stroke-linecap: round; }
+        #s6-root .s6-c { fill: none; stroke: var(--line-soft); stroke-width: var(--w-thin); stroke-dasharray: 22 6 4 6; }
+        #s6-root .s6-x { fill: none; stroke: var(--line-soft); stroke-width: var(--w-thin); stroke-dasharray: 10 7; }
+        #s6-root .s6-solid { fill: var(--fill); }
+        #s6-root .s6-dot { fill: var(--line); stroke: none; }
+        #s6-root .s6-soft { stroke: var(--line-soft); }
+        #s6-root .s6-nib { fill: var(--line); stroke: none; opacity: 0; filter: drop-shadow(0 0 6px rgba(231, 240, 249, 0.9)); }
+        #s6-root .s6-bnum { font: 600 28px "JetBrains Mono", monospace; fill: var(--line); }
+        #s6-root .s6-ray { opacity: 0; }
+        #s6-spk { opacity: 0; }
+
+        /* labels: written on left to right */
+        #s6-root .s6-lbl { position: absolute; white-space: nowrap; font-weight: 700; letter-spacing: 0.06em; line-height: 1.25; color: var(--line); }
+        #s6-root .s6-mono { font-family: "JetBrains Mono", monospace; font-weight: 600; }
+        #s6-root .s6-dim { color: var(--line-soft); }
+        #s6-root .s6-tnib { position: absolute; left: 0; top: 0; width: 8px; height: 8px; border-radius: 50%; background: var(--line);
+          box-shadow: 0 0 10px 3px rgba(231, 240, 249, 0.6); opacity: 0; }
+      </style>
+
+      <div id="s6-root" data-composition-id="s6" data-width="1080" data-height="1920">
+        <div id="s6-stage">
+          <div id="s6-cam">
+            <div id="s6-shake">
+              <svg id="s6-svg" viewBox="0 0 1080 1920" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                  <!-- rubber-stamp ink: rough edge, mottled coverage, small dry speckles -->
+                  <filter id="s6-ink" x="-20%" y="-30%" width="140%" height="160%" color-interpolation-filters="sRGB">
+                    <feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="2" seed="11" result="fine" />
+                    <feDisplacementMap in="SourceGraphic" in2="fine" scale="3.5" xChannelSelector="R" yChannelSelector="G" result="rough" />
+                    <feGaussianBlur in="rough" stdDeviation="0.5" result="soft" />
+                    <feTurbulence type="fractalNoise" baseFrequency="0.035 0.05" numOctaves="3" seed="5" result="blot" />
+                    <feColorMatrix in="blot" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  -2.6 0 0 0 2.05" result="mask" />
+                    <feTurbulence type="fractalNoise" baseFrequency="0.5" numOctaves="1" seed="2" result="spk" />
+                    <feColorMatrix in="spk" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  -6 0 0 0 4.1" result="spkm" />
+                    <feComposite in="soft" in2="mask" operator="in" result="a" />
+                    <feComposite in="a" in2="spkm" operator="in" />
+                  </filter>
+                  <!-- ink bleeding into the paper fibres -->
+                  <filter id="s6-bleed" x="-20%" y="-30%" width="140%" height="160%" color-interpolation-filters="sRGB">
+                    <feGaussianBlur in="SourceGraphic" stdDeviation="2.4" result="b" />
+                    <feTurbulence type="fractalNoise" baseFrequency="0.06" numOctaves="2" seed="9" result="n" />
+                    <feDisplacementMap in="b" in2="n" scale="8" xChannelSelector="R" yChannelSelector="G" />
+                  </filter>
+                  <!-- stamp artwork, centred on 0,0 (the only use of var(--stamp) in the film) -->
+                  <g id="s6-stamp-art">
+                    <rect x="-190" y="-75" width="380" height="150" rx="14" style="fill: none; stroke: var(--stamp); stroke-width: 7px" />
+                    <rect x="-177" y="-62" width="354" height="124" rx="8" style="fill: none; stroke: var(--stamp); stroke-width: 2.5px" />
+                    <text x="0" y="20" text-anchor="middle" textLength="318" lengthAdjust="spacingAndGlyphs"
+                      style="font: 800 56px 'Be Vietnam Pro', sans-serif; fill: var(--stamp)">ĐÃ DUYỆT</text>
+                  </g>
+                  <!-- pitch circles are centre lines: revealed through a growing solid mask -->
+                  <mask id="s6-mA" maskUnits="userSpaceOnUse" x="0" y="0" width="1080" height="1920">
+                    <circle id="s6-mAc" cx="215" cy="1310" r="96" fill="none" stroke="#fff" stroke-width="10" />
+                  </mask>
+                  <mask id="s6-mB" maskUnits="userSpaceOnUse" x="0" y="0" width="1080" height="1920">
+                    <circle id="s6-mBc" cx="375" cy="1310" r="64" fill="none" stroke="#fff" stroke-width="10" />
+                  </mask>
+                </defs>
+
+                <!-- figure title underline -->
+                <path id="s6-tul" class="s6-t" d="M80 222 H620" />
+
+                <!-- TITLE BLOCK: paper fill, outline, then row rules -->
+                <g id="s6-tbg">
+                  <rect id="s6-tb" class="s6-o s6-solid" fill-opacity="0" x="120" y="270" width="840" height="600" />
+                  <line id="s6-r1" class="s6-d" x1="120" y1="380" x2="960" y2="380" />
+                  <line id="s6-v0" class="s6-d" x1="760" y1="270" x2="760" y2="380" />
+                  <line id="s6-r2" class="s6-d" x1="120" y1="490" x2="960" y2="490" />
+                  <line id="s6-r3" class="s6-d" x1="120" y1="600" x2="960" y2="600" />
+                  <line id="s6-v1" class="s6-d" x1="420" y1="380" x2="420" y2="870" />
+                  <line id="s6-r4" class="s6-d" x1="120" y1="770" x2="960" y2="770" />
+                  <!-- check marks in THIET KE / KIEM TRA -->
+                  <path id="s6-tk1" class="s6-d" d="M880 437 L896 452 L930 416" />
+                  <path id="s6-tk2" class="s6-d" d="M880 547 L896 562 L930 526" />
+                  <!-- focus brackets around the approval row -->
+                  <g id="s6-focus">
+                    <path class="s6-d" d="M108 614 V588 H134" />
+                    <path class="s6-d" d="M946 588 H972 V614" />
+                    <path class="s6-d" d="M972 756 V782 H946" />
+                    <path class="s6-d" d="M134 782 H108 V756" />
+                  </g>
+                  <!-- the engineer's signature, one pen stroke plus the flourish -->
+                  <path id="s6-sig" class="s6-d"
+                    d="M476 716 C470 676 500 640 520 652 C540 664 520 712 498 728 C486 737 482 722 500 708 C524 690 546 684 552 704 C556 718 566 724 580 704 C592 686 604 680 606 700 C608 716 620 722 634 700 C646 680 660 668 670 690 C676 704 668 722 684 716 C704 708 716 676 728 682 C738 688 732 712 748 708 C762 704 772 690 782 686 M486 744 C560 732 660 728 792 738" />
+                </g>
+
+                <!-- STAMP (outer group places it, inner group is animated) -->
+                <g transform="translate(785 762)">
+                  <g id="s6-stamp">
+                    <use id="s6-stamp-bleed" href="#s6-stamp-art" filter="url(#s6-bleed)" style="opacity: 0" />
+                    <use id="s6-stamp-ink" href="#s6-stamp-art" filter="url(#s6-ink)" style="opacity: 1" />
+                  </g>
+                </g>
+                <g id="s6-rays"></g>
+
+                <!-- balloon pointing at the verdict -->
+                <line id="s6-ld" class="s6-t" x1="872" y1="782" x2="923.7" y2="888.6" />
+                <circle id="s6-ldd" class="s6-dot" cx="872" cy="782" r="4.5" />
+                <g id="s6-bal">
+                  <circle class="s6-d s6-solid" cx="935" cy="912" r="26" />
+                  <text class="s6-bnum" x="935" y="922" text-anchor="middle">6</text>
+                </g>
+
+                <!-- SPLIT: hair rule and centre-line divider -->
+                <line id="s6-sh1" class="s6-t s6-soft" x1="540" y1="960" x2="80" y2="960" />
+                <line id="s6-sh2" class="s6-t s6-soft" x1="540" y1="960" x2="1000" y2="960" />
+                <line id="s6-dv" class="s6-c" x1="540" y1="975" x2="540" y2="1560" />
+
+                <!-- LEFT: meshing spur gears on a sectioned base plate -->
+                <rect id="s6-bp" class="s6-d s6-solid" fill-opacity="0" x="110" y="1468" width="370" height="26" />
+                <g id="s6-hatch"></g>
+                <g id="s6-gA">
+                  <path id="s6-gAp" class="s6-o s6-solid" fill-opacity="0" d="" />
+                  <circle id="s6-gAh1" class="s6-d" cx="247.53" cy="1277.47" r="12" />
+                  <circle id="s6-gAh2" class="s6-d" cx="182.47" cy="1277.47" r="12" />
+                  <circle id="s6-gAh3" class="s6-d" cx="182.47" cy="1342.53" r="12" />
+                  <circle id="s6-gAh4" class="s6-d" cx="247.53" cy="1342.53" r="12" />
+                  <circle id="s6-gAhub" class="s6-d" cx="215" cy="1310" r="20" />
+                  <path id="s6-gAk" class="s6-t" d="M211 1290 V1283 H219 V1290" />
+                </g>
+                <g id="s6-gB">
+                  <path id="s6-gBp" class="s6-o s6-solid" fill-opacity="0" d="" />
+                  <circle id="s6-gBh1" class="s6-t" cx="403" cy="1310" r="6.5" />
+                  <circle id="s6-gBh2" class="s6-t" cx="375" cy="1338" r="6.5" />
+                  <circle id="s6-gBh3" class="s6-t" cx="347" cy="1310" r="6.5" />
+                  <circle id="s6-gBh4" class="s6-t" cx="375" cy="1282" r="6.5" />
+                  <circle id="s6-gBhub" class="s6-d" cx="375" cy="1310" r="13" />
+                  <path id="s6-gBk" class="s6-t" d="M372 1297 V1291 H378 V1297" />
+                </g>
+                <line id="s6-hA" class="s6-x" x1="215" y1="1332" x2="215" y2="1468" />
+                <line id="s6-hB" class="s6-x" x1="375" y1="1325" x2="375" y2="1468" />
+                <circle id="s6-sA" class="s6-dot" cx="215" cy="1310" r="5" />
+                <circle id="s6-sB" class="s6-dot" cx="375" cy="1310" r="5" />
+                <g id="s6-pg">
+                  <line id="s6-cAx" class="s6-c" x1="92" y1="1310" x2="500" y2="1310" />
+                  <line id="s6-cAy" class="s6-c" x1="215" y1="1180" x2="215" y2="1442" />
+                  <line id="s6-cBy" class="s6-c" x1="375" y1="1212" x2="375" y2="1410" />
+                  <circle id="s6-pA" class="s6-c" cx="215" cy="1310" r="96" mask="url(#s6-mA)" />
+                  <circle id="s6-pB" class="s6-c" cx="375" cy="1310" r="64" mask="url(#s6-mB)" />
+                </g>
+                <circle id="s6-spk" class="s6-t" cx="311" cy="1310" r="4" />
+                <g id="s6-tally"></g>
+
+                <!-- RIGHT: compasses swinging one arc (oblique view: hinge height drawn upward) -->
+                <line id="s6-kx" class="s6-c" x1="628" y1="1395" x2="712" y2="1395" />
+                <line id="s6-ky" class="s6-c" x1="670" y1="1353" x2="670" y2="1437" />
+                <path id="s6-arc" class="s6-d" d="M779.27 1264.77 A170 170 0 0 1 779.27 1525.23" />
+                <line id="s6-rd" class="s6-t" x1="670" y1="1395" x2="826" y2="1395" />
+                <polygon id="s6-ra" class="s6-dot" points="840,1395 824,1389 824,1401" />
+                <circle id="s6-cpv" class="s6-dot" cx="670" cy="1395" r="4" />
+                <g id="s6-cmp">
+                  <polygon id="s6-cn" class="s6-d s6-solid" fill-opacity="0" points="0,0 0,0 0,0" />
+                  <polygon id="s6-cpn" class="s6-d s6-solid" fill-opacity="0" points="0,0 0,0 0,0" />
+                  <g id="s6-chd">
+                    <rect id="s6-chr" class="s6-d s6-solid" fill-opacity="0" x="-9" y="-60" width="18" height="46" rx="3" />
+                    <path id="s6-ck" class="s6-h" d="M-9 -26 H9 M-9 -36 H9 M-9 -46 H9" />
+                    <circle id="s6-chc" class="s6-d s6-solid" fill-opacity="0" cx="0" cy="0" r="13" />
+                    <circle id="s6-chp" class="s6-dot" cx="0" cy="0" r="4" />
+                  </g>
+                </g>
+              </svg>
+
+              <!-- labels -->
+              <div id="s6-title" class="s6-lbl" style="left: 80px; top: 150px; font-size: 50px">HÌNH 6: PHÊ DUYỆT</div>
+              <div id="s6-hdr" class="s6-lbl" style="left: 150px; top: 302px; font-size: 36px">KHUNG TÊN BẢN VẼ</div>
+              <div id="s6-code" class="s6-lbl s6-mono" style="left: 815px; top: 304px; font-size: 34px">A-06</div>
+              <div id="s6-l1" class="s6-lbl" style="left: 150px; top: 414px; font-size: 34px">THIẾT KẾ</div>
+              <div id="s6-l2" class="s6-lbl" style="left: 150px; top: 524px; font-size: 34px">KIỂM TRA</div>
+              <div id="s6-l3" class="s6-lbl" style="left: 150px; top: 664px; font-size: 34px">PHÊ DUYỆT</div>
+              <div id="s6-l4" class="s6-lbl" style="left: 150px; top: 799px; font-size: 34px">NGÀY</div>
+              <div id="s6-v1t" class="s6-lbl s6-mono" style="left: 460px; top: 416px; font-size: 30px">AI AGENT</div>
+              <div id="s6-v2t" class="s6-lbl s6-mono" style="left: 460px; top: 526px; font-size: 30px">AI AGENT</div>
+              <div id="s6-ks" class="s6-lbl s6-dim" style="left: 450px; top: 612px; font-size: 30px">KỸ SƯ</div>
+              <div id="s6-date" class="s6-lbl s6-mono s6-dim" style="left: 460px; top: 801px; font-size: 30px">-- / -- / ----</div>
+              <div id="s6-pl1" class="s6-lbl" style="left: 100px; top: 990px; font-size: 38px">AI:</div>
+              <div id="s6-pl2" class="s6-lbl" style="left: 100px; top: 1040px; font-size: 36px">PHẦN LẶP LẠI</div>
+              <div id="s6-pr1" class="s6-lbl" style="left: 580px; top: 990px; font-size: 38px">CON NGƯỜI:</div>
+              <div id="s6-pr2" class="s6-lbl" style="left: 580px; top: 1040px; font-size: 36px">PHÁN ĐOÁN</div>
+              <div id="s6-rl" class="s6-lbl s6-mono" style="left: 790px; top: 1352px; font-size: 26px">R</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <script>
+        (() => {
+          // A("key") = local time (s) of an anchor from timeline.json; never hard-code word times.
+          const A = (key) => window.__vv.local("s6", key);
+          const tl = gsap.timeline({ paused: true });
+          const SC = window.__vv.scenes["s6"];
+          const S = SC.start, DUR = SC.end - SC.start;
+          const BEAT = 60 / 104, HB = BEAT / 2;
+          const halves = (from, to) => { const o = []; for (let k = Math.ceil((S + from) / HB - 1e-9); k * HB - S <= to; k++) o.push(k * HB - S); return o; };
+          // snap a layer start to the nearest half beat when it is close enough
+          const grid = (t, tol = 0.1) => { const g = Math.round((S + t) / HB) * HB - S; return Math.abs(g - t) <= tol ? g : t; };
+          const q = (s) => document.querySelector(s);
+          const NS = "http://www.w3.org/2000/svg";
+          const f2 = (v) => (+v).toFixed(2);
+          const svgEl = (tag, attrs, parent) => { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); parent.appendChild(e); return e; };
+
+          // ---------- helpers: glowing nib, draw-on, write-on ----------
+          const nibFade = (n, t, d) => {
+            tl.fromTo(n, { opacity: 0 }, { opacity: 1, duration: 0.05, ease: "none" }, t);
+            tl.to(n, { opacity: 0, duration: 0.1, ease: "none" }, t + d);
+          };
+          const mkNib = (parent, x, y) => svgEl("circle", { class: "s6-nib", r: 4, cx: f2(x), cy: f2(y) }, parent);
+          const fillIn = (el, t, d) => {
+            if (el.hasAttribute("fill-opacity")) tl.fromTo(el, { attr: { "fill-opacity": 0 } }, { attr: { "fill-opacity": 1 }, duration: Math.min(0.15, d), ease: "none" }, t);
+          };
+          const nibTrack = (el, L, t, d, ease, parent) => {
+            const p0 = el.getPointAtLength(0), n = mkNib(parent || el.parentNode, p0.x, p0.y), pr = { p: 0 };
+            tl.fromTo(pr, { p: 0 }, { p: 1, duration: d, ease, onUpdate: () => {
+              const pt = el.getPointAtLength(L * pr.p); n.setAttribute("cx", f2(pt.x)); n.setAttribute("cy", f2(pt.y));
+            } }, t);
+            nibFade(n, t, d);
+          };
+          // solid stroke: strokeDashoffset from length to 0 (paper fill first, then the outline)
+          const draw = (sel, t, d, o = {}) => {
+            const el = typeof sel === "string" ? q(sel) : sel;
+            const L = el.getTotalLength(), ease = o.ease || "power1.inOut";
+            el.style.strokeDasharray = L + " " + (L + 4);
+            fillIn(el, t, d);
+            tl.fromTo(el, { strokeDashoffset: L + 2 }, { strokeDashoffset: 0, duration: d, ease }, t);
+            if (o.nib !== false) nibTrack(el, L, t, d, ease, o.nibIn);
+          };
+          // stroke whose shape keeps changing after it is drawn (compass legs): oversized dash, then fully on
+          const drawGrow = (sel, t, d) => {
+            const el = q(sel), L = el.getTotalLength(), B = 3000;
+            el.style.strokeDasharray = B + " " + (B + 4);
+            fillIn(el, t, d);
+            tl.fromTo(el, { strokeDashoffset: B + 2 }, { strokeDashoffset: B - L, duration: d, ease: "power1.inOut" }, t);
+            tl.set(el, { strokeDashoffset: 0 }, t + d + 0.01);
+            nibTrack(el, L, t, d, "power1.inOut");
+          };
+          // dashed straight line (centre / hidden): grow the end point, the dash pattern stays put
+          const drawLine = (sel, t, d, nib = true) => {
+            const el = q(sel);
+            const x1 = +el.getAttribute("x1"), y1 = +el.getAttribute("y1"), x2 = +el.getAttribute("x2"), y2 = +el.getAttribute("y2");
+            const n = nib ? mkNib(el.parentNode, x1, y1) : null;
+            tl.fromTo(el, { opacity: 0 }, { opacity: 1, duration: 0.02, ease: "none" }, t);
+            tl.fromTo(el, { attr: { x2: x1, y2: y1 } }, { attr: { x2, y2 }, duration: d, ease: "power1.inOut",
+              onUpdate: n ? () => { n.setAttribute("cx", el.getAttribute("x2")); n.setAttribute("cy", el.getAttribute("y2")); } : undefined }, t);
+            if (n) nibFade(n, t, d);
+          };
+          // text lettered on left to right with a glowing nib at the edge
+          const write = (sel, t, d = 0.4, nib = true) => {
+            const el = q(sel);
+            tl.fromTo(el, { clipPath: "inset(-30% 100% -30% 0)" }, { clipPath: "inset(-30% 0% -30% 0)", duration: d, ease: "power1.inOut" }, t);
+            if (!nib) return;
+            const n = document.createElement("div"); n.className = "s6-tnib"; el.parentNode.appendChild(n);
+            const pr = { p: 0 };
+            tl.fromTo(pr, { p: 0 }, { p: 1, duration: d, ease: "power1.inOut", onUpdate: () => {
+              const x = el.offsetLeft + el.offsetWidth * pr.p - 4, y = el.offsetTop + el.offsetHeight * 0.6 - 4;
+              n.style.transform = "translate(" + f2(x) + "px," + f2(y) + "px)";
+            } }, t);
+            nibFade(n, t, d);
+          };
+          const pop = (sel, t, d = 0.35) => tl.fromTo(sel, { scale: 0, opacity: 0, transformOrigin: "50% 50%" }, { scale: 1, opacity: 1, duration: d, ease: "back.out(1.6)" }, t);
+
+          // ---------- geometry built once (deterministic) ----------
+          // spur gear outline: same module m so the teeth really mesh; tooth i centred at phase + i*pitch
+          const gearD = (cx, cy, N, m, phase) => {
+            const r = (m * N) / 2, ra = r + m, rf = r - 1.25 * m, p = (2 * Math.PI) / N;
+            const P = (rad, a) => f2(cx + rad * Math.cos(a)) + " " + f2(cy + rad * Math.sin(a));
+            let d = "";
+            for (let i = 0; i < N; i++) {
+              const c = phase + i * p;
+              d += (i ? "L" : "M") + P(rf, c - 0.3 * p) + "L" + P(ra, c - 0.13 * p) + "A" + ra + " " + ra + " 0 0 1 " + P(ra, c + 0.13 * p) +
+                "L" + P(rf, c + 0.3 * p) + "A" + rf + " " + rf + " 0 0 1 " + P(rf, c + 0.7 * p);
+            }
+            return d + "Z";
+          };
+          const NA = 12, NB = 8, MOD = 16;                       // r_A 96 + r_B 64 = centre distance 160
+          q("#s6-gAp").setAttribute("d", gearD(215, 1310, NA, MOD, 0));                 // tooth points at gear B
+          q("#s6-gBp").setAttribute("d", gearD(375, 1310, NB, MOD, Math.PI / NB));      // gap faces gear A
+          gsap.set("#s6-gA", { svgOrigin: "215 1310", rotation: 0 });
+          gsap.set("#s6-gB", { svgOrigin: "375 1310", rotation: 0 });
+
+          // 45 degree section hatching inside the base plate (x 110..480, y 1468..1494), spacing 12
+          const hatchG = q("#s6-hatch"), hatch = [];
+          for (let x0 = 110 - 26; x0 <= 480; x0 += 12) {
+            const t0 = Math.max(0, 110 - x0), t1 = Math.min(26, 480 - x0);
+            if (t1 - t0 < 3) continue;
+            hatch.push(svgEl("line", { class: "s6-h", x1: f2(x0 + t0), y1: f2(1494 - t0), x2: f2(x0 + t1), y2: f2(1494 - t1) }, hatchG));
+          }
+
+          // impact rays around the stamp (skip the right side, it runs into the sheet edge)
+          const raysG = q("#s6-rays"), rays = [];
+          [200, 235, 270, 305, 160, 125, 90, 55].forEach((deg) => {
+            const a = (deg * Math.PI) / 180, c = Math.cos(a), s = Math.sin(a);
+            const el = svgEl("line", { class: "s6-t s6-ray", x1: f2(785 + c * 226), y1: f2(762 + s * 126), x2: f2(785 + c * 258), y2: f2(762 + s * 146) }, raysG);
+            rays.push({ el, dx: c * 18, dy: s * 12 });
+          });
+
+          // compasses: needle fixed at C, pencil on the arc, hinge above the midpoint (oblique height)
+          const C = [670, 1395], RAD = 170, HGT = 165;
+          const PHI0 = (-50 * Math.PI) / 180, PHI1 = (50 * Math.PI) / 180;
+          const legPoly = (el, H, T, w0, w1, tip) => {
+            const dx = T[0] - H[0], dy = T[1] - H[1], L = Math.hypot(dx, dy), ux = dx / L, uy = dy / L, nx = -uy, ny = ux;
+            const Q = [T[0] - ux * tip, T[1] - uy * tip];
+            const pts = [[H[0] + nx * w0, H[1] + ny * w0], [Q[0] + nx * w1, Q[1] + ny * w1], T, [Q[0] - nx * w1, Q[1] - ny * w1], [H[0] - nx * w0, H[1] - ny * w0]];
+            el.setAttribute("points", pts.map((p) => f2(p[0]) + "," + f2(p[1])).join(" "));
+          };
+          const elN = q("#s6-cn"), elP = q("#s6-cpn"), elHd = q("#s6-chd");
+          const setCompass = (phi) => {
+            const P = [C[0] + RAD * Math.cos(phi), C[1] + RAD * Math.sin(phi)];
+            const H = [(C[0] + P[0]) / 2, (C[1] + P[1]) / 2 - HGT];
+            legPoly(elN, H, C, 7, 3, 18);
+            legPoly(elP, H, P, 7, 4.5, 26);
+            elHd.setAttribute("transform", "translate(" + f2(H[0]) + " " + f2(H[1]) + ")");
+          };
+          setCompass(PHI0);
+
+          // ---------- camera: lateral pan in, slow push, pan out ----------
+          tl.fromTo("#s6-stage", { x: 220, opacity: 0 }, { x: 0, opacity: 1, duration: 0.45, ease: "power3.out" }, 0);
+          tl.fromTo("#s6-cam", { scale: 1, transformOrigin: "50% 40%" }, { scale: 1.03, duration: DUR, ease: "none" }, 0);
+
+          // ---------- figure title ----------
+          write("#s6-title", 0.06, 0.45);
+          draw("#s6-tul", 0.2, 0.4);
+
+          // ---------- Sentence 1: "Kỹ sư vẫn là người duyệt cuối cùng, ký tên và chịu trách nhiệm" ----------
+          // layer 1 (outline): title block frame on "Kỹ sư"
+          const tTB = grid(A("ks"), 0.15);
+          draw("#s6-tb", tTB, 0.75);
+          // layer 2 (detail): row rules on the half beat before "duyệt"
+          const tR = grid(A("duyet") - 0.1);
+          ["#s6-r1", "#s6-v0", "#s6-r2", "#s6-r3", "#s6-v1", "#s6-r4"].forEach((s, i) => draw(s, tR + i * 0.06, 0.32));
+          // labels last: sheet header, sheet code, then THIET KE / KIEM TRA / PHE DUYET / NGAY
+          write("#s6-hdr", tR + 0.02, 0.45);
+          write("#s6-code", tR + 0.28, 0.3);
+          ["#s6-l1", "#s6-l2", "#s6-l3", "#s6-l4"].forEach((s, i) => write(s, A("duyet") + 0.06 + i * 0.07, 0.35));
+          // "duyệt cuối cùng": brackets close on the approval row
+          tl.fromTo("#s6-focus", { scale: 1.08, opacity: 0, transformOrigin: "50% 50%" }, { scale: 1, opacity: 0.85, duration: 0.3, ease: "power2.out" }, A("duyet") + 0.3);
+          // designer and checker fields already filled by the agent, ticked
+          write("#s6-v1t", A("duyet") + 0.32, 0.3, false);
+          write("#s6-v2t", A("duyet") + 0.42, 0.3, false);
+          draw("#s6-tk1", A("duyet") + 0.45, 0.18);
+          draw("#s6-tk2", A("duyet") + 0.57, 0.18);
+          write("#s6-ks", A("ky") - 0.1, 0.3, false);
+          // "ký tên": the signature is written in the approval field
+          const tSig = A("ky") + 0.08;
+          draw("#s6-sig", tSig, 0.6);
+          write("#s6-date", tSig + 0.3, 0.35, false);
+
+          // "chịu trách nhiệm": the red stamp slams down on the beat, frame jolts once
+          const tImp = grid(A("tn") + 0.1);
+          tl.fromTo("#s6-stamp", { scale: 1.7, rotation: -15, y: -30, opacity: 0, transformOrigin: "50% 50%" },
+            { scale: 1, rotation: -8, y: 0, opacity: 1, duration: 0.14, ease: "power4.in" }, tImp - 0.14);
+          tl.to("#s6-stamp", { keyframes: [{ scale: 0.965, duration: 0.05, ease: "power2.out" }, { scale: 1.012, duration: 0.08 }, { scale: 1, duration: 0.1 }] }, tImp);
+          tl.fromTo("#s6-stamp-bleed", { opacity: 0 }, { opacity: 0.5, duration: 0.8, ease: "power2.out" }, tImp + 0.02);
+          tl.to("#s6-shake", { keyframes: [{ x: -9, y: 6, duration: 0.05 }, { x: 7, y: -4, duration: 0.06 }, { x: -4, y: 3, duration: 0.06 }, { x: 2, y: -1, duration: 0.07 }, { x: 0, y: 0, duration: 0.08 }], ease: "none" }, tImp);
+          rays.forEach((r) => {
+            tl.fromTo(r.el, { opacity: 0 }, { opacity: 1, duration: 0.03, ease: "none" }, tImp);
+            tl.fromTo(r.el, { x: 0, y: 0 }, { x: r.dx, y: r.dy, duration: 0.35, ease: "power2.out" }, tImp);
+            tl.to(r.el, { opacity: 0, duration: 0.28, ease: "power1.in" }, tImp + 0.06);
+          });
+          tl.to("#s6-focus", { opacity: 0.35, duration: 0.3, ease: "power1.out" }, tImp + 0.05);
+          // balloon "6" calls out the verdict while the ink settles
+          const tBal = grid(A("tn") + 0.62);
+          pop("#s6-ldd", tBal - 0.04, 0.2);
+          draw("#s6-ld", tBal, 0.22);
+          pop("#s6-bal", tBal + 0.18, 0.35);
+
+          // ---------- Sentence 2: "AI làm phần lặp lại, con người giữ phần phán đoán" ----------
+          // split the lower half: hair rule from the centre outward, centre-line divider down
+          const tSp = grid(A("ai") - 0.85);
+          draw("#s6-sh1", tSp, 0.4);
+          draw("#s6-sh2", tSp, 0.4);
+          drawLine("#s6-dv", tSp + 0.06, 0.5);
+
+          // LEFT: "AI: PHẦN LẶP LẠI" with gears
+          write("#s6-pl1", A("ai") - 0.5, 0.3);
+          write("#s6-pl2", A("ai") + 0.1, 0.45);
+          const tCL = grid(A("ai") - 0.55);                              // centre lines
+          drawLine("#s6-cAx", tCL, 0.35);
+          drawLine("#s6-cAy", tCL + 0.06, 0.3);
+          drawLine("#s6-cBy", tCL + 0.12, 0.28);
+          draw("#s6-mAc", tCL + 0.16, 0.4, { nibIn: q("#s6-pg") });       // pitch circles
+          draw("#s6-mBc", tCL + 0.22, 0.34, { nibIn: q("#s6-pg") });
+          const tG = grid(A("ai") - 0.3);                                // outlines
+          draw("#s6-gAp", tG, 0.55);
+          draw("#s6-gBp", tG + 0.1, 0.45);
+          const tDet = grid(A("ai"));                                    // details
+          ["#s6-gAhub", "#s6-gBhub"].forEach((s, i) => draw(s, tDet + i * 0.05, 0.2));
+          ["#s6-gAh1", "#s6-gAh2", "#s6-gAh3", "#s6-gAh4", "#s6-gBh1", "#s6-gBh2", "#s6-gBh3", "#s6-gBh4", "#s6-gAk", "#s6-gBk"]
+            .forEach((s, i) => draw(s, tDet + 0.04 + i * 0.025, 0.14, { nib: false }));
+          pop("#s6-sA", tDet + 0.08, 0.25);
+          pop("#s6-sB", tDet + 0.12, 0.25);
+          draw("#s6-bp", tDet + 0.02, 0.3);
+          drawLine("#s6-hA", tDet + 0.12, 0.22, false);
+          drawLine("#s6-hB", tDet + 0.16, 0.2, false);
+          hatch.forEach((h, i) => draw(h, tDet + 0.2 + i * 0.016, 0.1, { nib: false }));   // hatching sweeps across
+
+          // escapement: one tooth per half beat, short ease-out; ratio NA/NB keeps the mesh exact
+          const stepA = 360 / NA, stepB = 360 / NB;
+          const steps = halves(A("ai") + 0.23, DUR - 0.32);
+          const tallyG = q("#s6-tally");
+          steps.forEach((t, i) => {
+            tl.fromTo("#s6-gA", { rotation: i * stepA }, { rotation: (i + 1) * stepA, svgOrigin: "215 1310", duration: 0.17, ease: "power3.out", immediateRender: false }, t);
+            tl.fromTo("#s6-gB", { rotation: -i * stepB }, { rotation: -(i + 1) * stepB, svgOrigin: "375 1310", duration: 0.17, ease: "power3.out", immediateRender: false }, t);
+            // spark at the pitch point on every tick
+            tl.fromTo("#s6-spk", { opacity: 0, attr: { r: 4 } }, { opacity: 0.95, duration: 0.02, ease: "none", immediateRender: false }, t);
+            tl.to("#s6-spk", { opacity: 0, attr: { r: 16 }, duration: 0.24, ease: "power2.out" }, t + 0.02);
+            // tally of repetitions: four strokes, then the fifth strikes them through
+            const g = Math.floor(i / 5), j = i % 5, bx = 130 + g * 100;
+            const mark = j < 4
+              ? svgEl("line", { class: "s6-d", x1: bx + j * 18, y1: 1514, x2: bx + j * 18, y2: 1550 }, tallyG)
+              : svgEl("line", { class: "s6-d", x1: bx - 8, y1: 1546, x2: bx + 64, y2: 1518 }, tallyG);
+            draw(mark, t, 0.09, { nib: false, ease: "power2.out" });
+          });
+
+          // RIGHT: "CON NGƯỜI: PHÁN ĐOÁN" with compasses swinging one arc
+          write("#s6-pr1", A("nguoi") + 0.03, 0.35);
+          write("#s6-pr2", A("pd") + 0.08, 0.4);
+          const tK = grid(A("nguoi"));
+          drawLine("#s6-kx", tK, 0.22);
+          drawLine("#s6-ky", tK + 0.04, 0.22);
+          pop("#s6-cpv", tK + 0.02, 0.22);
+          drawGrow("#s6-cn", tK + 0.08, 0.28);
+          drawGrow("#s6-cpn", tK + 0.16, 0.28);
+          draw("#s6-chr", tK + 0.36, 0.18);
+          draw("#s6-chc", tK + 0.4, 0.16);
+          tl.fromTo("#s6-ck", { opacity: 0 }, { opacity: 1, duration: 0.12, ease: "none" }, tK + 0.5);
+          pop("#s6-chp", tK + 0.5, 0.2);
+          // the arc: pencil tip and drawn line share one tween timing so they stay together
+          const tArc = grid(A("pd")), dArc = 0.5;
+          draw("#s6-arc", tArc, dArc);
+          const cp = { phi: PHI0 };
+          tl.fromTo(cp, { phi: PHI0 }, { phi: PHI1, duration: dArc, ease: "power1.inOut", onUpdate: () => setCompass(cp.phi) }, tArc);
+          // radius dimension once the pencil has passed it
+          draw("#s6-rd", tArc + 0.3, 0.15);
+          tl.fromTo("#s6-ra", { opacity: 0 }, { opacity: 1, duration: 0.06, ease: "none" }, tArc + 0.43);
+          write("#s6-rl", tArc + 0.4, 0.15, false);
+
+          // ---------- exit: pan on to the next figure ----------
+          tl.to("#s6-stage", { x: -220, opacity: 0, duration: 0.3, ease: "power2.in" }, DUR - 0.3);
+
+          window.__timelines["s6"] = tl;
+        })();
+      </script>
+    </template>
+  </body>
+</html>

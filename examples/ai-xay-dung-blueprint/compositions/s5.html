@@ -1,0 +1,399 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <!-- Scene s5: HINH 5 VI DU. Runtime keeps only <template>; style, markup and script live inside it. -->
+  </head>
+  <body>
+    <template>
+      <style>
+        /* Each scene declares its fonts (HyperFrames lint: font_family_without_font_face). Paths are relative to index.html. */
+        @font-face { font-family: "Be Vietnam Pro"; src: url("fonts/BeVietnamPro-Regular.ttf"); font-weight: 400; }
+        @font-face { font-family: "Be Vietnam Pro"; src: url("fonts/BeVietnamPro-Medium.ttf"); font-weight: 500; }
+        @font-face { font-family: "Be Vietnam Pro"; src: url("fonts/BeVietnamPro-Bold.ttf"); font-weight: 700; }
+        @font-face { font-family: "Be Vietnam Pro"; src: url("fonts/BeVietnamPro-ExtraBold.ttf"); font-weight: 800; }
+        @font-face { font-family: "JetBrains Mono"; src: url("fonts/JetBrainsMono-Variable.ttf"); font-weight: 100 800; }
+
+        #s5-root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          background: transparent;
+          color: var(--line);
+          font-family: "Be Vietnam Pro", sans-serif;
+        }
+        #s5-stage { position: absolute; inset: 0; transform-origin: 540px 860px; }
+        #s5-svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+
+        /* line weights: outline / detail / thin / hair */
+        #s5-root .o { fill: none; stroke: var(--line); stroke-width: var(--w-out); stroke-linecap: round; stroke-linejoin: round; }
+        #s5-root .d { fill: none; stroke: var(--line); stroke-width: var(--w-det); stroke-linecap: round; stroke-linejoin: round; }
+        #s5-root .t { fill: none; stroke: var(--line); stroke-width: var(--w-thin); stroke-linecap: round; stroke-linejoin: round; }
+        #s5-root .ts { fill: none; stroke: var(--line-soft); stroke-width: var(--w-thin); stroke-linecap: round; stroke-linejoin: round; }
+        #s5-root .h { fill: none; stroke: var(--hair); stroke-width: var(--w-hair); stroke-linecap: round; }
+        /* dash conventions */
+        #s5-root .cl { fill: none; stroke: var(--line-soft); stroke-width: var(--w-thin); stroke-dasharray: 22 6 4 6; }
+        #s5-root .hid { fill: none; stroke: var(--line-soft); stroke-width: var(--w-thin); stroke-dasharray: 10 7; }
+        #s5-root .cut { fill: none; stroke: var(--line); stroke-width: var(--w-det); stroke-dasharray: 28 6 6 6 6 6; }
+        /* solids */
+        #s5-root .wf { fill: var(--line); stroke: none; }
+        #s5-root .pf { fill: var(--fill); stroke: none; }
+        #s5-root .bar { fill: var(--line); stroke: none; }
+        #s5-root .flash { fill: var(--line); stroke: none; opacity: 0; }
+        #s5-root .bc { fill: var(--fill); stroke: var(--line); stroke-width: var(--w-det); }
+        #s5-root .bt { fill: var(--line); font-family: "JetBrains Mono", monospace; font-weight: 700; font-size: 26px;
+          text-anchor: middle; dominant-baseline: central; }
+        #s5-root .bt.sm { font-size: 20px; }
+        /* glowing nib at the head of every stroke */
+        #s5-root .nib { fill: var(--line); opacity: 0; filter: drop-shadow(0 0 6px rgba(231, 240, 249, 0.9)); }
+
+        /* lettering layer */
+        #s5-labs { position: absolute; inset: 0; }
+        #s5-root .lab { position: absolute; white-space: nowrap; color: var(--line); font-family: "Be Vietnam Pro", sans-serif;
+          font-weight: 700; letter-spacing: 0.06em; line-height: 1.3; }
+        #s5-root .lab.mono { font-family: "JetBrains Mono", monospace; font-weight: 600; letter-spacing: 0.04em; }
+
+        /* light sweep that rides with the cutting plane, only inside the plan box */
+        #s5-sweepbox { position: absolute; left: 120px; top: 424px; width: 490px; height: 552px; overflow: hidden; }
+        #s5-sweep { position: absolute; left: 0; top: 0; width: 70px; height: 100%; opacity: 0;
+          background: linear-gradient(90deg, rgba(231, 240, 249, 0), rgba(231, 240, 249, 0.22), rgba(231, 240, 249, 0)); }
+      </style>
+
+      <div id="s5-root" data-composition-id="s5" data-width="1080" data-height="1920">
+        <div id="s5-stage">
+          <svg id="s5-svg" viewBox="0 0 1080 1920" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <clipPath id="s5-wclip"><rect id="s5-wclipr" x="-300" y="400" width="480" height="600" /></clipPath>
+            </defs>
+          </svg>
+          <div id="s5-sweepbox"><div id="s5-sweep"></div></div>
+          <div id="s5-labs"></div>
+        </div>
+      </div>
+
+      <script>
+        (() => {
+          const ID = "s5";
+          // A("key") = local time (s) of an anchor from timeline.json; never hard-code word times.
+          const A = (key) => window.__vv.local(ID, key);
+          const SC = window.__vv.scenes[ID];
+          const S = SC.start, END = SC.end - SC.start;
+          const BEAT = 60 / 104;
+          const beats = (from, to) => { const o = []; for (let k = Math.ceil((S + from) / BEAT); k * BEAT - S <= to; k++) o.push(k * BEAT - S); return o; };
+          // pull a layer start onto the nearest beat when it is within 0.12 s of the anchor
+          const snap = (t) => { let best = t, d = 0.12; beats(t - 0.2, t + 0.2).forEach((b) => { const e = Math.abs(b - t); if (e < d) { d = e; best = b; } }); return best; };
+
+          const tl = gsap.timeline({ paused: true });
+          const NS = "http://www.w3.org/2000/svg";
+          const $ = (name) => document.getElementById(ID + "-" + name);
+          const svg = $("svg"), labs = $("labs");
+          const mk = (tag, at, parent) => { const e = document.createElementNS(NS, tag); for (const k in at) e.setAttribute(k, at[k]); (parent || svg).appendChild(e); return e; };
+
+          // layers in painter's order
+          const gTop = mk("g", {}), gWin = mk("g", {}), gCL = mk("g", {}), gWO = mk("g", {}), gWF = mk("g", {});
+          const gDet = mk("g", {}), gDim = mk("g", {}), gBub = mk("g", {}), gCut = mk("g", {});
+          const gRt = mk("g", {}), gTb = mk("g", {}), gNib = mk("g", {});
+
+          // ---------- helpers ----------
+          const lab = (text, x, y, o = {}) => {
+            const d = document.createElement("div");
+            d.className = "lab" + (o.mono ? " mono" : "");
+            d.textContent = text;
+            d.style.left = x + "px"; d.style.top = y + "px"; d.style.fontSize = (o.size || 30) + "px";
+            const an = o.an || "l";
+            let tr = an === "c" ? "translate(-50%,-50%)" : an === "r" ? "translate(-100%,-50%)" : "translate(0,-50%)";
+            if (o.rot) tr += " rotate(" + o.rot + "deg)";
+            d.style.transform = tr; // static placement; only clipPath is tweened on labels
+            labs.appendChild(d);
+            return d;
+          };
+          const write = (el, at, dur = 0.4) =>
+            tl.fromTo(el, { clipPath: "inset(-30% 100% -30% 0%)" }, { clipPath: "inset(-30% 0% -30% 0%)", duration: dur, ease: "none" }, at);
+
+          // draw-on: one pen runs through the paths in order (dash offset by arc length), nib rides the head
+          const pen = (els, at, dur, ease = "power1.inOut") => {
+            els = [].concat(els);
+            const Ls = els.map((e) => e.getTotalLength());
+            const T = Ls.reduce((a, b) => a + b, 0);
+            els.forEach((e, i) => { e.setAttribute("stroke-dasharray", Ls[i] + " " + (Ls[i] + 2)); e.setAttribute("stroke-dashoffset", Ls[i]); e.style.opacity = 0; });
+            const nib = mk("circle", { r: 4, class: "nib" }, gNib);
+            const pr = { p: 0 };
+            tl.fromTo(pr, { p: 0 }, { p: 1, duration: dur, ease, onUpdate: () => {
+              const dist = pr.p * T; let acc = 0, head = null;
+              for (let i = 0; i < els.length; i++) {
+                const done = Math.max(0, Math.min(Ls[i], dist - acc));
+                els[i].setAttribute("stroke-dashoffset", Ls[i] - done);
+                els[i].style.opacity = done > 0 ? 1 : 0;
+                if (done > 0) head = [els[i], done];
+                acc += Ls[i];
+              }
+              if (head && pr.p < 1) { const pt = head[0].getPointAtLength(head[1]); nib.setAttribute("cx", pt.x); nib.setAttribute("cy", pt.y); nib.style.opacity = 1; }
+              else nib.style.opacity = 0;
+            } }, at);
+          };
+          // draw-on for dashed straight lines (centre, cutting plane, hidden): the end point travels, the dash stays on the paper
+          const rule = (els, at, dur, stg = 0, ease = "power1.inOut") => {
+            [].concat(els).forEach((e, i) => {
+              const x1 = +e.getAttribute("x1"), y1 = +e.getAttribute("y1"), x2 = +e.getAttribute("x2"), y2 = +e.getAttribute("y2");
+              e.setAttribute("x2", x1); e.setAttribute("y2", y1); e.style.opacity = 0;
+              const nib = mk("circle", { r: 4, class: "nib" }, gNib);
+              const pr = { p: 0 };
+              tl.fromTo(pr, { p: 0 }, { p: 1, duration: dur, ease, onUpdate: () => {
+                const x = x1 + (x2 - x1) * pr.p, y = y1 + (y2 - y1) * pr.p;
+                e.setAttribute("x2", x); e.setAttribute("y2", y); e.style.opacity = pr.p > 0 ? 1 : 0;
+                nib.setAttribute("cx", x); nib.setAttribute("cy", y); nib.style.opacity = pr.p > 0 && pr.p < 1 ? 1 : 0;
+              } }, at + i * stg);
+            });
+          };
+          const pop = (els, at, stg = 0.06, dur = 0.35) =>
+            tl.fromTo(els, { scale: 0, transformOrigin: "50% 50%" }, { scale: 1, duration: dur, ease: "back.out(1.6)", stagger: stg }, at);
+          const pulse = (els, at) =>
+            tl.fromTo(els, { scale: 1.1 }, { scale: 1, duration: 0.3, ease: "power2.out", immediateRender: false }, at);
+          const P = (d, cls, parent) => mk("path", { d, class: cls }, parent);
+          const Ln = (x1, y1, x2, y2, cls, parent) => mk("line", { x1, y1, x2, y2, class: cls }, parent);
+          const rectD = (x0, y0, x1, y1) => `M${x0} ${y0}H${x1}V${y1}H${x0}Z`;
+          const bubble = (x, y, t, r, parent, small) => {
+            const g = mk("g", {}, parent);
+            mk("circle", { cx: x, cy: y, r, class: "bc" }, g);
+            const tx = mk("text", { x, y, class: "bt" + (small ? " sm" : "") }, g);
+            tx.textContent = t;
+            return g;
+          };
+          const slash = (x, y, parent) => P(`M${x - 7} ${y + 7}L${x + 7} ${y - 7}`, "d", parent);
+
+          // anchors
+          const tVD = A("vd"), tCAD = A("cad"), tMB = A("mb"), tKT = A("kt");
+          const tSK = A("skill"), tTH = A("thep"), tKL = A("kl"), tDT = A("dt");
+
+          // ---------- camera: lateral pan in, slow push, pan out ----------
+          const stage = $("stage");
+          tl.fromTo(stage, { x: 220, opacity: 0 }, { x: 0, opacity: 1, duration: 0.45, ease: "power3.out" }, 0);
+          tl.fromTo(stage, { scale: 1 }, { scale: 1.03, duration: END, ease: "none" }, 0);
+          tl.fromTo(stage, { x: 0, opacity: 1 }, { x: -220, opacity: 0, duration: 0.3, ease: "power2.in", immediateRender: false }, END - 0.3);
+
+          // ---------- figure title ----------
+          const title = lab("HÌNH 5: VÍ DỤ", 80, 178, { size: 44 });
+          write(title, tVD, 0.45);
+          pen(Ln(80, 214, 470, 214, "t", gTop), tVD + 0.1, 0.4);
+
+          // ---------- sentence 1a: Agent -> MCP -> AutoCAD ----------
+          const agentBox = P(rectD(560, 160, 680, 220), "d", gTop);
+          pen(agentBox, tCAD - 1.1, 0.35);
+          write(lab("AGENT", 620, 190, { mono: true, size: 26, an: "c" }), tCAD - 0.95, 0.3);
+
+          const cab = [Ln(680, 187, 810, 187, "t", gTop), Ln(680, 193, 810, 193, "t", gTop)];
+          pen(cab, tCAD - 0.64, 0.4);
+          const node = mk("g", {}, gTop);
+          mk("circle", { cx: 745, cy: 190, r: 11, class: "bc" }, node);
+          mk("circle", { cx: 745, cy: 190, r: 4, class: "bar" }, node);
+          pop(node, tCAD - 0.45);
+          write(lab("MCP", 745, 164, { mono: true, size: 24, an: "c" }), tCAD - 0.4, 0.3);
+
+          const cadFlash = mk("rect", { x: 816, y: 166, width: 178, height: 48, class: "flash" }, gTop);
+          pen([P(rectD(810, 160, 1000, 220), "d", gTop), P(rectD(816, 166, 994, 214), "h", gTop)], snap(tCAD) - 0.12, 0.35);
+          write(lab("AUTOCAD", 905, 190, { mono: true, size: 26, an: "c" }), tCAD, 0.3);
+          [tCAD + 0.05, tMB - 0.7].forEach((t) => {
+            tl.fromTo(cadFlash, { opacity: 0 }, { opacity: 0.22, duration: 0.12, ease: "power1.out", immediateRender: false }, t);
+            tl.fromTo(cadFlash, { opacity: 0.22 }, { opacity: 0, duration: 0.4, ease: "power1.in", immediateRender: false }, t + 0.12);
+          });
+
+          // data pulses run back along the cable, one per beat
+          const pd = mk("circle", { cx: 810, cy: 190, r: 5, class: "nib" }, gTop);
+          const pp = { p: 0 };
+          const nPulse = 6;
+          tl.fromTo(pp, { p: 0 }, { p: 1, duration: BEAT, ease: "power1.inOut", repeat: nPulse - 1, onUpdate: () => {
+            pd.setAttribute("cx", 810 - 130 * pp.p);
+            pd.style.opacity = Math.sin(Math.PI * pp.p).toFixed(3);
+          } }, snap(tCAD + 0.3));
+
+          // "open the drawing": a dashed window frame unfolds out of the AUTOCAD box onto the sheet, then lifts away
+          const win = mk("rect", { x: 80, y: 245, width: 548, height: 810, class: "hid" }, gWin);
+          gsap.set(win, { svgOrigin: "905 190" });
+          tl.fromTo(win, { scale: 0.12, opacity: 0 }, { scale: 1, opacity: 0.9, duration: 0.45, ease: "power3.out" }, tCAD + 0.05);
+          tl.fromTo(win, { opacity: 0.9 }, { opacity: 0, duration: 0.4, ease: "power1.in", immediateRender: false }, tCAD + 0.75);
+
+          // ---------- sentence 1b: floor plan (ground floor of a townhouse), drafting order ----------
+          // sheet mapping: 1 mm = 0.06 px, axis A/1 at (210, 430)
+          const X = (m) => 210 + 0.06 * m, Y = (m) => 430 + 0.06 * m;
+          const AX = [[0, "A"], [3500, "B"], [6000, "C"]], AY = [[0, "1"], [4800, "2"], [9000, "3"]];
+
+          // 1. centre lines (grid axes)
+          const cls = [];
+          AX.forEach(([m]) => cls.push(Ln(X(m), 312, X(m), 1000, "cl", gCL)));
+          AY.forEach(([m]) => cls.push(Ln(122, Y(m), 605, Y(m), "cl", gCL)));
+          rule(cls, tCAD + 0.1, 0.45, 0.08);
+
+          // 2. walls: exterior 200, interior 110 (mm), outlines first, then solid poche (paper order hides the joints)
+          const walls = [
+            [-100, -100, 100, 9100], [5900, -100, 6100, 9100],            // party walls on A and C
+            [100, -100, 1200, 100], [2400, -100, 5900, 100],              // back wall, window 1200-2400
+            [100, 8900, 1000, 9100], [2400, 8900, 4200, 9100], [5400, 8900, 5900, 9100], // front: door 1000-2400, window 4200-5400
+            [100, 4745, 1300, 4855], [2200, 4745, 5900, 4855],            // wall on axis 2, door 1300-2200
+            [3445, 100, 3555, 3700], [3445, 4500, 3555, 4745],            // wall on axis B, door 3700-4500
+          ];
+          const wd = walls.map(([a, b, c, d]) => rectD(X(a), Y(b), X(c), Y(d)));
+          pen(wd.map((d) => P(d, "d", gWO)), tMB - 0.78, 0.72);
+          const wf = P(wd.join(""), "wf", gWF);
+          wf.setAttribute("clip-path", "url(#s5-wclip)");
+          tl.fromTo($("wclipr"), { attr: { x: -300 } }, { attr: { x: 180 }, duration: 0.35, ease: "power1.inOut" }, tMB - 0.15);
+
+          // 3. detail: doors (leaf + swing arc), windows (three thin lines in the wall), stair
+          const tDet = snap(tMB);
+          const doors = [
+            P("M270 964V922", "d", gDet), P("M312 964A42 42 0 0 0 270 922", "ts", gDet),          // front double door, left leaf
+            P("M354 964V922", "d", gDet), P("M312 964A42 42 0 0 1 354 922", "ts", gDet),          // right leaf
+            P("M288 714.7V660.7", "d", gDet), P("M342 714.7A54 54 0 0 0 288 660.7", "ts", gDet),  // kitchen door
+            P("M423.3 700H471.3", "d", gDet), P("M423.3 652A48 48 0 0 1 471.3 700", "ts", gDet),  // bedroom door
+          ];
+          pen(doors, tDet, 0.55);
+          const wins = [];
+          [424, 430, 436].forEach((y) => wins.push(Ln(282, y, 354, y, "t", gDet)));
+          [964, 970, 976].forEach((y) => wins.push(Ln(462, y, 534, y, "t", gDet)));
+          pen(wins, tDet + 0.05, 0.35);
+
+          // U-stair in bay B-C / 2-3: landing at the back, treads 260 mm, break line, LEN arrow
+          const st = [P("M426 721.3V912.1", "d", gDet), P("M492 787.3V912.1", "t", gDet), P("M498 787.3V912.1", "t", gDet)];
+          for (let i = 0; i <= 8; i++) {
+            const y = Y(5955 + 260 * i);
+            if (i === 0) st.push(Ln(426, y, 564, y, "t", gDet));
+            else { st.push(Ln(426, y, 492, y, "t", gDet)); st.push(Ln(498, y, 564, y, "t", gDet)); }
+          }
+          st.push(P("M496 866L524 859L528 849L534 869L538 857L564 851", "t", gDet));
+          pen(st, tDet + 0.12, 0.6);
+          const stDot = mk("circle", { cx: 531, cy: 904, r: 4, class: "bar" }, gDet);
+          pop(stDot, tDet + 0.5, 0, 0.25);
+          pen([P("M531 904V754H459V868", "t", gDet), P("M452 856L459 868L466 856", "t", gDet)], tDet + 0.55, 0.4);
+
+          // 4. dimensions (slash ticks, figures above the line), drawn on "kich thuoc"
+          const tDim = snap(tKT);
+          const dimTop = [
+            Ln(210, 340, 210, 398, "t", gDim), Ln(420, 378, 420, 398, "t", gDim), Ln(570, 340, 570, 398, "t", gDim),
+            Ln(210, 350, 570, 350, "t", gDim), Ln(210, 388, 570, 388, "t", gDim),
+          ];
+          [[210, 350], [570, 350], [210, 388], [420, 388], [570, 388]].forEach(([x, y]) => dimTop.push(slash(x, y, gDim)));
+          pen(dimTop, tDim, 0.45);
+          const dimLeft = [Ln(140, 430, 162, 430, "t", gDim), Ln(140, 718, 162, 718, "t", gDim), Ln(140, 970, 162, 970, "t", gDim), Ln(150, 430, 150, 970, "t", gDim)];
+          [430, 718, 970].forEach((y) => dimLeft.push(slash(150, y, gDim)));
+          pen(dimLeft, tDim + 0.08, 0.45);
+          const nums = [
+            lab("6000", 390, 335, { mono: true, size: 26, an: "c" }),
+            lab("3500", 315, 373, { mono: true, size: 26, an: "c" }),
+            lab("2500", 495, 373, { mono: true, size: 26, an: "c" }),
+            lab("4800", 134, 574, { mono: true, size: 26, an: "c", rot: -90 }),
+            lab("4200", 134, 844, { mono: true, size: 26, an: "c", rot: -90 }),
+          ];
+          nums.forEach((n, i) => write(n, tDim + 0.3 + i * 0.06, 0.25));
+          // illustrative dimensions are tagged VI DU
+          pen(P(rectD(90, 334, 180, 366), "t", gDim), tDim + 0.4, 0.3);
+          write(lab("VÍ DỤ", 135, 350, { size: 22, an: "c" }), tDim + 0.5, 0.3);
+
+          // 5. axis balloons
+          const bubL = AX.map(([m, t]) => bubble(X(m), 290, t, 22, gBub));
+          const bubN = AY.map(([m, t]) => bubble(100, Y(m), t, 22, gBub));
+          pop([...bubL, ...bubN], tDim + 0.32, 0.06);
+
+          // 6. labels
+          write(lab("BẾP", 316, 560, { size: 28, an: "c" }), tDim + 0.62, 0.3);
+          write(lab("P. NGỦ", 494, 560, { size: 28, an: "c" }), tDim + 0.7, 0.35);
+          write(lab("P. KHÁCH", 316, 842, { size: 28, an: "c" }), tDim + 0.78, 0.4);
+          write(lab("LÊN", 531, 936, { size: 22, an: "c" }), tDim + 0.86, 0.25);
+          write(lab("MẶT BẰNG TẦNG 1", 210, 1026, { size: 30 }), tDim + 0.55, 0.5);
+          pen(Ln(210, 1048, 545, 1048, "t", gDim), tDim + 0.7, 0.4);
+
+          // 7. cutting plane 1-1 sweeps across the plan (in the pause after "kich thuoc")
+          const tCut = tKT + 0.75, dCut = 0.55;
+          rule(Ln(172, 622, 606, 622, "cut", gCut), tCut, dCut, 0, "power1.inOut");
+          tl.fromTo($("sweep"), { x: -70 }, { x: 490, duration: dCut, ease: "power1.inOut" }, tCut);
+          tl.fromTo($("sweep"), { opacity: 0 }, { opacity: 1, duration: 0.1, ease: "none" }, tCut);
+          tl.fromTo($("sweep"), { opacity: 1 }, { opacity: 0, duration: 0.15, ease: "none", immediateRender: false }, tCut + dCut - 0.1);
+          const cutEnds = [
+            P("M172 622H196", "o", gCut), P("M184 622V600", "t", gCut), P("M178 610L184 598L190 610", "t", gCut),
+            P("M606 622H582", "o", gCut), P("M594 622V600", "t", gCut), P("M588 610L594 598L600 610", "t", gCut),
+          ];
+          pen(cutEnds, tCut + dCut - 0.05, 0.3);
+          const cutL = [mk("g", {}, gCut), mk("g", {}, gCut)];
+          [[184, cutL[0]], [594, cutL[1]]].forEach(([x, g]) => { const tx = mk("text", { x, y: 582, class: "bt" }, g); tx.textContent = "1"; });
+          pop(cutL, tCut + dCut + 0.15, 0.08, 0.3);
+
+          // ---------- sentence 2: Skill -> steel -> quantities -> estimate ----------
+          // arrow from section mark to section detail
+          pen([P("M612 622Q660 676 708 660", "t", gRt), P("M698.5 669.5L708 660L694.7 658.1", "t", gRt)], tSK - 0.45, 0.35);
+
+          // SKILL: a handbook box (double rule) with a book symbol
+          const tSkill = snap(tSK);
+          pen([P(rectD(690, 290, 900, 360), "d", gRt), P(rectD(696, 296, 894, 354), "h", gRt)], tSkill - 0.05, 0.35);
+          pen([P(rectD(706, 306, 746, 344), "t", gRt), P("M714 306V344", "t", gRt),
+            P("M720 316H740", "h", gRt), P("M720 325H740", "h", gRt), P("M720 334H736", "h", gRt)], tSkill + 0.1, 0.3);
+          write(lab("SKILL", 760, 325, { mono: true, size: 30 }), tSkill + 0.15, 0.3);
+          pen([Ln(795, 360, 795, 506, "t", gRt), P("M789 495L795 507L801 495", "t", gRt)], tSkill + 0.25, 0.3);
+          write(lab("TCVN 5574", 812, 436, { mono: true, size: 24 }), tSkill + 0.35, 0.35);
+
+          // section 1-1 of a beam: paper fill, outline, stirrup with 135 deg hooks, bars, hatching, balloons
+          const tSteel = snap(tTH);
+          write(lab("MẶT CẮT 1-1", 795, 532, { size: 30, an: "c" }), tSteel - 0.1, 0.4);
+          const paper = mk("rect", { x: 720, y: 565, width: 150, height: 270, class: "pf" }, gRt);
+          tl.fromTo(paper, { opacity: 0 }, { opacity: 1, duration: 0.15, ease: "none" }, tSteel - 0.02);
+          pen(P(rectD(720, 565, 870, 835), "o", gRt), tSteel, 0.3);
+          const hatchLines = [];
+          for (let c = 722 + 567 + 13; c < 868 + 833; c += 13) {
+            const xa = Math.max(722, c - 833), xb = Math.min(868, c - 567);
+            if (xb - xa > 2) hatchLines.push(Ln(xa, c - xa, xb, c - xb, "h", gRt));
+          }
+          pen(hatchLines, tSteel + 0.42, 0.45, "none");
+          pen([P("M745 582H845Q853 582 853 590V810Q853 818 845 818H745Q737 818 737 810V590Q737 582 745 582", "d", gRt),
+            P("M749 581L772 604", "d", gRt), P("M736 594L759 617", "d", gRt)], tSteel + 0.22, 0.38);
+          const bars = [[752, 598, 8], [838, 598, 8], [752, 800, 9], [795, 800, 9], [838, 800, 9]].map(([x, y, r]) => mk("circle", { cx: x, cy: y, r, class: "bar" }, gRt));
+          pop(bars, tSteel + 0.5, 0.05, 0.3);
+          // main bar with 180 deg hooks
+          pen(P("M724 852H700A14 14 0 0 0 700 880H980A14 14 0 0 0 980 852H956", "o", gRt), tSteel + 0.35, 0.45);
+          // balloons with leaders
+          const ldr = [P("M846 793L931 731", "t", gRt), P("M853 650L929 627", "t", gRt)];
+          pen(ldr, tSteel + 0.62, 0.25);
+          const ldot = [mk("circle", { cx: 846, cy: 793, r: 3, class: "bar" }, gRt), mk("circle", { cx: 853, cy: 650, r: 3, class: "bar" }, gRt)];
+          const balS = [bubble(950, 720, "1", 22, gRt), bubble(950, 620, "2", 22, gRt)];
+          pop([...ldot, ...balS], tSteel + 0.72, 0.06);
+          // legend
+          const balLeg = [bubble(686, 940, "1", 16, gRt, true), bubble(686, 985, "2", 16, gRt, true)];
+          pop(balLeg, tSteel + 0.85, 0.08, 0.3);
+          write(lab("THÉP CHỦ", 712, 940, { size: 28 }), tSteel + 0.9, 0.35);
+          write(lab("THÉP ĐAI", 712, 985, { size: 28 }), tSteel + 0.98, 0.35);
+
+          // quantity take-off: arrow from the detail down to the estimate table
+          const tTake = snap(tKL);
+          pen([Ln(960, 1004, 960, 1130, "t", gRt), P("M954 1118L960 1130L966 1118", "t", gRt)], tTake, 0.3);
+          write(lab("BÓC KHỐI LƯỢNG", 942, 1066, { size: 28, an: "r" }), tTake + 0.1, 0.4);
+
+          // estimate table: frame, header, rows; quantity cells are waiting dashes, no figures
+          pen(P(rectD(80, 1140, 1000, 1490), "o", gTb), tTake + 0.15, 0.45);
+          const inner = [Ln(80, 1220, 1000, 1220, "d", gTb), Ln(200, 1140, 200, 1490, "d", gTb), Ln(580, 1140, 580, 1490, "d", gTb),
+            Ln(740, 1140, 740, 1490, "d", gTb), Ln(80, 1310, 1000, 1310, "t", gTb), Ln(80, 1400, 1000, 1400, "t", gTb)];
+          inner.forEach((e, i) => pen(e, tTake + 0.45 + i * 0.04, 0.3));
+          [lab("STT", 140, 1180, { mono: true, size: 30, an: "c" }), lab("HẠNG MỤC", 390, 1180, { size: 30, an: "c" }),
+            lab("ĐVT", 660, 1180, { size: 30, an: "c" }), lab("KHỐI LƯỢNG", 870, 1180, { size: 30, an: "c" })]
+            .forEach((h, i) => write(h, tTake + 0.6 + i * 0.07, 0.3));
+
+          write(lab("BẢNG DỰ TOÁN", 80, 1090, { size: 44 }), tDT, 0.45);
+          pen(Ln(80, 1124, 470, 1124, "t", gTb), tDT + 0.15, 0.35);
+          const rows = [["1", "BÊ TÔNG", "m³", 1265], ["2", "CỐT THÉP", "kg", 1355], ["3", "XÂY TƯỜNG", "m²", 1445]];
+          const cursors = [];
+          rows.forEach(([n, item, unit, y], i) => {
+            const t0 = tDT + 0.08 + i * 0.12;
+            write(lab(n, 140, y, { mono: true, size: 30, an: "c" }), t0, 0.15);
+            write(lab(item, 224, y, { size: 32 }), t0 + 0.04, 0.32);
+            write(lab(unit, 660, y, { mono: true, size: 30, an: "c" }), t0 + 0.12, 0.2);
+            rule(Ln(790, y + 2, 950, y + 2, "hid", gTb), tDT + 0.3 + i * 0.08, 0.28);
+            const c = Ln(964, y - 14, 964, y + 14, "d", gTb);
+            cursors.push(c);
+          });
+          tl.fromTo(cursors, { opacity: 0 }, { opacity: 1, duration: 0.14, ease: "none", yoyo: true, repeat: 4, stagger: 0.05 }, tDT + 0.6);
+
+          // ---------- living motion: balloons tick on the beat ----------
+          beats(tKT + 1.0, END - 0.35).forEach((b, i) => pulse(i % 2 ? bubN : bubL, b));
+          beats(tTH + 1.2, END - 0.35).forEach((b) => pulse(balS, b));
+
+          window.__timelines[ID] = tl;
+        })();
+      </script>
+    </template>
+  </body>
+</html>

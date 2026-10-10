@@ -1,0 +1,411 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <!-- Scene s7 (HÌNH 7: TỔNG KẾT). Runtime keeps only <template>; put style, markup and script inside it. -->
+  </head>
+  <body>
+    <template>
+      <style>
+        /* Each scene declares its fonts (HyperFrames lint: font_family_without_font_face). Paths are relative to index.html. */
+        @font-face { font-family: "Be Vietnam Pro"; src: url("fonts/BeVietnamPro-Regular.ttf"); font-weight: 400; }
+        @font-face { font-family: "Be Vietnam Pro"; src: url("fonts/BeVietnamPro-Medium.ttf"); font-weight: 500; }
+        @font-face { font-family: "Be Vietnam Pro"; src: url("fonts/BeVietnamPro-Bold.ttf"); font-weight: 700; }
+        @font-face { font-family: "Be Vietnam Pro"; src: url("fonts/BeVietnamPro-ExtraBold.ttf"); font-weight: 800; }
+        @font-face { font-family: "JetBrains Mono"; src: url("fonts/JetBrainsMono-Variable.ttf"); font-weight: 100 800; }
+        #s7-root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          background: transparent;
+          color: var(--line);
+          font-family: "Be Vietnam Pro", sans-serif;
+        }
+        #s7-stage { position: absolute; inset: 0; transform-origin: 50% 46%; }
+        #s7-svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+
+        /* line work: four weights, round caps, no fill */
+        #s7-root .s7-ln { fill: none; stroke: var(--line); stroke-linecap: round; stroke-linejoin: round; }
+        #s7-root .s7-ln.o { stroke-width: var(--w-out); }
+        #s7-root .s7-ln.d { stroke-width: var(--w-det); }
+        #s7-root .s7-ln.t { stroke-width: var(--w-thin); }
+        #s7-root .s7-ln.h { stroke-width: var(--w-hair); }
+        #s7-root .s7-ln.soft { stroke: var(--line-soft); }
+        #s7-root .s7-fill { fill: var(--fill); stroke: none; }
+        #s7-root .s7-joint { fill: var(--fill); stroke: var(--line); stroke-width: var(--w-thin); }
+        #s7-root .s7-ball { fill: var(--fill); stroke: var(--line); stroke-width: var(--w-det); }
+        #s7-root .s7-dot { fill: var(--line); }
+        #s7-root .s7-nib { fill: var(--line); filter: drop-shadow(0 0 6px rgba(231, 240, 249, 0.9)); }
+        #s7-root .s7-num { font: 700 30px "JetBrains Mono", monospace; fill: var(--line); }
+        /* the big question mark: a paper-filled tube = wide white stroke under a narrower paper stroke */
+        #s7-root .s7-qo { fill: none; stroke: var(--line); stroke-width: 34px; stroke-linecap: round; stroke-linejoin: round; }
+        #s7-root .s7-qi { fill: none; stroke: var(--fill); stroke-width: 24px; stroke-linecap: round; stroke-linejoin: round; }
+
+        /* lettering */
+        #s7-root .s7-tx { position: absolute; white-space: nowrap; color: var(--line); line-height: 1.6; }
+        #s7-title { left: 80px; top: 136px; font-weight: 700; font-size: 50px; letter-spacing: 0.06em; }
+        #s7-sheetno { right: 80px; top: 158px; font: 600 26px "JetBrains Mono", monospace; letter-spacing: 0.12em; }
+        #s7-root #s7-sheetno, #s7-root .s7-dim { color: var(--line-soft); } #s7-root #s7-notes { color: var(--line); }
+        #s7-head { left: 104px; top: 258px; font-weight: 700; font-size: 34px; letter-spacing: 0.06em; }
+        #s7-notes { right: 104px; top: 267px; font: 600 22px "JetBrains Mono", monospace; letter-spacing: 0.16em; }
+        #s7-root .s7-row { left: 222px; font-weight: 700; font-size: 36px; letter-spacing: 0.06em; }
+        #s7-root .s7-row b { font-weight: 800; }
+        #s7-row0 { top: 366px; }
+        #s7-row1 { top: 516px; }
+        #s7-row2 { top: 666px; }
+        #s7-cap { left: 540px; top: 1526px; transform: translateX(-50%); font-weight: 700; font-size: 30px; letter-spacing: 0.06em; }
+        #s7-root .s7-dim { left: 962px; font: 600 22px "JetBrains Mono", monospace; letter-spacing: 0.08em; }
+        #s7-t1 { top: 1412px; }
+        #s7-t2 { top: 1282px; }
+        #s7-t3 { top: 1162px; }
+
+        /* light sweep: transparent gradient inside a box that covers only the notes column */
+        #s7-sweepbox { position: absolute; left: 80px; top: 250px; width: 920px; height: 520px; overflow: hidden; pointer-events: none; }
+        #s7-sweep { position: absolute; left: 0; top: 0; width: 260px; height: 100%; opacity: 0;
+          background: linear-gradient(100deg, rgba(231, 240, 249, 0) 0%, rgba(231, 240, 249, 0.16) 50%, rgba(231, 240, 249, 0) 100%); }
+      </style>
+
+      <div id="s7-root" data-composition-id="s7" data-width="1080" data-height="1920">
+        <div id="s7-stage">
+          <svg id="s7-svg" viewBox="0 0 1080 1920" xmlns="http://www.w3.org/2000/svg">
+            <defs id="s7-defs">
+              <clipPath id="s7-clip-foot"><rect x="190" y="1500" width="140" height="40" /></clipPath>
+            </defs>
+          </svg>
+          <div id="s7-title" class="s7-tx">HÌNH 7: TỔNG KẾT</div>
+          <div id="s7-sheetno" class="s7-tx">07 / 07</div>
+          <div id="s7-head" class="s7-tx">GHI CHÚ CHUNG</div>
+          <div id="s7-notes" class="s7-tx">NOTES</div>
+          <div id="s7-row0" class="s7-tx s7-row"><b>AGENT:</b> LÀM VIỆC</div>
+          <div id="s7-row1" class="s7-tx s7-row"><b>SKILL:</b> DẠY CÁCH LÀM</div>
+          <div id="s7-row2" class="s7-tx s7-row"><b>MCP:</b> TRAO CÔNG CỤ</div>
+          <div id="s7-cap" class="s7-tx">MẶT ĐỨNG CÔNG TRƯỜNG</div>
+          <div id="s7-t1" class="s7-tx s7-dim">T1</div>
+          <div id="s7-t2" class="s7-tx s7-dim">T2</div>
+          <div id="s7-t3" class="s7-tx s7-dim">T3</div>
+          <div id="s7-sweepbox"><div id="s7-sweep"></div></div>
+        </div>
+      </div>
+
+      <script>
+        (() => {
+          // A("key") = local time (s) of an anchor from timeline.json; never hard-code word times.
+          const A = (key) => window.__vv.local("s7", key);
+          const tl = gsap.timeline({ paused: true });
+          const NS = "http://www.w3.org/2000/svg";
+          const $ = (id) => document.getElementById(id);
+          const svg = $("s7-svg");
+          const defs = $("s7-defs");
+          const stage = $("s7-stage");
+
+          // 104 BPM grid counted from 0 s of the video, returned in local time
+          const BEAT = 60 / 104, S = window.__vv.scenes["s7"].start;
+          const beats = (from, to) => { const o = []; for (let k = Math.ceil((S + from) / BEAT); k * BEAT - S <= to; k++) o.push(k * BEAT - S); return o; };
+          const HOLD = 6.96; // last scene: everything settles here, the final 0.3 s stays still
+
+          // ---------- builders ----------
+          const mk = (tag, attrs, parent) => {
+            const e = document.createElementNS(NS, tag);
+            for (const k in attrs) e.setAttribute(k, attrs[k]);
+            parent.appendChild(e);
+            return e;
+          };
+          const G = (parent) => mk("g", {}, parent);
+          const gMain = G(svg); // fills and line work (creation order = painter's order)
+          const gCL = G(svg);   // centre lines stay readable above paper fills
+          const gTop = G(svg);  // glowing nibs for untransformed strokes
+          const P = (d, cls, parent) => mk("path", { d, class: "s7-ln " + cls }, parent || gMain);
+
+          // draw-on by arc length, glowing nib at the head (position from tween progress, never wall time)
+          const PAD = 40; // covers the widest round cap so nothing peeks before the stroke starts
+          function draw(el, t, dur, o = {}) {
+            const L = el.getTotalLength();
+            el.style.strokeDasharray = `${L} ${L + 2 * PAD}`;
+            const vars = { strokeDashoffset: 0, duration: dur, ease: o.ease || "power1.inOut" };
+            if (o.nib !== false) {
+              const nib = mk("circle", { r: 4, cx: -50, cy: -50, class: "s7-nib" }, o.nibParent || gTop);
+              vars.onUpdate = function () {
+                const h = Math.max(0, Math.min(L, L - (L + PAD) * (1 - this.ratio)));
+                const p = el.getPointAtLength(h);
+                nib.setAttribute("cx", p.x);
+                nib.setAttribute("cy", p.y);
+              };
+              tl.fromTo(nib, { opacity: 0 }, { opacity: 1, duration: 0.05, ease: "none" }, t);
+              tl.to(nib, { opacity: 0, duration: 0.14, ease: "power1.out" }, t + dur);
+            }
+            tl.fromTo(el, { strokeDashoffset: L + PAD }, vars, t);
+            return el;
+          }
+          // solid: paper fill first (hides lines behind it), then the outline is drawn
+          function solid(fillD, lineD, cls, t, dur, o = {}) {
+            const parent = o.parent || gMain;
+            const f = mk("path", { d: fillD, class: "s7-fill" }, parent);
+            const l = P(lineD || fillD, cls, parent);
+            tl.fromTo(f, { opacity: 0 }, { opacity: 1, duration: 0.15, ease: "none" }, t);
+            draw(l, t + 0.02, dur, o);
+            return l;
+          }
+          // dashed convention lines: a solid copy draws inside a mask so the dash pattern stays on the paper
+          let mi = 0;
+          function dashed(d, cls, dash, t, dur) {
+            const id = "s7-m" + mi++;
+            const m = mk("mask", { id, maskUnits: "userSpaceOnUse", x: 0, y: 0, width: 1080, height: 1920 }, defs);
+            const mp = mk("path", { d, fill: "none", stroke: "#fff", "stroke-width": 12, "stroke-linecap": "round" }, m);
+            const vis = P(d, cls, gCL);
+            vis.setAttribute("mask", `url(#${id})`);
+            vis.style.strokeDasharray = dash;
+            draw(mp, t, dur, { nibParent: gTop });
+          }
+          // lettering written on left to right
+          const write = (id, t, dur) =>
+            tl.fromTo("#" + id, { clipPath: "inset(0% 100% 0% 0%)" }, { clipPath: "inset(0% 0% 0% 0%)", duration: dur, ease: "none" }, t);
+          // balloons and joints pop out
+          const pop = (el, t, origin, dur = 0.4) =>
+            tl.fromTo(el, { scale: 0, svgOrigin: origin }, { scale: 1, svgOrigin: origin, duration: dur, ease: "back.out(1.6)" }, t);
+          const joint = (cx, cy, r, parent, t) => pop(mk("circle", { cx, cy, r, class: "s7-joint" }, parent), t, `${cx} ${cy}`, 0.3);
+
+          // ---------- camera: lateral pan in from the right, very slow push-in, no pan out (last scene) ----------
+          tl.fromTo(stage, { x: 220, opacity: 0 }, { x: 0, opacity: 1, duration: 0.45, ease: "power3.out" }, 0);
+          tl.fromTo(stage, { scale: 1 }, { scale: 1.03, duration: HOLD, ease: "none" }, 0);
+
+          // ---------- figure title ----------
+          write("s7-title", 0.05, 0.5);
+          draw(P("M80 216 H700", "t"), 0.1, 0.45);
+          write("s7-sheetno", 0.3, 0.3);
+
+          // ---------- sentence 1: GENERAL NOTES column ("Nhớ ba chữ") ----------
+          const tN = A("nho");
+          draw(P("M80 250 H1000 V770 H80 Z", "d"), tN, 0.6);
+          draw(P("M80 320 H1000", "t"), tN + 0.3, 0.3);
+          write("s7-head", tN + 0.27, 0.45);
+          write("s7-notes", tN + 0.45, 0.25);
+          // three empty slots ruled on "ba chữ"
+          draw(P("M80 470 H1000", "t soft"), tN + 0.45, 0.3, { nib: false });
+          draw(P("M80 620 H1000", "t soft"), tN + 0.53, 0.3, { nib: false });
+          draw(P("M840 320 V770", "t soft"), tN + 0.5, 0.3);
+
+          // rows: numbered balloon + leader + lettered note, each exactly on its word
+          const rows = [["agent", 395], ["skill", 545], ["mcp", 695]];
+          const balloons = rows.map(([key, y], i) => {
+            const a = A(key);
+            const bg = G(gMain);
+            mk("circle", { cx: 140, cy: y, r: 30, class: "s7-ball" }, bg);
+            const n = mk("text", { x: 140, y: y + 1, class: "s7-num", "text-anchor": "middle", "dominant-baseline": "central" }, bg);
+            n.textContent = String(i + 1);
+            pop(bg, a, `140 ${y}`);
+            draw(P(`M172 ${y} H204`, "t"), a + 0.12, 0.14, { nib: false });
+            pop(mk("circle", { cx: 206, cy: y, r: 4, class: "s7-dot" }, gMain), a + 0.24, `206 ${y}`, 0.25);
+            write("s7-row" + i, a + 0.15, 0.5);
+            return { bg, y, a };
+          });
+
+          // icon 1: drafting robot arm (Agent works)
+          const a0 = A("agent");
+          draw(P("M868 446 H972", "d"), a0 + 0.2, 0.3);
+          solid("M886 446 V430 H924 V446 Z", null, "d", a0 + 0.28, 0.25);
+          const arm = G(gMain);
+          draw(P("M905 428 L888 366", "d", arm), a0 + 0.36, 0.18);
+          draw(P("M888 366 L948 388", "d", arm), a0 + 0.5, 0.2);
+          draw(P("M948 388 L954 410", "t", arm), a0 + 0.66, 0.1, { nib: false });
+          joint(905, 428, 6, arm, a0 + 0.4);
+          joint(888, 366, 6, arm, a0 + 0.55);
+          joint(948, 388, 5, arm, a0 + 0.7);
+
+          // icon 2: open process manual (Skill teaches)
+          const a1 = A("skill");
+          const LP = "M920 512 C902 502 878 502 862 508 V584 C878 578 902 578 920 588 Z";
+          const RP = "M920 512 C938 502 962 502 978 508 V584 C962 578 938 578 920 588 Z";
+          const textL = "M872 524 H908 M872 538 H908 M872 552 H908 M872 566 H900";
+          const textR = "M932 524 H968 M932 538 H968 M932 552 H968 M940 566 H968";
+          solid(LP, null, "d", a1 + 0.2, 0.35);
+          solid(RP, null, "d", a1 + 0.26, 0.35);
+          draw(P(textL, "h soft"), a1 + 0.5, 0.3, { nib: false });
+          draw(P(textR, "h soft"), a1 + 0.56, 0.3, { nib: false });
+          const flip = G(gMain); // a page that turns over the spine on the beat
+          mk("path", { d: RP, class: "s7-fill" }, flip);
+          P(RP, "d", flip);
+          P(textR, "h soft", flip);
+
+          // icon 3: plug and socket (MCP hands over tools)
+          const a2 = A("mcp");
+          const cable = draw(P("M852 712 C870 712 874 695 896 695", "d"), a2 + 0.2, 0.25);
+          draw(P("M972 668 V722", "d"), a2 + 0.24, 0.2);
+          const plug = G(gMain);
+          solid("M896 676 H940 V714 H896 Z", null, "d", a2 + 0.38, 0.25, { parent: plug });
+          draw(P("M908 680 V710 M918 680 V710", "h soft", plug), a2 + 0.56, 0.15, { nib: false });
+          draw(P("M940 686 H962 M940 704 H962", "d", plug), a2 + 0.6, 0.2, { nib: false });
+          const pulse = mk("circle", { r: 5, cx: 852, cy: 712, class: "s7-nib" }, gTop);
+
+          // ---------- life on the beat between anchors ----------
+          const B = beats(0, HOLD - 0.36);
+          let flipShown = false;
+          B.forEach((b, i) => {
+            // balloons tick one after another like an escapement
+            const r = balloons[i % 3];
+            if (b >= r.a + 0.25) {
+              tl.to(r.bg, { scale: 1.12, svgOrigin: `140 ${r.y}`, duration: 0.1, ease: "power2.out" }, b);
+              tl.to(r.bg, { scale: 1, svgOrigin: `140 ${r.y}`, duration: 0.2, ease: "power1.inOut" }, b + 0.1);
+            }
+            // robot arm nods with inertia on even beats
+            if (i % 2 === 0 && b >= a0 + 1.0) {
+              tl.to(arm, { rotation: -9, svgOrigin: "905 428", duration: 0.12, ease: "power2.out" }, b);
+              tl.to(arm, { rotation: 0, svgOrigin: "905 428", duration: 0.22, ease: "back.out(2)" }, b + 0.12);
+            }
+            // a page turns on odd beats
+            if (i % 2 === 1 && b >= a1 + 0.9) {
+              // the turning page is identical to the page under it, so it only needs to appear once
+              if (!flipShown) { tl.fromTo(flip, { opacity: 0 }, { opacity: 1, duration: 0.01, ease: "none" }, b); flipShown = true; }
+              tl.fromTo(flip, { scaleX: 1, svgOrigin: "920 545" }, { scaleX: -1, svgOrigin: "920 545", duration: 0.34, ease: "power2.inOut" }, b);
+            }
+            // a signal pulse runs along the cable and the plug clicks in
+            if (b >= a2 + 0.8) {
+              const pr = { p: 0 };
+              const Lc = cable.getTotalLength();
+              tl.fromTo(pulse, { opacity: 0 }, { opacity: 1, duration: 0.04, ease: "none" }, b);
+              tl.fromTo(pr, { p: 0 }, { p: 1, duration: 0.28, ease: "power1.in", onUpdate() {
+                const q = cable.getPointAtLength(pr.p * Lc);
+                pulse.setAttribute("cx", q.x);
+                pulse.setAttribute("cy", q.y);
+              } }, b);
+              tl.to(pulse, { opacity: 0, duration: 0.06, ease: "none" }, b + 0.28);
+              tl.to(plug, { x: 6, duration: 0.08, ease: "power2.out" }, b + 0.28);
+              tl.to(plug, { x: 0, duration: 0.18, ease: "power1.inOut" }, b + 0.36);
+            }
+          });
+
+          // bridge to sentence 2: a light sweep reads across the three notes
+          const tS = A("mcp") + 1.15;
+          tl.fromTo("#s7-sweep", { x: -300, opacity: 0 }, { x: 960, opacity: 1, duration: 0.5, ease: "power1.inOut" }, tS);
+          tl.to("#s7-sweep", { opacity: 0, duration: 0.06, ease: "none" }, tS + 0.5);
+
+          // ---------- sentence 2: tower crane beside the finished town-house elevation ----------
+          const ct = A("ct"), ss = A("ss");
+
+          // 1. centre lines
+          dashed("M260 800 V1528", "t soft", "22 6 4 6", ct - 0.14, 0.4);
+          dashed("M750 1040 V1528", "t soft", "22 6 4 6", ct - 0.08, 0.35);
+          write("s7-cap", ct + 0.12, 0.6);
+          draw(P("M330 1580 H750", "t soft"), ct + 0.2, 0.5, { nib: false });
+
+          // 2. outlines: ground, footing, mast, building
+          draw(P("M80 1500 H1000", "o"), ct, 0.55);
+          solid("M190 1500 H330 V1540 H190 Z", null, "d", ct + 0.12, 0.35);
+          draw(P("M230 1500 V958", "o"), ct + 0.05, 0.42);
+          draw(P("M290 1500 V958", "o"), ct + 0.08, 0.42);
+          solid("M600 1500 V1084 H900 V1500 Z", "M600 1500 V1084 H900 V1500", "o", ct + 0.04, 0.5);
+
+          // crane head: turntable, A-frame, jib, counter-jib
+          solid("M220 958 V940 H300 V958 Z", null, "d", ct + 0.28, 0.25);
+          draw(P("M290 940 H780", "o"), ct + 0.3, 0.35);
+          draw(P("M230 940 H100", "o"), ct + 0.3, 0.25);
+          draw(P("M230 940 L260 830 L290 940", "d"), ct + 0.34, 0.3);
+          draw(P("M290 905 L775 932 L780 940", "d"), ct + 0.36, 0.35);
+          draw(P("M230 918 H110 L100 940", "d"), ct + 0.36, 0.25);
+          joint(260, 830, 5, gMain, ct + 0.6);
+
+          // building slabs and parapet coping
+          [1350, 1230, 1110].forEach((y, i) =>
+            solid(`M590 ${y} H910 V${y + 10} H590 Z`, null, "d", ct + 0.36 + i * 0.06, 0.3));
+          solid("M594 1074 H906 V1084 H594 Z", null, "d", ct + 0.54, 0.3);
+
+          // 3. detail: lattice, ties, cab, counterweight, openings, balcony
+          const ny = (k) => 1500 - k * (542 / 8);
+          let mz = "M230 1500", mh = "";
+          for (let k = 1; k <= 8; k++) mz += ` L${k % 2 ? 290 : 230} ${ny(k).toFixed(1)}`;
+          for (let k = 1; k <= 7; k++) mh += `M230 ${ny(k).toFixed(1)} H290 `;
+          draw(P(mz, "t"), ct + 0.45, 0.45);
+          draw(P(mh, "t soft"), ct + 0.5, 0.4, { nib: false });
+          const yt = (x) => 905 + ((x - 290) / 485) * 27;
+          let jz = "M290 940";
+          for (let x = 290; x < 770; x += 40) jz += ` L${x + 20} ${yt(x + 20).toFixed(1)} L${x + 40} 940`;
+          draw(P(jz, "t"), ct + 0.55, 0.4);
+          let cz = "M230 940";
+          for (let x = 230; x > 110; x -= 30) cz += ` L${x - 15} 918 L${x - 30} 940`;
+          draw(P(cz, "t"), ct + 0.55, 0.25);
+          draw(P("M260 830 L560 920", "t soft"), ct + 0.62, 0.25);
+          draw(P("M260 830 L112 918", "t soft"), ct + 0.62, 0.2, { nib: false });
+          solid("M104 942 H152 V992 H104 Z", null, "d", ct + 0.6, 0.25);
+          draw(P("M104 967 H152", "t"), ct + 0.75, 0.12, { nib: false });
+          solid("M300 958 H340 V992 H300 Z", null, "d", ct + 0.62, 0.22);
+          draw(P("M306 966 H334 V980 H306 Z", "t"), ct + 0.78, 0.15, { nib: false });
+
+          // ground floor: roller shutter + side door
+          draw(P("M630 1500 V1385 H810 V1500", "d"), ct + 0.5, 0.3);
+          let slats = "";
+          for (let y = 1395; y <= 1495; y += 10) slats += `M630 ${y} H810 `;
+          draw(P(slats, "h soft"), ct + 0.66, 0.35, { nib: false });
+          draw(P("M832 1500 V1395 H880 V1500", "d"), ct + 0.55, 0.25);
+          draw(P("M840 1410 H872 V1470 H840 Z", "h"), ct + 0.75, 0.15, { nib: false });
+          // floor 2: glazed door set behind a balcony railing
+          draw(P("M640 1350 V1255 H860 V1350", "d"), ct + 0.55, 0.3);
+          draw(P("M695 1255 V1350 M750 1255 V1350 M805 1255 V1350", "t"), ct + 0.72, 0.2, { nib: false });
+          draw(P("M600 1305 H900", "d"), ct + 0.68, 0.22);
+          let bal = "";
+          for (let x = 615; x <= 885; x += 15) bal += `M${x} 1307 V1350 `;
+          draw(P(bal, "h"), ct + 0.8, 0.3, { nib: false });
+          // floor 3: two windows with mullions and sills
+          draw(P("M640 1140 H730 V1205 H640 Z", "d"), ct + 0.6, 0.25);
+          draw(P("M770 1140 H860 V1205 H770 Z", "d"), ct + 0.66, 0.25);
+          draw(P("M685 1140 V1205 M640 1172 H730 M815 1140 V1205 M770 1172 H860", "t"), ct + 0.82, 0.2, { nib: false });
+          draw(P("M634 1210 H736 M764 1210 H866", "t"), ct + 0.88, 0.15, { nib: false });
+          // roof water tank
+          solid("M822 1074 V1050 H866 V1074 Z", null, "d", ct + 0.75, 0.2);
+          draw(P("M822 1058 H866 M822 1066 H866", "h"), ct + 0.9, 0.12, { nib: false });
+
+          // 4. hatching at 45 degrees: earth under the ground line, concrete in the footing
+          let gh = "";
+          for (let x = 100; x <= 1000; x += 14) { if (x >= 186 && x <= 350) continue; gh += `M${x} 1503 L${x - 14} 1517 `; }
+          draw(P(gh, "h soft"), ct + 0.7, 0.5, { nib: false, ease: "none" });
+          let fh = "";
+          for (let x = 196; x <= 370; x += 12) fh += `M${x} 1500 L${x - 40} 1540 `;
+          const footH = P(fh, "h soft");
+          footH.setAttribute("clip-path", "url(#s7-clip-foot)");
+          draw(footH, ct + 0.72, 0.3, { nib: false, ease: "none" });
+
+          // 5. chain dimension up the facade: storeys, no invented numbers
+          draw(P("M914 1500 H962 M914 1360 H962 M914 1240 H962 M914 1120 H962 M914 1084 H962", "t soft"), ct + 0.76, 0.3, { nib: false });
+          draw(P("M950 1500 V1084", "t"), ct + 0.8, 0.35);
+          draw(P([1500, 1360, 1240, 1120, 1084].map((y) => `M944 ${y + 6} L956 ${y - 6}`).join(" "), "d"), ct + 1.05, 0.2, { nib: false });
+          write("s7-t1", ct + 1.1, 0.25);
+          write("s7-t2", ct + 1.16, 0.25);
+          write("s7-t3", ct + 1.22, 0.25);
+
+          // 6. the hoist: trolley slides out, hook lowers a big question mark ("sẵn sàng chưa")
+          const hoist = G(gMain);
+          solid("M436 942 H464 V954 H436 Z", null, "d", ss - 0.38, 0.15, { parent: hoist, nib: false });
+          joint(443, 941, 3, hoist, ss - 0.36);
+          joint(457, 941, 3, hoist, ss - 0.33);
+          const rope = G(hoist);
+          P("M446 954 V1150 M454 954 V1150", "t", rope);
+          const loadY = G(hoist);
+          const load = G(loadY);
+          solid("M438 1150 H462 V1176 H438 Z", null, "d", ss - 0.36, 0.15, { parent: load, nib: false });
+          P("M450 1176 V1181", "d", load);
+          P("M456 1187 A6 6 0 1 1 444 1187 A6 6 0 1 1 456 1187", "d", load);
+          draw(P("M450 1193 L413 1220 M450 1193 L487 1219", "t", load), ss + 0.02, 0.2, { nib: false });
+          const QD = "M385 1272 C385 1212 515 1208 515 1272 C515 1320 450 1324 450 1372 L450 1392";
+          const qo = mk("path", { d: QD, class: "s7-qo" }, load);
+          const qi = mk("path", { d: QD, class: "s7-qi" }, load);
+          draw(qo, ss + 0.05, 0.7, { nibParent: load });
+          draw(qi, ss + 0.05, 0.7, { nib: false });
+          const qdot = mk("circle", { cx: 450, cy: 1438, r: 18, class: "s7-joint" }, load);
+          qdot.style.strokeWidth = "var(--w-out)";
+          pop(qdot, ss + 0.78, "450 1438", 0.3);
+
+          tl.fromTo(hoist, { opacity: 0 }, { opacity: 1, duration: 0.12, ease: "none" }, ss - 0.4);
+          tl.fromTo(hoist, { x: -70 }, { x: 0, duration: 0.32, ease: "power2.inOut" }, ss - 0.36);
+          const R0 = 26 / 196; // rope starts short: hook just under the trolley
+          tl.fromTo(rope, { scaleY: R0, svgOrigin: "450 954" }, { scaleY: 1, svgOrigin: "450 954", duration: 0.95, ease: "back.out(1.3)" }, ss);
+          tl.fromTo(loadY, { y: -170 }, { y: 0, duration: 0.95, ease: "back.out(1.3)" }, ss);
+          // the load swings and settles before the final hold
+          const sw = [[2.4, 0.13], [-1.5, 0.15], [0.6, 0.12], [0, 0.12]];
+          let ts = ss + 0.88;
+          sw.forEach(([deg, d]) => { tl.to(load, { rotation: deg, svgOrigin: "450 1150", duration: d, ease: "sine.inOut" }, ts); ts += d; });
+
+          svg.appendChild(gTop); // nibs paint above every stroke
+          window.__timelines["s7"] = tl;
+        })();
+      </script>
+    </template>
+  </body>
+</html>

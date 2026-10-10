@@ -1,0 +1,9 @@
+{"topic": "Agent, Skill và MCP của AI trong ngành xây dựng",
+ "audience": "kỹ sư, kiến trúc sư, chủ thầu xây dựng mới tìm hiểu AI",
+ "message": "Agent làm việc, Skill dạy cách làm, MCP trao công cụ; kỹ sư vẫn là người duyệt cuối",
+ "aspect": "9:16", "duration_s": 60, "style": "blueprint", "voice": "Hải Đăng",
+ "music": "synth:tech", "brand": {"colors": [], "name": ""},
+ "sources": ["https://www.anthropic.com/news/model-context-protocol", "https://www.anthropic.com/news/skills",
+             "TCVN 5574:2018 Thiết kế kết cấu bê tông và bê tông cốt thép"],
+ "notes": "Không dùng số liệu thống kê; ví dụ là tình huống minh họa (ghi rõ trên hình là VÍ DỤ).",
+ "auto": true}

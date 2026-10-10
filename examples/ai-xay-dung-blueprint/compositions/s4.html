@@ -1,0 +1,446 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <!-- Scene s4: HÌNH 4: MCP. Runtime keeps only <template>; style, markup and script live inside it. -->
+  </head>
+  <body>
+    <template>
+      <style>
+        /* Each scene declares its fonts (HyperFrames lint: font_family_without_font_face). Paths are relative to index.html. */
+        @font-face { font-family: "Be Vietnam Pro"; src: url("fonts/BeVietnamPro-Regular.ttf"); font-weight: 400; }
+        @font-face { font-family: "Be Vietnam Pro"; src: url("fonts/BeVietnamPro-Medium.ttf"); font-weight: 500; }
+        @font-face { font-family: "Be Vietnam Pro"; src: url("fonts/BeVietnamPro-Bold.ttf"); font-weight: 700; }
+        @font-face { font-family: "Be Vietnam Pro"; src: url("fonts/BeVietnamPro-ExtraBold.ttf"); font-weight: 800; }
+        @font-face { font-family: "JetBrains Mono"; src: url("fonts/JetBrainsMono-Variable.ttf"); font-weight: 100 800; }
+
+        #s4-root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          background: transparent;
+          color: var(--line);
+          font-family: "Be Vietnam Pro", sans-serif;
+        }
+        #s4-stage { position: absolute; inset: 0; transform-origin: 50% 46%; }
+        #s4-svg { position: absolute; left: 0; top: 0; width: 100%; height: 100%; overflow: visible; }
+
+        /* line weights and dash conventions (blueprint) */
+        #s4-svg path, #s4-svg circle { fill: none; stroke-linecap: round; stroke-linejoin: round; }
+        #s4-svg .o  { stroke: var(--line); stroke-width: var(--w-out); }
+        #s4-svg .d  { stroke: var(--line); stroke-width: var(--w-det); }
+        #s4-svg .tp { stroke: var(--line); stroke-width: var(--w-thin); }
+        #s4-svg .t  { stroke: var(--line-soft); stroke-width: var(--w-thin); }
+        #s4-svg .h  { stroke: var(--line-soft); stroke-width: var(--w-hair); }
+        #s4-svg .cl { stroke: var(--line-soft); stroke-width: var(--w-thin); stroke-dasharray: 22 6 4 6; }
+        #s4-svg .hid { stroke-dasharray: 10 7; }
+        #s4-svg .pf { fill: var(--fill); }
+        #s4-svg .cab-o { stroke: var(--line); stroke-width: 11px; }
+        #s4-svg .cab-i { stroke: var(--fill); stroke-width: 5px; }
+        #s4-svg .pfl { fill: var(--line); stroke: none; }
+        #s4-svg .dot { fill: var(--line); stroke: none; }
+        #s4-svg .glow { filter: drop-shadow(0 0 10px rgba(231, 240, 249, 0.85)); }
+        #s4-svg .nib, #s4-svg .pulse { fill: var(--line); stroke: none; filter: drop-shadow(0 0 6px rgba(231, 240, 249, 0.9)); }
+        #s4-svg .bn { font: 700 24px "JetBrains Mono", monospace; fill: var(--line); stroke: none; text-anchor: middle; dominant-baseline: central; }
+
+        /* lettering: written on left to right with a glowing nib */
+        #s4-root .lab { position: absolute; white-space: nowrap; color: var(--line); }
+        #s4-root .lab.c { transform: translateX(-50%); }
+        #s4-root .lab .ink { display: block; padding-right: 0.04em; }
+        #s4-root .vi { font-family: "Be Vietnam Pro", sans-serif; font-weight: 700; letter-spacing: 0.06em; line-height: 1.3; }
+        #s4-root .mono { font-family: "JetBrains Mono", monospace; font-weight: 700; letter-spacing: 0.06em; line-height: 1.15; }
+        #s4-root .tag { font-family: "JetBrains Mono", monospace; font-weight: 600; font-size: 24px; letter-spacing: 0.04em; line-height: 1.15; color: var(--line-soft); }
+        #s4-root .nibt { position: absolute; left: 0; top: 0; width: 100%; height: 100%; opacity: 0; pointer-events: none; }
+        #s4-root .nibt::after { content: ""; position: absolute; left: -4px; top: 50%; width: 8px; height: 8px; margin-top: -4px;
+          border-radius: 50%; background: var(--line); box-shadow: 0 0 8px 2px rgba(231, 240, 249, 0.7); }
+      </style>
+
+      <div id="s4-root" data-composition-id="s4" data-width="1080" data-height="1920">
+        <div id="s4-stage">
+          <svg id="s4-svg" viewBox="0 0 1080 1920">
+            <defs id="s4-defs">
+              <!-- section ring of the socket plate: outer housing minus D recess minus 4 screw holes -->
+              <clipPath id="s4-ring">
+                <path clip-rule="evenodd" d="M410 770 H670 A30 30 0 0 1 700 800 V1000 A30 30 0 0 1 670 1030 H410 A30 30 0 0 1 380 1000 V800 A30 30 0 0 1 410 770 Z
+                  M446 812 H634 Q652 812 648 830 L626 972 Q623 988 606 988 H474 Q457 988 454 972 L432 830 Q428 812 446 812 Z
+                  M402 802 A10 10 0 1 0 422 802 A10 10 0 1 0 402 802 Z M658 802 A10 10 0 1 0 678 802 A10 10 0 1 0 658 802 Z
+                  M402 998 A10 10 0 1 0 422 998 A10 10 0 1 0 402 998 Z M658 998 A10 10 0 1 0 678 998 A10 10 0 1 0 658 998 Z" />
+              </clipPath>
+            </defs>
+
+            <!-- 1. centre lines of the socket -->
+            <g id="s4-gcl">
+              <path id="s4-clh" class="cl" d="M330 900 H750" />
+              <path id="s4-clv" class="cl" d="M540 735 V1046" />
+            </g>
+            <!-- 2. hidden-line slots for the four programs (built in script) -->
+            <g id="s4-gph"></g>
+            <!-- 3. device boxes, oblique projection (built in script) -->
+            <g id="s4-gbox"></g>
+            <!-- 4. icons drawn inside the box faces (no logos) -->
+            <g id="s4-gico">
+              <!-- AUTOCAD: small plan + crosshair cursor -->
+              <path id="s4-i1a" class="d" d="M140 390 H262 V490 H140 Z" />
+              <path id="s4-i1b" class="t" d="M205 390 V452" />
+              <path id="s4-i1c" class="t" d="M140 445 H178" />
+              <path id="s4-i1d" class="t" d="M178 445 A27 27 0 0 1 205 472" />
+              <path id="s4-i1e" class="d" d="M280 440 H324 M302 418 V462" />
+              <path id="s4-i1f" class="t" d="M297 435 H307 V445 H297 Z" />
+              <!-- REVIT: building elevation with floors -->
+              <path id="s4-i2a" class="d" d="M770 500 V412 L830 382 L890 412 V500 Z" />
+              <path id="s4-i2b" class="t" d="M770 442 H890 M770 472 H890" />
+              <path id="s4-i2c" class="t" d="M800 412 V500 M860 412 V500" />
+              <path id="s4-i2d" class="t" d="M820 500 V482 H840 V500" />
+              <!-- EXCEL: spreadsheet grid -->
+              <path id="s4-i3a" class="d" d="M140 1280 H276 V1390 H140 Z" />
+              <path id="s4-i3b" class="d" d="M140 1302 H276" />
+              <path id="s4-i3c" class="t" d="M140 1324 H276 M140 1346 H276 M140 1368 H276" />
+              <path id="s4-i3d" class="t" d="M174 1280 V1390 M208 1280 V1390 M242 1280 V1390" />
+              <path id="s4-cell" class="d" d="M140 1302 H174 V1324 H140 Z" />
+              <!-- DỮ LIỆU CÔNG TRƯỜNG: camera + sensor -->
+              <path id="s4-i4a" class="d" d="M760 1300 H850 V1356 H760 Z" />
+              <path id="s4-i4b" class="t" d="M776 1300 V1290 H800 V1300" />
+              <path id="s4-i4c" class="d" d="M787 1328 A18 18 0 1 0 823 1328 A18 18 0 1 0 787 1328" />
+              <path id="s4-i4d" class="t" d="M797 1328 A8 8 0 1 0 813 1328 A8 8 0 1 0 797 1328" />
+              <path id="s4-i4e" class="t" d="M805 1356 V1390 M786 1390 H824" />
+              <circle id="s4-rec" class="dot" cx="838" cy="1311" r="4" />
+              <path id="s4-i4f" class="d" d="M905 1392 V1345" />
+              <path id="s4-i4g" class="d" d="M896 1336 A9 9 0 1 0 914 1336 A9 9 0 1 0 896 1336" />
+              <path id="s4-i4h" class="t" d="M890 1392 H920" />
+              <path id="s4-arc1" class="t" d="M890.86 1321.86 A20 20 0 0 1 919.14 1321.86" />
+              <path id="s4-arc2" class="t" d="M882.37 1313.37 A32 32 0 0 1 927.63 1313.37" />
+              <path id="s4-arc3" class="t" d="M873.89 1304.89 A44 44 0 0 1 936.11 1304.89" />
+            </g>
+            <!-- 5. AI chip -->
+            <g id="s4-gchip">
+              <path id="s4-cf" class="pf" d="M465 350 H615 V500 H465 Z" />
+              <g id="s4-cpins"></g>
+              <path id="s4-co" class="o" d="M465 350 H615 V500 H465 Z" />
+              <path id="s4-ci" class="t" d="M481 366 H599 V484 H481 Z" />
+              <circle id="s4-cdot" class="tp" cx="494" cy="380" r="4" />
+              <path id="s4-cg" class="o glow" d="M465 350 H615 V500 H465 Z" />
+            </g>
+            <!-- 6. double-line cables + plugs (built in script) -->
+            <g id="s4-gcab"></g>
+            <!-- 7. the MCP socket -->
+            <g id="s4-gcon">
+              <path id="s4-hf" class="pf" d="M410 770 H670 A30 30 0 0 1 700 800 V1000 A30 30 0 0 1 670 1030 H410 A30 30 0 0 1 380 1000 V800 A30 30 0 0 1 410 770 Z" />
+              <g id="s4-hatch" clip-path="url(#s4-ring)"></g>
+              <path id="s4-rc" class="d" d="M446 812 H634 Q652 812 648 830 L626 972 Q623 988 606 988 H474 Q457 988 454 972 L432 830 Q428 812 446 812 Z" />
+              <path id="s4-ho" class="o" d="M410 770 H670 A30 30 0 0 1 700 800 V1000 A30 30 0 0 1 670 1030 H410 A30 30 0 0 1 380 1000 V800 A30 30 0 0 1 410 770 Z" />
+              <path id="s4-sc1" class="d" d="M402 802 A10 10 0 1 0 422 802 A10 10 0 1 0 402 802" />
+              <path id="s4-sc2" class="d" d="M658 802 A10 10 0 1 0 678 802 A10 10 0 1 0 658 802" />
+              <path id="s4-sc3" class="d" d="M402 998 A10 10 0 1 0 422 998 A10 10 0 1 0 402 998" />
+              <path id="s4-sc4" class="d" d="M658 998 A10 10 0 1 0 678 998 A10 10 0 1 0 658 998" />
+              <path id="s4-sx1" class="h" d="M406 796 L418 808 M418 796 L406 808" />
+              <path id="s4-sx2" class="h" d="M662 796 L674 808 M674 796 L662 808" />
+              <path id="s4-sx3" class="h" d="M406 992 L418 1004 M418 992 L406 1004" />
+              <path id="s4-sx4" class="h" d="M662 992 L674 1004 M674 992 L662 1004" />
+              <g id="s4-pins"></g>
+              <g id="s4-ports"></g>
+              <path id="s4-hg" class="o glow" d="M410 770 H670 A30 30 0 0 1 700 800 V1000 A30 30 0 0 1 670 1030 H410 A30 30 0 0 1 380 1000 V800 A30 30 0 0 1 410 770 Z" />
+            </g>
+            <!-- 8. dimensions, leaders, balloons -->
+            <g id="s4-gann">
+              <path id="s4-uline" class="t" d="M80 222 H500" />
+              <path id="s4-ex1" class="t" d="M380 1040 V1108" />
+              <path id="s4-ex2" class="t" d="M700 1040 V1108" />
+              <path id="s4-dim" class="t" d="M380 1096 H700" />
+              <path id="s4-tk1" class="d" d="M371 1105 L389 1087" />
+              <path id="s4-tk2" class="d" d="M691 1105 L709 1087" />
+              <path id="s4-ld1" class="t" d="M750 751 L692 779" />
+              <path id="s4-ld2" class="t" d="M404 564 L364 524" />
+              <path id="s4-ld3" class="t" d="M696 565 L736 528" />
+              <path id="s4-ld4" class="t" d="M383 1451 L360 1414" />
+              <path id="s4-ld5" class="t" d="M700 1454 L736 1418" />
+              <g id="s4-b1"><g class="bin"><circle class="d pf" cx="770" cy="742" r="22" /><text class="bn" x="770" y="743">1</text></g></g>
+              <g id="s4-b2"><g class="bin"><circle class="d pf" cx="420" cy="580" r="22" /><text class="bn" x="420" y="581">2</text></g></g>
+              <g id="s4-b3"><g class="bin"><circle class="d pf" cx="680" cy="580" r="22" /><text class="bn" x="680" y="581">3</text></g></g>
+              <g id="s4-b4"><g class="bin"><circle class="d pf" cx="395" cy="1470" r="22" /><text class="bn" x="395" y="1471">4</text></g></g>
+              <g id="s4-b5"><g class="bin"><circle class="d pf" cx="685" cy="1470" r="22" /><text class="bn" x="685" y="1471">5</text></g></g>
+            </g>
+            <g id="s4-pulses"></g>
+            <g id="s4-nibs"></g>
+          </svg>
+
+          <!-- lettering -->
+          <div class="lab vi" id="s4-ttl" style="left: 80px; top: 146px; font-size: 50px"><span class="ink">HÌNH 4: MCP</span><i class="nibt"></i></div>
+          <div class="lab c mono" id="s4-lmcp" style="left: 540px; top: 828px; font-size: 62px"><span class="ink">MCP</span><i class="nibt"></i></div>
+          <div class="lab c mono" id="s4-lai" style="left: 540px; top: 392px; font-size: 58px"><span class="ink">AI</span><i class="nibt"></i></div>
+          <div class="lab c vi" id="s4-ldim" style="left: 540px; top: 1054px; font-size: 26px; font-weight: 600"><span class="ink">CHUẨN CHUNG</span><i class="nibt"></i></div>
+          <div class="lab c vi" id="s4-lcong" style="left: 540px; top: 1120px; font-size: 34px"><span class="ink">CỔNG KẾT NỐI</span><i class="nibt"></i></div>
+          <div class="lab c mono" id="s4-lcad" style="left: 242px; top: 280px; font-size: 34px"><span class="ink">AUTOCAD</span><i class="nibt"></i></div>
+          <div class="lab c mono" id="s4-lrev" style="left: 862px; top: 280px; font-size: 34px"><span class="ink">REVIT</span><i class="nibt"></i></div>
+          <div class="lab c mono" id="s4-lexc" style="left: 242px; top: 1446px; font-size: 34px"><span class="ink">EXCEL</span><i class="nibt"></i></div>
+          <div class="lab c vi" id="s4-lct1" style="left: 862px; top: 1444px; font-size: 30px"><span class="ink">DỮ LIỆU</span><i class="nibt"></i></div>
+          <div class="lab c vi" id="s4-lct2" style="left: 862px; top: 1484px; font-size: 30px"><span class="ink">CÔNG TRƯỜNG</span><i class="nibt"></i></div>
+          <div class="lab tag" id="s4-tdwg" style="left: 270px; top: 494px"><span class="ink">DWG</span><i class="nibt"></i></div>
+          <div class="lab tag" id="s4-trvt" style="left: 900px; top: 494px"><span class="ink">RVT</span><i class="nibt"></i></div>
+          <div class="lab tag" id="s4-txls" style="left: 286px; top: 1394px"><span class="ink">XLSX</span><i class="nibt"></i></div>
+          <div class="lab tag" id="s4-tiot" style="left: 926px; top: 1396px"><span class="ink">IOT</span><i class="nibt"></i></div>
+        </div>
+      </div>
+
+      <script>
+        (() => {
+          // A("key") = local time (s) of an anchor from timeline.json; never hard-code word times.
+          const A = (key) => window.__vv.local("s4", key);
+          const SC = window.__vv.scenes["s4"];
+          const BEAT = 60 / 104, S = SC.start, DUR = SC.end - SC.start;
+          const beats = (from, to) => { const o = []; for (let k = Math.ceil((S + from) / BEAT); k * BEAT - S <= to; k++) o.push(k * BEAT - S); return o; };
+          const halfBeats = (from, to) => { const H = BEAT / 2, o = []; for (let k = Math.ceil((S + from) / H); k * H - S <= to; k++) o.push(k * H - S); return o; };
+          // snap a time to the next beat if one falls within tol, else keep it (keeps sync with the word)
+          const onBeat = (t, tol = 0.12) => { const b = beats(t - 0.02, t + tol); return b.length ? b[0] : t; };
+
+          const tl = gsap.timeline({ paused: true });
+          const NS = "http://www.w3.org/2000/svg";
+          const $ = (id) => document.getElementById("s4-" + id);
+          const mk = (tag, attrs, parent) => { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); parent.appendChild(e); return e; };
+          const P = (parent, d, cls, id) => mk("path", id ? { d, class: cls, id: "s4-" + id } : { d, class: cls }, parent);
+          const nibs = $("nibs"), pulseLayer = $("pulses"), defs = $("defs");
+
+          // ---------- geometry built in script ----------
+          const BOX = [null, [110, 360], [730, 360], [110, 1250], [730, 1250]];
+          const sil = (x, y) => `M${x} ${y} L${x + 24} ${y - 24} H${x + 264} V${y + 156} L${x + 240} ${y + 180} H${x} Z`;
+          const edges = (x, y) => `M${x} ${y} H${x + 240} V${y + 180} M${x + 240} ${y} L${x + 264} ${y - 24}`;
+          for (let i = 1; i <= 4; i++) {
+            const [x, y] = BOX[i];
+            P($("gph"), sil(x, y), "t hid", "ph" + i);
+            P($("gbox"), sil(x, y), "pf", "bxf" + i);
+            P($("gbox"), sil(x, y), "o", "bxo" + i);
+            P($("gbox"), edges(x, y), "d", "bxe" + i);
+          }
+          // cable centre paths: 0 chip -> socket top; 1..4 socket port -> device
+          const CAB = [
+            "M540 500 V752",
+            "M362 860 H270 A40 40 0 0 1 230 820 V552",
+            "M718 860 H810 A40 40 0 0 0 850 820 V552",
+            "M362 940 H282 A40 40 0 0 0 242 980 V1236",
+            "M718 940 H822 A40 40 0 0 1 862 980 V1236",
+          ];
+          CAB.forEach((d, i) => { P($("gcab"), d, "cab-o", "co" + i); P($("gcab"), d, "cab-i", "ci" + i); });
+          const PLUG = [null, "M217 540 H243 V556 H217 Z", "M837 540 H863 V556 H837 Z", "M229 1222 H255 V1238 H229 Z", "M849 1222 H875 V1238 H849 Z"];
+          for (let i = 1; i <= 4; i++) P($("gcab"), PLUG[i], "d pf", "plg" + i);
+          // socket ports (index = cable index) and their flash overlays
+          const PORT = ["M528 752 H552 V770 H528 Z", "M362 848 H380 V872 H362 Z", "M700 848 H718 V872 H700 Z", "M362 928 H380 V952 H362 Z", "M700 928 H718 V952 H700 Z"];
+          PORT.forEach((d, i) => { P($("ports"), d, "d pf", "pt" + i); });
+          PORT.forEach((d, i) => { const f = P($("ports"), d, "pfl", "pfl" + i); f.style.opacity = 0; });
+          // contact pins of the socket
+          const PINS = [];
+          [484, 512, 540, 568, 596].forEach((x) => PINS.push(mk("circle", { cx: x, cy: 940, r: 8, class: "tp pf" }, $("pins"))));
+          [498, 526, 554, 582].forEach((x) => PINS.push(mk("circle", { cx: x, cy: 966, r: 7, class: "tp pf" }, $("pins"))));
+          // 45 degree section hatching, 17px apart along x (12px normal spacing), clipped to the plate ring
+          const HATCH = [];
+          for (let c = 120; c <= 700; c += 17) HATCH.push(P($("hatch"), `M${c} 1030 L${c + 260} 770`, "h"));
+          // chip pins
+          const CPINS = [];
+          [375, 400, 425, 450, 475].forEach((y) => { CPINS.push(P($("cpins"), `M447 ${y} H465`, "d")); });
+          [490, 515, 540, 565, 590].forEach((x) => { CPINS.push(P($("cpins"), `M${x} 332 V350`, "d")); });
+          [375, 400, 425, 450, 475].forEach((y) => { CPINS.push(P($("cpins"), `M615 ${y} H633`, "d")); });
+          [590, 565, 515, 490].forEach((x) => { CPINS.push(P($("cpins"), `M${x} 500 V518`, "d")); });
+
+          // ---------- helpers ----------
+          // draw-on by arc length with a glowing 8px nib following the head (progress-driven, no wall clock)
+          function draw(el, t, dur, nib = true, ease = "power1.inOut") {
+            el = typeof el === "string" ? $(el) : el;
+            const L = el.getTotalLength();
+            el.style.strokeDasharray = `${L} ${L + 50}`;
+            const ef = gsap.parseEase(ease);
+            const n = nib ? mk("circle", { r: 4, class: "nib", opacity: 0 }, nibs) : null;
+            tl.fromTo(el, { strokeDashoffset: L + 2 }, {
+              strokeDashoffset: 0, duration: dur, ease,
+              onUpdate: n ? function () {
+                const q = this.progress(), pt = el.getPointAtLength(L * ef(q));
+                n.setAttribute("cx", pt.x); n.setAttribute("cy", pt.y);
+                n.setAttribute("opacity", q > 0 && q < 1 ? 1 : 0);
+              } : undefined,
+            }, t);
+          }
+          // dashed lines (centre / hidden) keep their pattern: reveal through a mask path drawn on
+          let mi = 0;
+          function drawDashed(el, t, dur) {
+            el = typeof el === "string" ? $(el) : el;
+            const id = "s4-m" + (mi++);
+            const m = mk("mask", { id, maskUnits: "userSpaceOnUse", x: 0, y: 0, width: 1080, height: 1920 }, defs);
+            const mp = mk("path", { d: el.getAttribute("d"), fill: "none", stroke: "#fff", "stroke-width": 16, "stroke-linecap": "round", "stroke-linejoin": "round" }, m);
+            el.setAttribute("mask", `url(#${id})`);
+            draw(mp, t, dur);
+          }
+          // lettering written on left to right with a nib
+          function write(id, t, dur = 0.45) {
+            const w = $(id), ink = w.querySelector(".ink"), nb = w.querySelector(".nibt");
+            // negative top/bottom insets keep stacked Vietnamese diacritics (Ữ, Ề) from being clipped
+            tl.fromTo(ink, { clipPath: "inset(-40% 100% -40% 0%)" }, { clipPath: "inset(-40% 0% -40% 0%)", duration: dur, ease: "power1.inOut" }, t);
+            tl.fromTo(nb, { xPercent: 0 }, { xPercent: 100, duration: dur, ease: "power1.inOut" }, t);
+            tl.fromTo(nb, { opacity: 0 }, { opacity: 1, duration: 0.04 }, t);
+            tl.fromTo(nb, { opacity: 1 }, { opacity: 0, duration: 0.1, immediateRender: false }, t + dur);
+          }
+          // paper fill painted before the outline (occlusion by painter's order)
+          const fillIn = (id, t) => tl.fromTo($(id), { opacity: 0 }, { opacity: 1, duration: 0.12, ease: "none" }, t);
+          const pop = (el, t, d = 0.4) => tl.fromTo(typeof el === "string" ? $(el) : el, { scale: 0, transformOrigin: "50% 50%" }, { scale: 1, duration: d, ease: "back.out(1.6)" }, t);
+          // a flash whose pre-start state is the resting state (0), safe for scrubbing
+          function flash(el, t, peak = 0.9, down = 0.3, rest = 0) {
+            el = typeof el === "string" ? $(el) : el;
+            tl.fromTo(el, { opacity: rest }, { opacity: peak, duration: 0.06, ease: "none", immediateRender: false }, t);
+            tl.fromTo(el, { opacity: peak }, { opacity: rest, duration: down, ease: "power2.out", immediateRender: false }, t + 0.06);
+          }
+          // a signal pulse along a cable; rev = travel from path end to path start
+          function pulse(i, t, dur, rev, big = false) {
+            const el = $("co" + i), L = el.getTotalLength();
+            const c = mk("circle", { r: big ? 9 : 7, class: "pulse", opacity: 0 }, pulseLayer);
+            const o = { p: 0 };
+            tl.fromTo(o, { p: 0 }, {
+              p: 1, duration: dur, ease: "sine.inOut", immediateRender: false,
+              onUpdate() {
+                const p = o.p, pt = el.getPointAtLength(L * (rev ? 1 - p : p));
+                c.setAttribute("cx", pt.x); c.setAttribute("cy", pt.y);
+                c.setAttribute("opacity", p <= 0 || p >= 1 ? 0 : Math.min(1, p * 6, (1 - p) * 6));
+              },
+            }, t);
+          }
+          const drawCable = (i, t, dur) => { draw("co" + i, t, dur); draw("ci" + i, t, dur, false); };
+          // balloon tick on the beat: scale 1 -> 1.12 -> 1 on the inner group
+          function nudge(id, from, to) {
+            const inner = $(id).querySelector(".bin");
+            beats(from, to).forEach((b) => {
+              tl.fromTo(inner, { scale: 1, transformOrigin: "50% 50%" }, { scale: 1.12, duration: 0.06, ease: "none", immediateRender: false }, b);
+              tl.fromTo(inner, { scale: 1.12, transformOrigin: "50% 50%" }, { scale: 1, duration: 0.26, ease: "power2.out", immediateRender: false }, b + 0.06);
+            });
+          }
+
+          // ---------- camera: lateral pan in from the right, very slow push-in ----------
+          tl.fromTo("#s4-stage", { x: 220, opacity: 0 }, { x: 0, opacity: 1, duration: 0.45, ease: "power3.out" }, 0);
+          tl.fromTo("#s4-stage", { scale: 1 }, { scale: 1.03, duration: DUR, ease: "none" }, 0);
+
+          // ---------- title ----------
+          write("ttl", 0.05, 0.5);
+          draw("uline", 0.3, 0.35);
+
+          // ---------- "MCP": centre lines, then outline, recess, label ----------
+          const tM = A("mcp");
+          drawDashed("clh", tM, 0.4);
+          drawDashed("clv", tM + 0.08, 0.35);
+          const tH = onBeat(tM + 0.1);
+          fillIn("hf", tH - 0.02);
+          draw("ho", tH, 0.42);
+          draw("rc", tH + 0.16, 0.3);
+          write("lmcp", tH + 0.3, 0.35);
+          for (let k = 1; k <= 4; k++) { draw("sc" + k, tH + 0.36 + k * 0.05, 0.2); draw("sx" + k, tH + 0.5 + k * 0.05, 0.12, false); }
+
+          // ---------- "cổng kết nối": hatching, pins, balloon 1, label, dimension ----------
+          const tC = A("cong");
+          HATCH.forEach((h, k) => draw(h, tC + 0.01 + k * 0.014, 0.16, false, "none"));
+          PINS.forEach((p, k) => pop(p, tC + 0.1 + k * 0.035, 0.3));
+          draw("ld1", tC + 0.17, 0.2);
+          pop("b1", tC + 0.27);
+          write("lcong", tC + 0.32, 0.45);
+          const tD = onBeat(tC + 0.52);
+          draw("ex1", tD, 0.2, false); draw("ex2", tD, 0.2, false);
+          draw("dim", tD + 0.1, 0.3);
+          draw("tk1", tD + 0.35, 0.12, false); draw("tk2", tD + 0.35, 0.12, false);
+          write("ldim", tD + 0.36, 0.35);
+
+          // ---------- "cho AI làm việc trực tiếp": chip, then the chip-to-socket cable ----------
+          const tA = onBeat(tD + 0.5);
+          fillIn("cf", tA - 0.02);
+          draw("co", tA, 0.4);
+          CPINS.forEach((p, k) => draw(p, tA + 0.18 + k * 0.012, 0.1, false));
+          draw("ci", tA + 0.3, 0.3);
+          pop("cdot", tA + 0.5, 0.3);
+          write("lai", tA + 0.26, 0.35);
+          const tK = onBeat(tA + 0.5);
+          pop("pt0", tK - 0.05, 0.3);
+          drawCable(0, tK, 0.35);
+          pulse(0, tK + 0.4, 0.3, false);
+          flash("pfl0", tK + 0.7);
+
+          // ---------- "phần mềm": hidden-line slots for the programs, side ports ----------
+          const tP = A("pm");
+          for (let i = 1; i <= 4; i++) drawDashed("ph" + i, tP + 0.03 + (i - 1) * 0.08, 0.5);
+          const tPo = onBeat(tP);
+          for (let i = 1; i <= 4; i++) pop("pt" + i, tPo + (i - 1) * 0.05, 0.3);
+          const tQ = onBeat(tPo + 0.5);
+          for (let i = 0; i <= 4; i++) flash("pfl" + i, tQ, 0.75, 0.35);
+          pulse(0, tQ, 0.3, true);
+
+          // ---------- the four devices, each drawn when its name is read ----------
+          function device(i, tCab, tBox, labels, icons, tag) {
+            drawCable(i, tCab, 0.4);
+            flash("pfl" + i, tCab, 0.8, 0.3);
+            pop("plg" + i, tCab + 0.36, 0.3);
+            fillIn("bxf" + i, tBox - 0.02);
+            draw("bxo" + i, tBox, 0.45);
+            draw("bxe" + i, tBox + 0.3, 0.22, false);
+            tl.fromTo($("ph" + i), { opacity: 1 }, { opacity: 0, duration: 0.25, immediateRender: false }, tBox);
+            labels.forEach(([id, t]) => write(id, t, 0.4));
+            icons.forEach((id, k) => draw(id, tBox + 0.25 + k * 0.06, 0.25, k === 0));
+            write(tag, tBox + 0.55, 0.3);
+            draw("ld" + (i + 1), tBox + 0.5, 0.18);
+            pop("b" + (i + 1), tBox + 0.6);
+            return tBox + 0.6;
+          }
+          const tCad = onBeat(A("cad"));
+          const b2 = device(1, A("cad") - 0.05, tCad, [["lcad", tCad + 0.03]], ["i1a", "i1b", "i1c", "i1d", "i1e", "i1f"], "tdwg");
+          const tRev = A("revit") + 0.07;
+          const b3 = device(2, A("revit") - 0.05, tRev, [["lrev", tRev + 0.03]], ["i2a", "i2b", "i2c", "i2d"], "trvt");
+          const tExc = A("excel") + 0.07;
+          const b4 = device(3, A("excel") - 0.3, tExc, [["lexc", tExc + 0.03]], ["i3a", "i3b", "i3c", "i3d"], "txls");
+          const tCt = A("ct") + 0.1;
+          const b5 = device(4, A("ct"), tCt, [["lct1", tCt + 0.03], ["lct2", A("ct") + 0.45]], ["i4a", "i4b", "i4c", "i4d", "i4e", "i4f", "i4g", "i4h"], "tiot");
+
+          // EXCEL: active cell steps through the grid on half beats, like an escapement
+          tl.fromTo("#s4-cell", { opacity: 0 }, { opacity: 1, duration: 0.1 }, tExc + 0.5);
+          const CELLS = [[1, 0], [2, 0], [3, 0], [0, 1], [1, 1], [2, 1], [3, 1], [0, 2], [1, 2], [2, 2], [3, 2], [0, 3]];
+          halfBeats(tExc + 0.62, DUR - 0.4).forEach((t, k) => {
+            const [cx, cy] = CELLS[k % CELLS.length];
+            tl.to("#s4-cell", { x: cx * 34, y: cy * 22, duration: 0.1, ease: "power2.out" }, t);
+          });
+          // site data: sensor waves drawn, then blink outward; camera record light blinks on the beat
+          ["arc1", "arc2", "arc3"].forEach((id, k) => draw(id, tCt + 0.55 + k * 0.07, 0.2, false));
+          halfBeats(tCt + 0.85, DUR - 0.4).forEach((t) => {
+            ["arc1", "arc2", "arc3"].forEach((id, k) => {
+              tl.fromTo($(id), { opacity: 1 }, { opacity: 0.2, duration: 0.05, immediateRender: false }, t + k * 0.06);
+              tl.fromTo($(id), { opacity: 0.2 }, { opacity: 1, duration: 0.18, immediateRender: false }, t + k * 0.06 + 0.05);
+            });
+          });
+          pop("rec", tCt + 0.45, 0.25);
+          beats(tCt + 0.7, DUR - 0.4).forEach((b) => flash("rec", b, 0.25, 0.25, 1));
+
+          // ---------- signal pulses run along the cables back to the socket, one per beat ----------
+          const CONNECTED = [null, tCad + 0.35, tRev + 0.35, tExc + 0.35, tCt + 0.35];
+          const upBeats = new Set();
+          for (let i = 1; i <= 4; i++) {
+            beats(CONNECTED[i], 7.6).forEach((b) => {
+              pulse(i, b, 0.45, true);
+              flash("pfl" + i, b + 0.45, 0.7, 0.25);
+              upBeats.add(b);
+            });
+          }
+          [...upBeats].forEach((b) => pulse(0, b + 0.45, 0.25, true));
+
+          // balloons tick on the beat once drawn
+          nudge("b1", tC + 0.75, DUR - 0.45);
+          nudge("b2", b2 + 0.45, DUR - 0.45);
+          nudge("b3", b3 + 0.45, DUR - 0.45);
+          nudge("b4", b4 + 0.45, DUR - 0.45);
+          nudge("b5", b5 + 0.45, DUR - 0.45);
+
+          // ---------- "đều có thể nối vào": all four pulse in together, socket and chip light up ----------
+          const tN = onBeat(A("noi"));
+          for (let i = 1; i <= 4; i++) { pulse(i, tN, 0.3, true, true); flash("pfl" + i, tN + 0.3, 0.9, 0.3); }
+          tl.fromTo("#s4-hg", { opacity: 0 }, { opacity: 1, duration: 0.08, ease: "none" }, tN + 0.28);
+          tl.fromTo("#s4-hg", { opacity: 1 }, { opacity: 0.35, duration: 0.3, ease: "power2.out", immediateRender: false }, tN + 0.36);
+          pulse(0, tN + 0.3, 0.22, true, true);
+          flash("pfl0", tN + 0.3, 0.9, 0.3);
+          tl.fromTo("#s4-cg", { opacity: 0 }, { opacity: 1, duration: 0.08, ease: "none" }, tN + 0.45);
+          tl.fromTo("#s4-cg", { opacity: 1 }, { opacity: 0.35, duration: 0.18, ease: "power2.out", immediateRender: false }, tN + 0.53);
+
+          // ---------- exit: lateral pan to the left over the last 0.3 s ----------
+          tl.fromTo("#s4-stage", { x: 0, opacity: 1 }, { x: -220, opacity: 0, duration: 0.3, ease: "power2.in", immediateRender: false }, DUR - 0.3);
+
+          window.__timelines["s4"] = tl;
+        })();
+      </script>
+    </template>
+  </body>
+</html>

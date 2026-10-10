@@ -1,0 +1,76 @@
+<!doctype html>
+<html>
+  <head><meta charset="UTF-8" /></head>
+  <body>
+    <template>
+      <style>
+        @font-face { font-family: "JetBrains Mono"; src: url("fonts/JetBrainsMono-Variable.ttf"); font-weight: 100 800; }
+        @font-face { font-family: "Be Vietnam Pro"; src: url("fonts/BeVietnamPro-Bold.ttf"); font-weight: 700; }
+        #_nen-root { position: absolute; inset: 0; overflow: hidden; background: var(--table); }
+        #_nen-sheet { position: absolute; left: 14px; right: 14px; top: 14px; bottom: 14px; overflow: hidden;
+          background: radial-gradient(120% 80% at 35% 30%, var(--paper2) 0%, #234c96 45%, var(--paper1) 100%);
+          box-shadow: 0 18px 50px rgba(0, 0, 0, 0.6); }
+        #_nen-sheet svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+        #_nen-title { position: absolute; left: 70px; right: 70px; top: 58px; display: flex; justify-content: space-between;
+          font: 600 19px "JetBrains Mono", monospace; letter-spacing: 0.16em; color: rgba(231, 240, 249, 0.95); }
+        #_nen-title b { font-family: "Be Vietnam Pro", sans-serif; font-weight: 700; letter-spacing: 0.08em; }
+      </style>
+      <div id="_nen-root" data-composition-id="_nen" data-width="1080" data-height="1920">
+        <div id="_nen-sheet">
+          <svg viewBox="0 0 1052 1892" preserveAspectRatio="none">
+            <defs>
+              <filter id="_nen-grain" x="0" y="0" width="100%" height="100%">
+                <feTurbulence type="fractalNoise" baseFrequency="0.012 0.02" numOctaves="4" seed="7" result="n" />
+                <feColorMatrix type="matrix" values="0 0 0 0 0.06  0 0 0 0 0.12  0 0 0 0 0.3  0 0 0 0.55 0" />
+              </filter>
+              <filter id="_nen-fibre" x="0" y="0" width="100%" height="100%">
+                <feTurbulence type="turbulence" baseFrequency="0.9 0.04" numOctaves="2" seed="3" />
+                <feColorMatrix type="matrix" values="0 0 0 0 0.9  0 0 0 0 0.95  0 0 0 0 1  0 0 0 0.05 0" />
+              </filter>
+              <pattern id="_nen-grid" width="48" height="48" patternUnits="userSpaceOnUse">
+                <path d="M48 0H0V48" fill="none" stroke="rgba(231,240,249,0.07)" stroke-width="1" />
+              </pattern>
+              <pattern id="_nen-grid4" width="192" height="192" patternUnits="userSpaceOnUse">
+                <path d="M192 0H0V192" fill="none" stroke="rgba(231,240,249,0.12)" stroke-width="1.2" />
+              </pattern>
+              <radialGradient id="_nen-bleach" cx="50%" cy="50%" r="75%">
+                <stop offset="70%" stop-color="rgba(120,160,220,0)" />
+                <stop offset="100%" stop-color="rgba(140,180,235,0.28)" />
+              </radialGradient>
+            </defs>
+            <rect width="1052" height="1892" filter="url(#_nen-grain)" />
+            <rect width="1052" height="1892" filter="url(#_nen-fibre)" />
+            <rect width="1052" height="1892" fill="url(#_nen-grid)" />
+            <rect width="1052" height="1892" fill="url(#_nen-grid4)" />
+            <rect width="1052" height="1892" fill="url(#_nen-bleach)" />
+            <!-- fold creases: a bright edge beside a dark edge -->
+            <path d="M0 946 H1052" stroke="rgba(10,25,60,0.35)" stroke-width="3" />
+            <path d="M0 949 H1052" stroke="rgba(231,240,249,0.12)" stroke-width="2" />
+            <path d="M526 0 V1892" stroke="rgba(10,25,60,0.22)" stroke-width="2" />
+            <path d="M529 0 V1892" stroke="rgba(231,240,249,0.08)" stroke-width="1.5" />
+            <!-- drawing border: double line, drawn on at the start -->
+            <rect id="_nen-b1" x="34" y="34" width="984" height="1824" fill="none" stroke="rgba(231,240,249,0.85)" stroke-width="4" />
+            <rect id="_nen-b2" x="48" y="48" width="956" height="1796" fill="none" stroke="rgba(231,240,249,0.5)" stroke-width="1.5" />
+            <path id="_nen-tl" d="M48 104 H1004" stroke="rgba(231,240,249,0.5)" stroke-width="1.5" />
+          </svg>
+          <div id="_nen-title"><span><b>MOTIONFLY</b> · BẢN VẼ SỐ 01</span><span>AI / XÂY DỰNG · 1:1</span></div>
+        </div>
+      </div>
+      <script>
+        (() => {
+          const tl = gsap.timeline({ paused: true });
+          const dur = Math.max(...Object.values(window.__vv.scenes).map((s) => s.end));
+          ["_nen-b1", "_nen-b2", "_nen-tl"].forEach((id, i) => {
+            const el = document.getElementById(id);
+            const L = el.getTotalLength ? el.getTotalLength() : 6000;
+            el.style.strokeDasharray = L;
+            tl.fromTo(el, { strokeDashoffset: L }, { strokeDashoffset: 0, duration: 1.1, ease: "power2.inOut" }, 0.05 + i * 0.12);
+          });
+          tl.fromTo("#_nen-title", { opacity: 0, x: -20 }, { opacity: 1, x: 0, duration: 0.5, ease: "power2.out" }, 0.9);
+          tl.fromTo("#_nen-sheet", { scale: 1.0 }, { scale: 1.015, duration: dur, ease: "none" }, 0);
+          window.__timelines["_nen"] = tl;
+        })();
+      </script>
+    </template>
+  </body>
+</html>

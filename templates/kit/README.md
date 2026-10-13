@@ -40,6 +40,25 @@ Biến có sẵn: `K.tl`, `K.DUR`, `K.A(key)`, `K.exitAt`, `K.root`.
 
 `wobRect(x, y, w, h, r, seed)`, `wobEll(cx, cy, rx, ry, seed)`, `hatch(x, y, w, h, {g, s, ov, seed, v})` (nét tô zíc zắc tràn viền), `hatchEll(...)`, `scrib(x0, x1, y, seed)` (chữ nguệch ngoạc thay chữ viết tay), `star(cx, cy, R, r, n)`. Tất cả tất định: cùng tham số luôn ra cùng hình.
 
+## Icon (`K.icon`, 1.879 icon nét Lucide)
+
+```js
+// tra tên trước: python tools/icon_find.py "máy chủ"  -> server, server-cog, ...
+const bot = K.icon("bot", "svg", { x: 300, y: 900, size: 260, stroke: "var(--ink)", width: 7, filter: "s3-fline" });
+K.drawIcon(bot, K.A("robot"), 0.9);   // vẽ lần lượt từng nét của icon
+```
+
+- `K.icon(tên, cha, {x, y, size, stroke, width, filter, as})`: đặt icon vào `<svg>` hoặc `<g>` `cha`, tâm tại `(x, y)`, nét luôn dày `width` px dù to nhỏ. Trả về `<g id="<cảnh>-<as hoặc tên>">` để `pop`, `drift` hay tô tiếp.
+- `K.drawIcon(g, t, dur)`: vẽ từng nét. Dùng `filter` của gói chất liệu (ví dụ `s3-fline`) để icon ăn theo style.
+- `MF.icon(tên)`: chuỗi SVG gốc khung 24x24 nếu muốn tự xử lý.
+- Icon là vật phụ (cái khóa, máy chủ, đồng hồ). Ẩn dụ chính của cảnh nên tự vẽ, hoặc ghép nhiều icon thành một cảnh có câu chuyện (robot trèo qua hàng rào), đừng xếp icon thành lưới.
+
+Giấy phép: ISC (`vendor/licenses/lucide-ISC.txt`).
+
+## Khối chuyển động có sẵn
+
+Mũi tên vẽ tay, khoanh tròn, đếm số, biểu đồ, terminal, chuyển cảnh xé giấy...: xem `goi-y-catalog.md` trước khi tự viết.
+
 ## Gói chất liệu (`MF.style`)
 
 - `crayon.defs(p)`: filter `p-fline` (nét sáp run tay), `p-fwax` (sáp lốm đốm trên thớ giấy, cho vùng tô), `p-ftxt` (chữ).

@@ -108,3 +108,31 @@ def test_gate_still_vs_moving():
         assert gate.diff(fa, fb) > gate.SETTLE
     finally:
         pa.unlink(); pb.unlink()
+
+
+def test_gate_numbers_need_a_source(tmp_path):
+    import json
+    import gate
+    (tmp_path / "script.json").write_text(json.dumps({"scenes": [{"id": "s1", "say": "Có 56.069 sao."}]}), encoding="utf-8")
+    comp = tmp_path / "compositions"
+    comp.mkdir()
+    (comp / "s1.html").write_text('<template><div><style>.a{font-weight:700}</style><p>56.069 sao</p>'
+                                  '<span data-deco>3200</span><svg><path d="M120 300 L400 500"/></svg>'
+                                  '<script>el.textContent = "Tăng 480%"; gsap.to(x, {x: 260});</script></div></template>', encoding="utf-8")
+    out = gate.numbers(tmp_path, ["s1"])
+    assert len(out) == 1 and "480" in out[0] and "56.069" not in out[0] and "3200" not in out[0]
+
+
+def test_gate_review_code(tmp_path):
+    import hashlib
+    import gate
+    (tmp_path / "checks").mkdir()
+    (tmp_path / "checks" / ".sheet-code").write_text(hashlib.sha256(b"K7QM4X").hexdigest(), encoding="utf-8")
+    assert gate.code_ok(tmp_path, "KẾT LUẬN: ĐẠT\nMã tờ duyệt: K7QM4X")
+    assert not gate.code_ok(tmp_path, "KẾT LUẬN: ĐẠT\nMã tờ duyệt: AAAAAA")
+
+
+def test_icon_find_vietnamese():
+    from icon_find import find
+    assert find(["máy chủ"])[0][0] == "server"
+    assert any(n == "fence" for n, _ in find(["hàng rào"]))

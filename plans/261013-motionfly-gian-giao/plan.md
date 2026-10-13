@@ -27,3 +27,15 @@ Cập nhật kèm: `agents/dung-canh.md` (nhắc kit, cảnh mẫu, chống ch�
 - `gate.py` chạy trên dự án crayon: PASS sau khi có review.md; dự án cố ý lỗi (xóa review.md, cảnh đứng yên) thì FAIL đúng lý do.
 - Một cảnh thử viết bằng kit qua `hyperframes check` và render được.
 - Thử thật: giao Codex dựng lại 1 đến 2 cảnh theo chế độ tuần tự với kit và cổng chặn, so tờ duyệt với bản trước.
+
+## Đợt 2 (13/10/2026): minh họa nhiều hơn, chặn bịa số và tự chấm giả
+
+Bối cảnh: video Antigravity `videos/ai-agent-vuot-rao` qua cổng nhưng cả 5 cảnh cùng khuôn dashboard, 44 tới 86 chữ mỗi cảnh, s3 s4 không có hình SVG, số +480% 78.4% 54% không có nguồn, review.md tự khen.
+
+1. Bộ icon Lucide (ISC) trong kit: `templates/kit/mf-icons.js` (`MF.icon`, `K.icon` vẽ được bằng `K.draw`), `tools/icon_find.py <từ>` tra tiếng Việt hoặc tiếng Anh.
+2. `templates/kit/goi-y-catalog.md`: các khối `hyperframes catalog` hợp MotionFly theo mục đích, cách cài và gắn vào cảnh.
+3. `gate.py`: số trên hình (chữ trong HTML và chuỗi trong script) phải có trong script.json, brief.json hoặc storyboard.json.
+4. `sheet.py` in mã ngẫu nhiên lên tờ duyệt, chỉ lưu băm; `gate.py` đòi `review.md` chép đúng mã.
+5. Phân cảnh: ẩn dụ chính và 2 tới 4 nhịp hình mỗi cảnh (video-moi bước 4, packets).
+
+Xong khi: test đạt; gate FAIL đúng lý do trên dự án Antigravity (số bịa, thiếu mã); PASS trên dự án crayon sau khi chấm lại có mã; một cảnh thử dùng icon qua `hyperframes check`.

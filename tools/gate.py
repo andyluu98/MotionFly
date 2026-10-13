@@ -4,7 +4,8 @@ Checks what a careful builder does and a hurried one skips:
   1. no scene is still the placeholder
   2. `hyperframes check` passes (MF kit warnings are listed)
   3. checks/sheet.jpg is newer than every scene file (the builder looked at the current frames)
-  4. checks/review.md is newer than the sheet and says "KẾT LUẬN: ĐẠT" (an independent review happened)
+  4. checks/review.md is newer than the sheet, says "KẾT LUẬN: ĐẠT" and quotes the code printed on the sheet (it was opened)
+  4b. every number of 2+ digits on screen appears in script.json, brief.json or storyboard.json (no invented stats)
   5. motion, measured on frames every --step seconds (captions band ignored):
      - no stretch longer than 1.5 s where the picture does not change (texture boil alone does not count)
      - a scene still changing a lot just before its exit is listed with the frame to open and check
@@ -18,6 +19,7 @@ Needs: npx (HyperFrames), Pillow.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
 import re
@@ -97,6 +99,48 @@ def motion(project: Path, tl: dict, only: str | None, step: float) -> tuple[list
     return problems, looks
 
 
+def code_ok(project: Path, review: str) -> bool:
+    """The review quotes the code printed on the current sheet (tools/sheet.py stores only its hash)."""
+    h = project / "checks" / ".sheet-code"
+    if not h.exists():
+        return False
+    want = h.read_text(encoding="utf-8").strip()
+    return any(hashlib.sha256(c.encode()).hexdigest() == want for c in re.findall(r"\b[A-Z0-9]{6}\b", review))
+
+
+def screen_text(html: str) -> str:
+    """Words a viewer can read: HTML text (without comments, styles, defs and elements marked data-deco)
+    plus strings a script writes with .textContent / .innerText. Coordinates and other code are ignored."""
+    body = re.sub(r"<!--.*?-->|<(style|defs)\b.*?</\1>", " ", html, flags=re.S | re.I)
+    body = re.sub(r"<(\w+)\b[^>]*\bdata-deco\b[^>]*>.*?</\1>", " ", body, flags=re.S)
+    scripts = " ".join(re.findall(r"<script\b[^>]*>(.*?)</script>", body, flags=re.S | re.I))
+    body = re.sub(r"<script\b.*?</script>", " ", body, flags=re.S | re.I)
+    text = re.sub(r"<[^>]+>", " ", body)
+    for m in re.findall(r"\.(?:textContent|innerText)\s*=\s*([\"'`])(.*?)\1", scripts, flags=re.S):
+        text += " " + re.sub(r"\$\{[^}]*\}", " ", m[1])
+    return text
+
+
+def numbers(project: Path, ids: list[str]) -> list[str]:
+    """Every number of 2+ digits shown on screen must come from script.json, brief.json or storyboard.json (no invented stats)."""
+    corpus = " ".join((project / n).read_text(encoding="utf-8") for n in ("script.json", "brief.json", "storyboard.json") if (project / n).exists())
+    known = {re.sub(r"[.,\s]", "", m) for m in re.findall(r"\d[\d.,]*", corpus)}
+    out = []
+    for sid in ids:
+        f = project / "compositions" / f"{sid}.html"
+        if not f.exists():
+            continue
+        bad = []
+        for m in re.findall(r"\d[\d.,]*\d|\d", screen_text(f.read_text(encoding="utf-8"))):
+            k = re.sub(r"[.,\s]", "", m)
+            if int(k) >= 10 and k not in known and m not in bad:
+                bad.append(m)
+        if bad:
+            out.append(f"{sid}: số trên hình không có trong script.json, brief.json hay storyboard.json: {', '.join(bad[:6])}. "
+                       "Số thật thì ghi vào brief.json (mục \"facts\" kèm nguồn); không có nguồn thì bỏ, đừng bịa")
+    return out
+
+
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("project")
@@ -131,6 +175,9 @@ def main() -> None:
                 fails.append("thiếu checks/review.md mới hơn tờ duyệt: chấm độc lập theo agents/nguoi-cham.md và ghi biên bản")
             elif not re.search(r"KẾT LUẬN:\s*ĐẠT", review.read_text(encoding="utf-8")):
                 fails.append("checks/review.md chưa có dòng 'KẾT LUẬN: ĐẠT': sửa các lỗi blocker rồi chấm lại")
+            elif not code_ok(p, review.read_text(encoding="utf-8")):
+                fails.append("checks/review.md thiếu mã tờ duyệt: MỞ checks/sheet.jpg, chép dòng 'Mã tờ duyệt: ......' in ở góc dưới vào biên bản")
+        fails += numbers(p, ids)
     if not fails or a.scene:
         bad, looks = motion(p, tl, a.scene, a.step)
         fails += bad

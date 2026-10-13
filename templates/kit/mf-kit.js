@@ -187,6 +187,25 @@
         fill.parentNode.insertBefore(g, fill); g.appendChild(fill);
         return fill;
       },
+      // place a Lucide icon (mf-icons.js) inside an <svg> or <g> of the scene as <g id="<scene>-<as>">; strokes stay `width` px at any size
+      icon(name, parent, d = {}) {
+        const NS = "http://www.w3.org/2000/svg", size = d.size ?? 160, k = size / 24;
+        const g = doc.createElementNS(NS, "g");
+        g.setAttribute("id", `${id}-${d.as || name}`);
+        g.setAttribute("transform", `translate(${f1((d.x ?? 0) - size / 2)} ${f1((d.y ?? 0) - size / 2)}) scale(${k})`);
+        g.setAttribute("fill", "none"); g.setAttribute("stroke", d.stroke || "currentColor");
+        g.setAttribute("stroke-width", f1((d.width ?? 6) / k)); g.setAttribute("stroke-linecap", "round"); g.setAttribute("stroke-linejoin", "round");
+        if (d.filter) g.setAttribute("filter", `url(#${d.filter})`);
+        g.innerHTML = MF.icon(name);
+        $(parent).appendChild(g);
+        return g;
+      },
+      // draw every stroke of an icon (or any <g>) one after another inside `dur`
+      drawIcon(g, t, dur = 0.8, d = {}) {
+        const parts = Array.from($(g).querySelectorAll("path,circle,ellipse,rect,line,polyline,polygon")), each = dur / parts.length;
+        parts.forEach((p, i) => K.draw(p, t + i * each, each, { steps: d.steps ?? 4, opacity: d.opacity }));
+        return t + dur;
+      },
       pop(els, t, dur = 0.25, d = {}) {
         tl.fromTo([].concat(els).map($), { scale: 0, opacity: 0, transformOrigin: d.origin || "50% 50%" },
           { scale: 1, opacity: 1, duration: dur, ease: d.ease || "back.out(1.7)" }, t);
@@ -219,5 +238,12 @@
     return K;
   }
 
-  window.MF = { scene, geo, style, version: "1" };
+  // Lucide icon markup by name (24x24 box); throws with a hint when the name does not exist
+  function icon(name) {
+    const m = (window.MF_ICONS || {})[name];
+    if (!m) throw new Error(`MF.icon: không có icon "${name}" (tra tên: python tools/icon_find.py <từ khóa>)`);
+    return m;
+  }
+
+  window.MF = { scene, geo, style, icon, version: "2" };
 })();

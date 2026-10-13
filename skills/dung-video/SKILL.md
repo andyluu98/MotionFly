@@ -70,7 +70,7 @@ Trước khi render, bắt buộc:
 "$PY" "$VV/tools/gate.py" <du-an>
 ```
 
-Chỉ render khi lệnh in `GATE PASS`. Cổng kiểm: không còn cảnh khung chờ, `hyperframes check` qua, tờ duyệt mới hơn file cảnh, có `checks/review.md` kết luận ĐẠT, không đoạn nào đứng yên quá 1,5 giây (đo trên ảnh chụp mỗi 0,5 giây). Dòng `chú ý` trỏ tới ảnh khung cuối cảnh cần mở ra xem. Không được sửa file `gate.py` hay viết review.md giả để qua cổng.
+Chỉ render khi lệnh in `GATE PASS`. Cổng kiểm: không còn cảnh khung chờ, `hyperframes check` qua, tờ duyệt mới hơn file cảnh, có `checks/review.md` kết luận ĐẠT và chép đúng `Mã tờ duyệt` in trên `checks/sheet.jpg`, mọi số từ 2 chữ số trở lên trên hình có trong `script.json`, `brief.json` hay `storyboard.json`, không đoạn nào đứng yên quá 1,5 giây (đo trên ảnh chụp mỗi 0,5 giây). Dòng `chú ý` trỏ tới ảnh khung cuối cảnh cần mở ra xem. Không được sửa file `gate.py` hay viết review.md giả để qua cổng.
 
 
 ```bash

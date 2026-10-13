@@ -16,8 +16,10 @@ Ghi `brief.json`:
 ```json
 {"topic": "...", "audience": "...", "message": "một câu thông điệp lõi", "aspect": "9:16",
  "duration_s": 60, "style": "whiteboard", "voice": "Ngọc Huyền", "music": "synth:inspiring",
- "brand": {"colors": [], "name": ""}, "sources": [], "auto": false}
+ "brand": {"colors": [], "name": ""}, "sources": [], "facts": [], "auto": false}
 ```
+
+`facts`: mỗi số liệu, tên, mốc thời gian sẽ xuất hiện trên hình, dạng `{"fact": "56.069 sao", "source": "link"}`. Số không có ở đây hay trong lời đọc thì cổng chặn không cho render.
 
 Chỉ hỏi khi thiếu thứ không đoán được, mỗi lần một câu, có phương án đề xuất đặt đầu. Mặc định: 9:16, 60 giây, giọng Ngọc Huyền, nhạc tổng hợp theo mood của style. Người dùng nói "tự làm hết" thì `auto: true`: bỏ các cổng duyệt, chỉ báo cáo cuối.
 
@@ -65,13 +67,16 @@ Theo skill `giong-doc`. Xong khi có `voice.wav`, `words.json`, không còn câu
 Viết `storyboard.json` dựa trên mốc giọng thật trong `words.json`:
 
 ```json
-{"title": "...", "aspect": "9:16", "style": "whiteboard",
+{"title": "...", "aspect": "9:16", "style": "whiteboard", "metaphor": "một hình ẩn dụ giữ suốt video",
  "scenes": [{"id": "s1", "visual": "mô tả hình: vật gì, bố cục, chuyển động",
+             "beats": ["robot đứng trước hàng rào", "robot trèo qua, hàng rào đổ", "khiên bật lên chặn lại"],
              "anchors": [{"id": "hook", "kw": "từ đúng như lời đọc", "nth": 1, "off": -0.1}],
              "in": "cách vào cảnh", "out": "cách sang cảnh sau"}]}
 ```
 
 - Mỗi câu lời đọc có ít nhất một neo; `kw` là một hoặc vài từ liên tiếp viết đúng như trong `say`.
+- `beats`: 2 đến 4 nhịp hình mỗi cảnh, mỗi nhịp là một việc nhìn thấy được (vật xuất hiện, biến đổi, tương tác), gắn với một câu lời đọc. Viết bằng động từ và đồ vật, không viết "thẻ thông tin", "bảng so sánh", "tiêu đề lớn".
+- Cảnh dài quá 8 giây thì tách đôi hoặc thêm nhịp hình.
 - Hình phải đúng thứ người trong nghề thấy thật (kiểm thử phần mềm là terminal chạy test, không phải ống nghiệm).
 - Chạy `"$PY" "$VV/tools/timeline.py" <du-an>`; sửa đến khi không còn `KW miss`.
 

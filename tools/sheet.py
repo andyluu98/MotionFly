@@ -13,6 +13,9 @@ import os
 import subprocess
 from pathlib import Path
 
+import hashlib
+import secrets
+
 from PIL import Image, ImageDraw, ImageFont
 
 HYPERFRAMES = "hyperframes@0.8.145"
@@ -54,13 +57,17 @@ def main() -> None:
     th = int(tw * h / w)
     cols = min(len(files), 5 if h > w else 3)
     rows = (len(files) + cols - 1) // cols
-    sheet = Image.new("RGB", (cols * tw, rows * (th + 44)), "#111")
+    sheet = Image.new("RGB", (cols * tw, rows * (th + 44) + 56), "#111")
     draw = ImageDraw.Draw(sheet)
     font = ImageFont.truetype(str(FONT), 22)
     for i, (f, (sid, t)) in enumerate(zip(files, picks)):
         x, y = (i % cols) * tw, (i // cols) * (th + 44)
         sheet.paste(Image.open(f).convert("RGB").resize((tw, th)), (x, y))
         draw.text((x + 10, y + th + 8), f"{sid}  {t:.1f}s", fill="#eee", font=font)
+    # a fresh code only readable on the picture: the reviewer copies it into checks/review.md, proving the sheet was opened
+    code = "".join(secrets.choice("ACDEFHJKMNPRTUVWXY34679") for _ in range(6))
+    draw.text((12, sheet.height - 46), f"Mã tờ duyệt: {code}", fill="#ffd166", font=ImageFont.truetype(str(FONT), 30))
+    (p / "checks" / ".sheet-code").write_text(hashlib.sha256(code.encode()).hexdigest(), encoding="utf-8")
     out = p / "checks" / "sheet.jpg"
     sheet.save(out, quality=85)
     print(f"SHEET {out} ({len(files)} khung)")

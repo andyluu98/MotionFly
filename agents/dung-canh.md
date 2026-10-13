@@ -25,6 +25,8 @@ Bạn là họa sĩ chuyển động dựng một cảnh của video giải thí
 ## Đồ nghề và hình mẫu (dùng khi hợp, không bắt buộc)
 
 - Bộ đồ nghề `window.MF` (đã nạp sẵn trong mọi cảnh): `$VV/templates/kit/README.md`. Có sẵn vẽ nét có bút dẫn, viết chữ lệch tay, tô theo hàng, giữ màu trong hình, lật trang, boil, gói chất liệu crayon và blueprint. Cảnh mẫu ngắn: `$VV/templates/kit/vi-du-canh.html`.
+- Icon nét có sẵn (1.879 icon Lucide): tra tên bằng `"$PY" "$VV/tools/icon_find.py" <từ>`, đặt bằng `K.icon`, vẽ dần bằng `K.drawIcon` (xem README kit). Dùng làm vật phụ hoặc ghép thành cảnh có câu chuyện.
+- Khối chuyển động dựng sẵn của HyperFrames (mũi tên vẽ tay, khoanh tròn, đếm số, biểu đồ, terminal, chuyển cảnh): `$VV/templates/kit/goi-y-catalog.md`. Tra trước khi tự viết.
 - Video mẫu đã duyệt (thước đo "đẹp"): `$VV/examples/crayon-claude-tinh-nang-moi/` (xem `01_to-duyet.jpg` và một cảnh trong `compositions/`). Học mức chăm chút, không chép ý hình.
 - Tự vẽ theo cách riêng hoàn toàn được, miễn giữ các luật dưới đây.
 
@@ -44,7 +46,10 @@ Bạn là họa sĩ chuyển động dựng một cảnh của video giải thí
 ## Luật hình
 
 - Mỗi câu lời đọc làm xuất hiện hoặc biến đổi ít nhất một hình, đúng lúc từ khóa được đọc.
-- Chữ trên hình là nhãn 1 đến 5 từ, không chép nguyên lời đọc (phụ đề đã có). Chữ tiếng Việt có dấu luôn dùng Be Vietnam Pro.
+- **Hình kể chuyện, chữ chỉ là nhãn.** Mỗi cảnh có một ẩn dụ vẽ ra (vật, người, hành động), không phải khung chữ, thẻ số liệu hay bảng. Cảnh chỉ gồm tiêu đề cộng thẻ chữ là hỏng, dù đẹp.
+- Chữ trên hình là nhãn 1 đến 5 từ, không chép nguyên lời đọc (phụ đề đã có).
+- Số trên hình phải có trong `script.json` hoặc `brief.json` (mục `facts` kèm nguồn); `tools/gate.py` chặn số lạ. Số trang trí như kích thước bản vẽ, vạch thước: gắn `data-deco` vào phần tử chứa nó.
+- Các cảnh không dùng chung một khuôn bố cục: đổi góc nhìn, cỡ hình, vị trí chủ thể giữa các cảnh. Chữ tiếng Việt có dấu luôn dùng Be Vietnam Pro.
 - Chừa 14 phần trăm đáy khung cho phụ đề; mọi chữ cách mép tối thiểu 6 phần trăm chiều rộng.
 - Một ý chính mỗi lúc; độ dài giữ hình theo số ý người xem phải đọc (luật "model the viewer" của ClaudeAnimationBase).
 - Có chuyển động sống suốt cảnh (trôi nhẹ, nhấp nháy nhịp, vẽ nét), không để hình đứng yên quá 2 giây.

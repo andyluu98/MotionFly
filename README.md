@@ -63,7 +63,7 @@ MotionFly viết cho Claude Code nhưng các agent khác cũng chạy được:
 2. Tạo file hướng dẫn trong thư mục làm video: `python tools/setup/entry.py <thư-mục>` (ghi `AGENTS.md` cho Codex, `GEMINI.md` cho Antigravity và Gemini CLI).
 3. Mở agent ở thư mục đó và gõ yêu cầu làm video như bình thường.
 
-Agent không có agent con thì dựng theo **chế độ tuần tự**: mỗi cảnh viết xong chạy `tools/scene_check.py`, mở ảnh ra xem, sửa, rồi mới sang cảnh sau. Trước khi render bắt buộc qua **cổng chặn** `tools/gate.py` (đủ bước kiểm tra, có biên bản chấm, không đoạn hình đứng yên quá 1,5 giây). Bộ đồ nghề `templates/kit/` (nét sáp, chữ viết tay, tô màu, lật trang) và video mẫu đã duyệt `examples/crayon-claude-tinh-nang-moi/` giúp hình đẹp ngay mà không bó sáng tạo.
+Agent không có agent con thì dựng theo **chế độ tuần tự**: mỗi cảnh viết xong chạy `tools/scene_check.py`, mở ảnh ra xem, sửa, rồi mới sang cảnh sau. Trước khi render bắt buộc qua **cổng chặn** `tools/gate.py` (đủ bước kiểm tra, biên bản chấm phải chép mã in trên tờ duyệt, mọi số trên hình phải có nguồn, không đoạn hình đứng yên quá 1,5 giây). Bộ đồ nghề `templates/kit/` (nét sáp, chữ viết tay, tô màu, lật trang, 1.879 icon nét Lucide tra bằng `tools/icon_find.py`, danh sách khối chuyển động dựng sẵn của HyperFrames trong `goi-y-catalog.md`) và video mẫu đã duyệt `examples/crayon-claude-tinh-nang-moi/` giúp hình đẹp ngay mà không bó sáng tạo.
 
 ## Cấu trúc
 
@@ -71,7 +71,7 @@ Agent không có agent con thì dựng theo **chế độ tuần tự**: mỗi c
 skills/      video-moi (điều phối), giong-doc, nhac-nen, dung-video, video-cai-dat
 agents/      dung-canh (dựng một cảnh), nguoi-cham (chấm độc lập)
 styles/      style card (nguồn ghi đầu mỗi file)
-tools/       voice/ (VieNeu, Whisper), music/synth.py, audio/mix.py, timeline.py, assemble.py, sheet.py, gate.py, scene_check.py, setup/
+tools/       voice/ (VieNeu, Whisper), music/synth.py, audio/mix.py, timeline.py, assemble.py, sheet.py, gate.py, scene_check.py, icon_find.py, setup/
 templates/   khuôn cảnh, font Be Vietnam Pro, kit/ (bộ đồ nghề window.MF)
 vendor/      code chép từ repo khác, giấy phép gốc
 ```

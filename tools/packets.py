@@ -37,7 +37,6 @@ def main() -> None:
         anchors = "\n".join(f'  A("{k}") = {v - s["start"]:.2f} s' for k, v in s["anchors"].items())
         prev = sb[order[i - 1]]["visual"] if i else "(không, đây là cảnh mở đầu)"
         nxt = sb[order[i + 1]]["visual"] if i + 1 < len(order) else "(không, cảnh cuối: giữ hình 0,3 giây cuối)"
-        beats = "\n".join(f"  {k + 1}. {b}" for k, b in enumerate(sb[sid].get("beats", []))) or "  (storyboard chưa có beats: tự chia 2 đến 4 nhịp hình theo các câu)"
         bg = ("Nền: KHÔNG vẽ nền; `#<id>-root` để background: transparent (đã có lớp nền chung `_nen`)."
               if has_bg else "Nền: tự vẽ nền theo style trong cảnh.")
         text = f"""# Gói giao việc cảnh {sid}
@@ -54,11 +53,7 @@ Lời đọc của cảnh (thời gian cục bộ, giây):
 Neo có sẵn:
 {anchors}
 
-Ẩn dụ chung của video: {sb_all.get('metaphor', '(không ghi)')}
 Ý hình (storyboard): {sb[sid].get('visual', '')}
-Nhịp hình (mỗi nhịp là một việc nhìn thấy, đúng lúc câu tương ứng được đọc):
-{beats}
-Đồ nghề: icon `K.icon` (tra tên: tools/icon_find.py), khối dựng sẵn: {(PLUGIN / 'templates' / 'kit' / 'goi-y-catalog.md').as_posix()}
 Vào: {sb[sid].get('in', '')}   Ra: {sb[sid].get('out', '')}
 Cảnh trước: {prev}
 Cảnh sau: {nxt}

@@ -9,7 +9,6 @@
   and re-encoding would move the true peak; mix.py final muxes mix.wav instead
 - fonts copied from the plugin (Be Vietnam Pro, OFL)
 - optional compositions/_nen.html: a shared background layer under all scenes
-- the optional helper kit (templates/kit/*.js) copied to <project>/kit and loaded before the scenes (window.MF)
 
 Usage: python assemble.py <project_dir> [--no-audio]
 """
@@ -25,7 +24,6 @@ from pathlib import Path
 PLUGIN = Path(__file__).resolve().parents[1]
 FONTS = PLUGIN / "templates" / "fonts"
 SCENE_TEMPLATE = PLUGIN / "templates" / "scene.html"
-KIT = PLUGIN / "templates" / "kit"
 GSAP = "https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"
 WEIGHTS = {"Regular": 400, "Medium": 500, "Bold": 700, "ExtraBold": 800}
 
@@ -51,9 +49,6 @@ def build(project: Path, audio: bool = True) -> Path:
     for f in FONTS.glob("*.ttf"):
         if not (project / "fonts" / f.name).exists():
             shutil.copy2(f, project / "fonts" / f.name)
-    (project / "kit").mkdir(exist_ok=True)
-    for f in KIT.glob("*.js"):   # always refresh: the kit is plugin code, not project content
-        shutil.copy2(f, project / "kit" / f.name)
     comp = project / "compositions"
     comp.mkdir(exist_ok=True)
     theme = project / "theme.css"
@@ -82,7 +77,6 @@ def build(project: Path, audio: bool = True) -> Path:
     cap_size = 46 if h > w else 40
     audio_tag = (f'      <audio id="mix" src="mix.wav" data-start="0" data-duration="{dur}" data-track-index="10"></audio>'
                  if audio else "      <!-- audio omitted for render; mix.py final muxes mix.wav -->")
-    kit_tags = "\n".join(f'    <script src="kit/{f.name}"></script>' for f in sorted(KIT.glob("*.js")))
     page = f"""<!doctype html>
 <html lang="vi">
   <head>
@@ -90,7 +84,6 @@ def build(project: Path, audio: bool = True) -> Path:
     <meta name="viewport" content="width={w}, height={h}" />
     <title>{html.escape(sb.get("title", project.name))}</title>
     <script src="{GSAP}"></script>
-{kit_tags}
     <link rel="stylesheet" href="theme.css" />
     <style>
 {font_faces()}

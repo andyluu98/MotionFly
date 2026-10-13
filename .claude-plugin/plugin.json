@@ -1,6 +1,6 @@
 {
   "name": "motionfly",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Làm video tiếng Việt trọn gói bằng Claude Code: ý tưởng, kịch bản, giọng VieNeu, phân cảnh, nhạc nền, dựng hình bằng code (HyperFrames), trộn âm -14 LUFS, phụ đề. 43 style dựng sẵn, linh hoạt theo yêu cầu.",
   "author": { "name": "andyluu98" },
   "license": "MIT",

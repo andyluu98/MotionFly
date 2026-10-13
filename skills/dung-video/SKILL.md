@@ -23,17 +23,6 @@ Mỗi cảnh là một file `compositions/<id>.html` theo khuôn `$VV/templates/
 
 - Từ 4 cảnh trở lên: giao mỗi cảnh cho một agent `dung-canh`, **phát tất cả trong cùng một tin nhắn** để chạy song song. Mỗi agent chỉ sửa đúng file cảnh của mình.
 - Dưới 4 cảnh: tự dựng theo đúng các luật trong `agents/dung-canh.md`.
-- **Không có công cụ giao agent con** (Codex, Antigravity, Gemini CLI...): dùng **chế độ tuần tự** bên dưới.
-
-### Chế độ tuần tự (một mình dựng cả video)
-
-Làm từng cảnh một, không viết hết rồi mới xem:
-1. Đọc gói `checks/packets/<id>.md`, `$VV/agents/dung-canh.md`, `$VV/templates/kit/README.md` và xem `$VV/examples/crayon-claude-tinh-nang-moi/01_to-duyet.jpg` để biết mức chăm chút cần có.
-2. Viết `compositions/<id>.html` (nên dùng bộ đồ nghề `window.MF` cho phần nét, chữ, tô, camera).
-3. Chạy `"$PY" "$VV/tools/scene_check.py" <du-an> <id>`, **mở ảnh `checks/scene/<id>.jpg` ra xem** và sửa tới khi ảnh sạch và lệnh in `GATE PASS`.
-4. Xong mới sang cảnh tiếp theo.
-
-Khi đủ cảnh: làm mục 3, mục 4; vai người chấm thì tự đóng ở một lượt riêng theo đúng `$VV/agents/nguoi-cham.md`, chỉ nhìn ảnh, không nhìn code, rồi ghi `checks/review.md`.
 
 Tạo gói giao việc cho mọi cảnh (thời gian cục bộ từng từ, neo `A("key")`, ý hình, cảnh trước và sau, biến màu, quy ước chung):
 
@@ -58,20 +47,11 @@ Sửa đến khi `Check passed` và 0 error. Lỗi lint nằm ở file cảnh n�
 "$PY" "$VV/tools/sheet.py" <du-an> --extra 1
 ```
 
-Mở `checks/sheet.jpg` bằng Read và tự soát: chữ tràn mép, chữ đè phụ đề (phụ đề chiếm 12 phần trăm đáy khung), tương phản thấp, cảnh trống, sai dấu tiếng Việt. Sau đó giao agent `nguoi-cham` (cuộc trò chuyện mới, chỉ đưa brief, storyboard, sheet và đường dẫn ảnh snap, không đưa lập luận của người dựng). Chép nguyên báo cáo của người chấm vào `checks/review.md` (dòng đầu `KẾT LUẬN: ĐẠT` hoặc `KẾT LUẬN: CHƯA ĐẠT`). Sửa các lỗi `blocker`, tạo lại tờ duyệt, chấm lại, tối đa 2 vòng; phần còn lại ghi vào báo cáo.
+Mở `checks/sheet.jpg` bằng Read và tự soát: chữ tràn mép, chữ đè phụ đề (phụ đề chiếm 12 phần trăm đáy khung), tương phản thấp, cảnh trống, sai dấu tiếng Việt. Sau đó giao agent `nguoi-cham` (cuộc trò chuyện mới, chỉ đưa brief, storyboard, sheet và đường dẫn ảnh snap, không đưa lập luận của người dựng). Sửa các lỗi `blocker`, tối đa 2 vòng, rồi ghi phần còn lại vào báo cáo.
 
 Đây là cổng duyệt 2 của `/video-moi`: gửi `checks/sheet.jpg` cho người dùng (SendUserFile nếu có) và chờ đồng ý, trừ khi người dùng đã nói "tự làm hết". Muốn xem có tiếng: `cd <du-an> && npx -y hyperframes@0.8.145 preview --background`.
 
-## 5. Cổng chặn, render và ghép
-
-Trước khi render, bắt buộc:
-
-```bash
-"$PY" "$VV/tools/gate.py" <du-an>
-```
-
-Chỉ render khi lệnh in `GATE PASS`. Cổng kiểm: không còn cảnh khung chờ, `hyperframes check` qua, tờ duyệt mới hơn file cảnh, có `checks/review.md` kết luận ĐẠT và chép đúng `Mã tờ duyệt` in trên `checks/sheet.jpg`, mọi số từ 2 chữ số trở lên trên hình có trong `script.json`, `brief.json` hay `storyboard.json`, không đoạn nào đứng yên quá 1,5 giây (đo trên ảnh chụp mỗi 0,5 giây). Dòng `chú ý` trỏ tới ảnh khung cuối cảnh cần mở ra xem. Không được sửa file `gate.py` hay viết review.md giả để qua cổng.
-
+## 5. Render và ghép
 
 ```bash
 "$PY" "$VV/tools/assemble.py" <du-an> --no-audio

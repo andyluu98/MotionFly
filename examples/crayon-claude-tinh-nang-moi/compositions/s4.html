@@ -1,0 +1,503 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <!-- Scene s4. Runtime keeps only <template>; put style, markup and script inside it. -->
+  </head>
+  <body>
+    <template>
+      <style>
+        /* Each scene declares its fonts (HyperFrames lint: font_family_without_font_face). Paths are relative to index.html. */
+        @font-face { font-family: "Be Vietnam Pro"; src: url("fonts/BeVietnamPro-Regular.ttf"); font-weight: 400; }
+        @font-face { font-family: "Be Vietnam Pro"; src: url("fonts/BeVietnamPro-Medium.ttf"); font-weight: 500; }
+        @font-face { font-family: "Be Vietnam Pro"; src: url("fonts/BeVietnamPro-Bold.ttf"); font-weight: 700; }
+        @font-face { font-family: "Be Vietnam Pro"; src: url("fonts/BeVietnamPro-ExtraBold.ttf"); font-weight: 800; }
+        #s4-root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          background: transparent;
+          color: var(--ink);
+          font-family: "Be Vietnam Pro", sans-serif;
+        }
+        #s4-stage, #s4-cam { position: absolute; inset: 0; }
+        #s4-root .s4-layer { position: absolute; left: 0; top: 0; width: 100%; height: 100%; overflow: visible; }
+        #s4-root .s4-txt {
+          position: absolute;
+          font-weight: 700;
+          color: var(--ink);
+          white-space: nowrap;
+          text-align: center;
+          line-height: 1.15;
+          filter: url(#s4-txtf);
+        }
+        #s4-root .s4-ch { display: inline-block; transform-origin: 50% 70%; }
+      </style>
+
+      <div id="s4-root" data-composition-id="s4" data-width="1080" data-height="1920">
+        <div id="s4-stage">
+          <div id="s4-cam">
+            <!-- main drawing layer: every object = wax fill group + hand-wobble outline group -->
+            <svg id="s4-svg" class="s4-layer" viewBox="0 0 1080 1920">
+              <defs id="s4-defs">
+                <!-- 1. outline crayon: hand tremor + light speckle on the paper tooth -->
+                <filter id="s4-wob" filterUnits="userSpaceOnUse" x="-60" y="-60" width="1200" height="2040" color-interpolation-filters="sRGB">
+                  <feTurbulence id="s4-tw1" type="fractalNoise" baseFrequency="0.035" numOctaves="2" seed="1" result="n" />
+                  <feDisplacementMap in="SourceGraphic" in2="n" scale="4.5" xChannelSelector="R" yChannelSelector="G" result="d" />
+                  <feTurbulence id="s4-tg1" type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="10" result="g" />
+                  <feColorMatrix in="g" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  6 0 0 0 -1.9" result="ga" />
+                  <feComposite in="d" in2="ga" operator="in" />
+                </filter>
+                <!-- 2. colouring wax: sticks only to the peaks of the tooth (about 20% paper shows) -->
+                <filter id="s4-wax" filterUnits="userSpaceOnUse" x="-60" y="-60" width="1200" height="2040" color-interpolation-filters="sRGB">
+                  <feTurbulence id="s4-tw2" type="fractalNoise" baseFrequency="0.035" numOctaves="2" seed="3" result="n" />
+                  <feDisplacementMap in="SourceGraphic" in2="n" scale="5" xChannelSelector="R" yChannelSelector="G" result="d" />
+                  <feTurbulence id="s4-tg2" type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="12" result="g" />
+                  <feColorMatrix in="g" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  7 0 0 0 -2.6" result="ga" />
+                  <feComposite in="d" in2="ga" operator="in" />
+                </filter>
+                <!-- 3. hand-lettered words on the page -->
+                <filter id="s4-txtf" x="-0.06" y="-0.25" width="1.12" height="1.5" color-interpolation-filters="sRGB">
+                  <feTurbulence id="s4-tw3" type="fractalNoise" baseFrequency="0.045" numOctaves="2" seed="2" result="n" />
+                  <feDisplacementMap in="SourceGraphic" in2="n" scale="3.2" xChannelSelector="R" yChannelSelector="G" result="d" />
+                  <feTurbulence id="s4-tg3" type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="14" result="g" />
+                  <feColorMatrix in="g" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  6 0 0 0 -1.8" result="ga" />
+                  <feComposite in="d" in2="ga" operator="in" />
+                </filter>
+                <!-- 4. small objects (guide crayon, sparkles): bbox region so negative local coords survive -->
+                <filter id="s4-wobc" x="-0.15" y="-0.3" width="1.3" height="1.6" color-interpolation-filters="sRGB">
+                  <feTurbulence id="s4-tw4" type="fractalNoise" baseFrequency="0.04" numOctaves="2" seed="4" result="n" />
+                  <feDisplacementMap in="SourceGraphic" in2="n" scale="3" xChannelSelector="R" yChannelSelector="G" />
+                </filter>
+                <clipPath id="s4-clipbars"><rect x="150" y="990" width="560" height="460" /></clipPath>
+              </defs>
+            </svg>
+
+            <!-- words written on the page (Be Vietnam Pro 700, every glyph tilted) -->
+            <div id="s4-pnum" class="s4-txt" style="left: 885px; top: 136px; width: 100px; font-size: 64px;">2</div>
+            <div id="s4-title" class="s4-txt" style="left: 70px; top: 250px; width: 940px; font-size: 80px;">Claude Dashboards</div>
+            <div id="s4-lclaude" data-layout-allow-overlap class="s4-txt" style="left: 742px; top: 712px; width: 200px; font-size: 44px; text-align: left;">Claude</div>
+            <div id="s4-lkho" class="s4-txt" style="left: 70px; top: 838px; width: 360px; font-size: 44px;">Kho dữ liệu</div>
+            <div id="s4-q1" class="s4-txt" style="left: 520px; top: 428px; width: 460px; font-size: 50px;">Doanh thu</div>
+            <div id="s4-q2" class="s4-txt" style="left: 520px; top: 496px; width: 460px; font-size: 50px;">tuần này?</div>
+            <div id="s4-lcap" data-layout-allow-overlap class="s4-txt" style="left: 660px; top: 1212px; width: 300px; font-size: 42px;">Tự cập nhật</div>
+
+            <!-- top layer: sparkles and the guide crayon ride above the words -->
+            <svg id="s4-top" class="s4-layer" viewBox="0 0 1080 1920">
+              <g id="s4-sparks"></g>
+              <g id="s4-cray" style="opacity: 0">
+                <g id="s4-crayw">
+                  <g id="s4-crays" transform="rotate(-38) scale(0.85)" filter="url(#s4-wobc)">
+                    <path d="M2 0 Q9 -8 36 -15 L36 15 Q9 8 2 0 Z" style="fill: currentColor; stroke: var(--ink); stroke-width: 3px; stroke-linejoin: round" />
+                    <rect x="36" y="-16" width="176" height="32" rx="5" style="fill: currentColor; stroke: var(--ink); stroke-width: 3px" />
+                    <rect x="66" y="-18" width="118" height="36" rx="3" style="fill: var(--c-white); stroke: var(--ink); stroke-width: 3px" />
+                    <path d="M80 -18 L88 18 M102 -18 L110 18 M124 -18 L132 18 M146 -18 L154 18 M168 -18 L176 18" style="fill: none; stroke: currentColor; stroke-width: 5px; stroke-linecap: round" />
+                    <path d="M44 -8 L60 -8 M190 -8 L206 -8" style="fill: none; stroke: var(--c-white); stroke-width: 3px; stroke-linecap: round; opacity: 0.6" />
+                  </g>
+                </g>
+              </g>
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      <script>
+        (() => {
+          // A("key") = local time (s) of an anchor from timeline.json; never hard-code word times.
+          const A = (key) => window.__vv.local("s4", key);
+          const SC = window.__vv.scenes["s4"];
+          const DUR = SC.end - SC.start;
+          const BEAT = 60 / 92, S = SC.start;
+          const beats = (from, to) => { const o = []; for (let k = Math.ceil((S + from) / BEAT); k * BEAT - S <= to; k++) o.push(k * BEAT - S); return o; };
+
+          const NS = "http://www.w3.org/2000/svg";
+          const root = document.querySelector("#s4-root");
+          const $ = (s) => root.querySelector(s);
+          const svg = $("#s4-svg"), defs = $("#s4-defs"), sparks = $("#s4-sparks");
+          const stage = $("#s4-stage"), cam = $("#s4-cam");
+          const cray = $("#s4-cray"), crayW = $("#s4-crayw");
+          const V = (n) => getComputedStyle(root).getPropertyValue(n).trim();
+          const tl = gsap.timeline({ paused: true });
+
+          // ---------- builders ----------
+          const mk = (tag, attrs, parent, style) => {
+            const e = document.createElementNS(NS, tag);
+            for (const k in attrs) e.setAttribute(k, attrs[k]);
+            if (style) for (const k in style) e.style.setProperty(k, style[k]);
+            if (parent) parent.appendChild(e);
+            return e;
+          };
+          const G = (parent, attrs) => mk("g", attrs || {}, parent);
+          // one object = its own wax-fill group under its own outline group
+          const obj = (parent) => { const g = G(parent || svg); return { g, f: G(g, { filter: "url(#s4-wax)" }), o: G(g, { filter: "url(#s4-wob)" }) }; };
+          const ST = (color, w, cap) => ({ fill: "none", stroke: color, "stroke-width": w, "stroke-linecap": cap || "round", "stroke-linejoin": "round" });
+
+          // crayon outline: dense core + a thin offset streak
+          const line = (parent, d, color, w, ghost) => {
+            const c = color || "var(--ink)", ww = w || "var(--w-out)";
+            const out = [mk("path", { d }, parent, ST(c, ww))];
+            if (ghost !== false) {
+              const q = mk("path", { d, transform: "translate(2.2 -1.6)" }, parent, ST(c, "var(--w-thin)"));
+              q.style.opacity = "0.5";
+              out.push(q);
+            }
+            return out;
+          };
+
+          // back-and-forth zig-zag hatching over a bbox, angle in degrees (deterministic pressure jitter)
+          const zig = (b, ang, gap, sd) => {
+            const x0 = b[0] - 16, y0 = b[1] - 16, x1 = b[2] + 16, y1 = b[3] + 16;
+            const a = (ang * Math.PI) / 180, dx = Math.cos(a), dy = Math.sin(a), nx = -dy, ny = dx;
+            const cs = [[x0, y0], [x1, y0], [x1, y1], [x0, y1]];
+            const us = cs.map((c) => c[0] * dx + c[1] * dy), vs = cs.map((c) => c[0] * nx + c[1] * ny);
+            const u0 = Math.min(...us) - 6, u1 = Math.max(...us) + 6, v0 = Math.min(...vs), v1 = Math.max(...vs);
+            const pts = [];
+            for (let v = v0, i = 0; v <= v1 + gap / 2; v += gap / 2, i++) {
+              const j = 8 * Math.sin(i * 1.93 + sd * 2.1);
+              const u = i % 2 ? u1 + j : u0 - j;
+              pts.push((u * dx + v * nx).toFixed(1) + " " + (u * dy + v * ny).toFixed(1));
+            }
+            return "M" + pts.join(" L");
+          };
+
+          // colouring: zig-zag + lighter cross-hatch, masked by the shape grown a few px (overshoot)
+          let mi = 0;
+          const fillArea = (parent, shapeD, bbox, color, o) => {
+            o = o || {};
+            const id = "s4-m" + mi++;
+            const m = mk("mask", { id, maskUnits: "userSpaceOnUse", x: -200, y: -200, width: 1480, height: 2400 }, defs);
+            mk("path", { d: shapeD }, m, { fill: "var(--c-white)", stroke: "var(--c-white)", "stroke-width": (o.over || 10) + "px", "stroke-linejoin": "round" });
+            const g = G(parent, { mask: "url(#" + id + ")" });
+            const ang = o.ang === undefined ? -28 : o.ang, op = o.op === undefined ? 1 : o.op;
+            const z1 = mk("path", { d: zig(bbox, ang, o.gap || 38, mi) }, g, ST(color, (o.w || 22) + "px"));
+            const z2 = mk("path", { d: zig(bbox, ang + 68, 50, mi + 7) }, g, ST(color, "12px"));
+            z1.style.opacity = String(op);
+            z2.style.opacity = String(op * 0.5);
+            return [z1, z2];
+          };
+
+          // tube (pipe / arrow): ink edges by knocking the middle out, colour inside
+          const tube = (p, d, inner, wOut, wIn) => {
+            const id = "s4-m" + mi++;
+            const m = mk("mask", { id, maskUnits: "userSpaceOnUse", x: -200, y: -200, width: 1480, height: 2400 }, defs);
+            mk("rect", { x: -200, y: -200, width: 1480, height: 2400 }, m, { fill: "var(--c-white)" });
+            mk("path", { d }, m, ST("var(--ink)", wIn + "px", "butt"));
+            const fill = mk("path", { d }, p.f, ST(inner, wIn + 2 + "px", "butt"));
+            const edge = mk("path", { d, mask: "url(#" + id + ")" }, p.o, ST("var(--ink)", wOut + "px", "butt"));
+            return { fill, edge };
+          };
+
+          // ---------- motion helpers ----------
+          const draw = (paths, t, dur, n, fromEnd) => {
+            [].concat(paths).forEach((p) => {
+              const L = p.getTotalLength(), op = p.style.opacity || "1";
+              p.style.strokeDasharray = L + " " + L;
+              // hidden until its stroke starts: a round cap at full dashoffset still leaves a dot
+              tl.fromTo(p, { opacity: 0 }, { opacity: op, duration: 0.001, ease: "none" }, t);
+              tl.fromTo(p, { strokeDashoffset: fromEnd ? -L : L }, { strokeDashoffset: 0, duration: dur, ease: "steps(" + (n || 8) + ")" }, t);
+            });
+          };
+          // guide crayon rides the tip of the stroke being drawn
+          const guide = (path, t, dur, colVar, fromEnd, n) => {
+            const L = path.getTotalLength(), o = { p: 0 };
+            tl.set(cray, { opacity: 1, color: V(colVar) }, t);
+            tl.to(o, {
+              p: 1, duration: dur, ease: "steps(" + (n || 8) + ")",
+              onUpdate: () => { const pt = path.getPointAtLength(fromEnd ? L * (1 - o.p) : L * o.p); gsap.set(cray, { x: pt.x, y: pt.y }); },
+            }, t);
+          };
+          const hideCray = (t) => tl.set(cray, { opacity: 0 }, t);
+          // letters written left to right, each glyph tilted by a formula (no random)
+          let ci = 0;
+          const write = (sel, t, dur) => {
+            const box = $(sel), txt = box.textContent.trim();
+            box.textContent = "";
+            const spans = [...txt].map((ch) => {
+              const s = document.createElement("span"); s.setAttribute("data-layout-allow-overlap", "");
+              s.className = "s4-ch";
+              s.textContent = ch === " " ? " " : ch;
+              box.appendChild(s);
+              gsap.set(s, { rotation: (((ci * 37) % 9) - 4) * 0.95, y: (ci * 53) % 4 });
+              ci++;
+              return s;
+            });
+            tl.fromTo(spans, { opacity: 0, scale: 1.35 }, { opacity: 1, scale: 1, duration: 0.09, ease: "steps(2)", stagger: dur / spans.length }, t);
+            return spans;
+          };
+          const pop = (el, t, origin, n) => tl.fromTo(el, { scale: 0, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.18, ease: "steps(" + (n || 3) + ")", svgOrigin: origin }, t);
+
+          // ---------- anchors ----------
+          const tDash = A("dash"), tKho = A("kho"), tHoi = A("hoi"), tBang = A("bang"), tCap = A("capnhat");
+
+          // ---------- page number "2" in a crayon ring ----------
+          const loop = (cx, cy, r, a0, turns, n) => {
+            let d = "";
+            for (let i = 0; i <= n; i++) {
+              const a = a0 + (i / n) * turns * 2 * Math.PI, rr = r * (1 + 0.045 * Math.sin(3 * a + 0.7)) + i * 0.13;
+              d += (i ? " L" : "M") + (cx + rr * Math.cos(a)).toFixed(1) + " " + (cy + rr * Math.sin(a)).toFixed(1);
+            }
+            return d;
+          };
+          const pn = obj();
+          const pnFill = fillArea(pn.f, "M885 175 A50 50 0 1 0 985 175 A50 50 0 1 0 885 175 Z", [885, 125, 985, 225], "var(--c-lemon)", { gap: 34, ang: -35 });
+          const pnRing = line(pn.o, loop(935, 175, 50, -2.3, 1.12, 48));
+
+          // ---------- title underline (coral: this page's new gift) ----------
+          const ul = obj();
+          const ulLine = line(ul.f, "M205 384 C 330 368, 470 394, 600 377 S 820 370, 882 386", "var(--accent)", "13px", false);
+
+          // ---------- pipes (under barrel, star and board) ----------
+          const P1D = "M360 690 C 450 688, 500 746, 590 745";
+          const P2D = "M650 800 C 638 850, 664 892, 655 950";
+          const p1 = obj(), p2 = obj();
+          const pipe1 = tube(p1, P1D, "var(--c-sky)", 36, 22);
+          const pipe2 = tube(p2, P2D, "var(--c-sky)", 36, 22);
+
+          // ---------- data warehouse barrel with a face ----------
+          const br = obj();
+          const BODY = "M125 520 A125 40 0 0 1 375 520 L375 790 A125 40 0 0 1 125 790 Z";
+          const LID = "M125 520 A125 40 0 1 0 375 520 A125 40 0 1 0 125 520 Z";
+          const brFill = fillArea(br.f, BODY, [125, 480, 375, 830], "var(--c-brown)", { ang: -30 });
+          const lidFill = fillArea(br.f, LID, [125, 480, 375, 560], "var(--c-orange)", { ang: -12, gap: 30, w: 18 });
+          const lidLine = line(br.o, "M125 520 A125 40 0 1 0 375 520 A125 40 0 1 0 125 520");
+          const bodyLine = line(br.o, "M125 522 L125 790 A125 40 0 0 0 375 790 L375 522");
+          const discLine = line(br.o, "M127 600 A125 40 0 0 0 373 600", "var(--ink)", "var(--w-det)", false);
+          const face = G(br.g, { filter: "url(#s4-wob)" });
+          const cheeks = G(face);
+          mk("ellipse", { cx: 176, cy: 716, rx: 19, ry: 11 }, cheeks, { fill: "var(--c-pink)" });
+          mk("ellipse", { cx: 324, cy: 716, rx: 19, ry: 11 }, cheeks, { fill: "var(--c-pink)" });
+          const eyes = G(face);
+          [208, 292].forEach((x) => {
+            mk("circle", { cx: x, cy: 680, r: 14 }, eyes, { fill: "var(--ink)" });
+            mk("circle", { cx: x + 5, cy: 675, r: 4.5 }, eyes, { fill: "var(--c-white)" });
+          });
+          const smile = mk("path", { d: "M226 712 Q250 736 274 712" }, face, ST("var(--ink)", "var(--w-det)"));
+
+          // ---------- Claude: an orange four-point sparkle (no real logo) ----------
+          const star4 = (cx, cy, R) => { const k = R * 0.16; return `M${cx} ${cy - R} Q${cx + k} ${cy - k} ${cx + R} ${cy} Q${cx + k} ${cy + k} ${cx} ${cy + R} Q${cx - k} ${cy + k} ${cx - R} ${cy} Q${cx - k} ${cy - k} ${cx} ${cy - R} Z`; };
+          const st = obj();
+          const STAR = star4(650, 745, 75);
+          const stFill = fillArea(st.f, STAR, [575, 670, 725, 820], "var(--c-orange)", { ang: 32, gap: 30, w: 18 });
+          const stLine = line(st.o, STAR);
+          const rays = [
+            mk("path", { d: "M588 690 L566 674" }, st.o, ST("var(--ink)", "var(--w-det)")),
+            mk("path", { d: "M578 784 L555 796" }, st.o, ST("var(--ink)", "var(--w-det)")),
+            mk("path", { d: "M714 800 L734 816" }, st.o, ST("var(--ink)", "var(--w-det)")),
+          ];
+
+          // ---------- question bubble ----------
+          const bu = obj();
+          const BUB = "M562 405 H938 Q980 405 980 447 V568 Q980 610 938 610 H668 L630 656 L612 610 H562 Q520 610 520 568 V447 Q520 405 562 405 Z";
+          const buFill = fillArea(bu.f, BUB, [520, 405, 980, 656], "var(--c-sky)", { ang: -24, op: 0.5 });
+          const buLine = line(bu.o, BUB);
+
+          // ---------- dashboard board ----------
+          const bd = obj();
+          const HEAD = "M142 946 H942 Q972 946 972 976 V1013 H112 V976 Q112 946 142 946 Z";
+          const hdFill = fillArea(bd.f, HEAD, [112, 946, 972, 1013], "var(--accent)", { ang: -8, gap: 30, w: 18, op: 0.9 });
+          const frame = line(bd.o, "M142 946 H942 Q972 946 972 976 V1512 Q972 1542 942 1542 H142 Q112 1542 112 1512 V976 Q112 946 142 946 Z");
+          const hdLine = line(bd.o, "M114 1013 H970", "var(--ink)", "var(--w-det)", false);
+          const dots = [156, 196, 236].map((x) => mk("circle", { cx: x, cy: 980, r: 11 }, bd.o, { fill: "var(--c-white)", stroke: "var(--ink)", "stroke-width": "var(--w-thin)" }));
+
+          // ---------- bars: tall shapes slid up behind a baseline clip (no scaling) ----------
+          const XS = [210, 370, 530], H0 = [190, 270, 340], H1 = [300, 200, 330];
+          const BCOL = ["var(--c-sky)", "var(--c-lemon)", "var(--accent)"];
+          const barsWrap = G(svg, { "clip-path": "url(#s4-clipbars)" });
+          const bars = XS.map((x, i) => {
+            const top = 1450 - H0[i];
+            const g = G(barsWrap);
+            const f = G(g, { filter: "url(#s4-wax)" }), o = G(g, { filter: "url(#s4-wob)" });
+            const fl = fillArea(f, `M${x} ${top} H${x + 100} V1600 H${x} Z`, [x, top, x + 100, 1600], BCOL[i], { ang: -30 - i * 6, gap: 36, sd: i });
+            line(o, `M${x} 1600 V${top + 10} Q${x} ${top} ${x + 10} ${top} H${x + 90} Q${x + 100} ${top} ${x + 100} ${top + 10} V1600`);
+            return { g, cross: fl[1] };
+          });
+          // the bars' second hatching pass is drawn later, as an extra colouring stroke
+          bars.forEach((b) => { const L = b.cross.getTotalLength(); b.cross.style.strokeDasharray = L + " " + L; b.cross.style.strokeDashoffset = L; });
+
+          // ---------- axes, trend line, update arrow ----------
+          const ch = obj();
+          const axes = line(ch.o, "M172 1046 L170 1453 L684 1450", "var(--ink)", "var(--w-out)");
+          const ticks = mk("path", { d: "M154 1150 L186 1150 M154 1250 L186 1250 M154 1350 L186 1350" }, ch.o, ST("var(--ink)", "var(--w-thin)"));
+          const CX = [260, 420, 580];
+          const tPts = (H) => CX.map((x, i) => [x, 1450 - H[i] - 34]);
+          const trendD = (H) => {
+            const p = tPts(H), ex = p[2][0] + 0.4 * (p[2][0] - p[1][0]), ey = p[2][1] + 0.4 * (p[2][1] - p[1][1]);
+            const l = Math.hypot(ex - p[2][0], ey - p[2][1]), ux = (ex - p[2][0]) / l, uy = (ey - p[2][1]) / l;
+            const h1 = [ex - 24 * ux - 14 * uy, ey - 24 * uy + 14 * ux], h2 = [ex - 24 * ux + 14 * uy, ey - 24 * uy - 14 * ux];
+            const f = (q) => q[0].toFixed(1) + " " + q[1].toFixed(1);
+            return `M${f(p[0])} L${f(p[1])} L${f(p[2])} L${f([ex, ey])} M${f(h1)} L${f([ex, ey])} L${f(h2)}`;
+          };
+          const tr = obj();
+          const trend = mk("path", { d: trendD(H0) }, tr.f, ST("var(--c-plum)", "9px"));
+          const trendInk = mk("path", { d: trendD(H0), transform: "translate(1.5 -2)" }, tr.o, ST("var(--ink)", "var(--w-thin)"));
+          trendInk.style.opacity = "0.55";
+          const tdots = tPts(H0).map((q) => mk("circle", { cx: q[0], cy: q[1], r: 11 }, tr.o, { fill: "var(--c-plum)", stroke: "var(--ink)", "stroke-width": "var(--w-thin)" }));
+
+          // circular "auto update" arrow: grass tube + head
+          const AC = [810, 1120], AR = 58, A0 = 150, A1 = 425;
+          let arcD = "";
+          for (let i = 0; i <= 40; i++) {
+            const a = ((A0 + ((A1 - A0) * i) / 40) * Math.PI) / 180, r = AR * (1 + 0.03 * Math.sin(i * 0.9));
+            arcD += (i ? " L" : "M") + (AC[0] + r * Math.cos(a)).toFixed(1) + " " + (AC[1] + r * Math.sin(a)).toFixed(1);
+          }
+          const arrowG = G(svg);
+          const ar = obj(arrowG);
+          const arrowT = tube(ar, arcD, "var(--c-grass)", 40, 26);
+          const ae = (A1 * Math.PI) / 180, E = [AC[0] + AR * Math.cos(ae), AC[1] + AR * Math.sin(ae)];
+          const tx = -Math.sin(ae), ty = Math.cos(ae), rx = Math.cos(ae), ry = Math.sin(ae);
+          const q = (x, y) => x.toFixed(1) + " " + y.toFixed(1);
+          const HEADD = `M${q(E[0] + 32 * rx, E[1] + 32 * ry)} L${q(E[0] + 40 * tx, E[1] + 40 * ty)} L${q(E[0] - 32 * rx, E[1] - 32 * ry)} Z`;
+          const headG = G(arrowG);
+          const hd = obj(headG);
+          fillArea(hd.f, HEADD, [E[0] - 40, E[1] - 40, E[0] + 40, E[1] + 40], "var(--c-grass)", { ang: 20, gap: 26, w: 16 });
+          line(hd.o, HEADD, "var(--ink)", "var(--w-det)", false);
+
+          // ---------- sparkles (lemon wax with indigo line) ----------
+          const SP = [[112, 206, 0], [462, 446, 1], [990, 690, 2], [930, 1470, 3], [452, 900, 4], [712, 1496, 5]];
+          const spEls = SP.map(([x, y]) => {
+            const g = G(sparks, { filter: "url(#s4-wobc)" });
+            mk("path", { d: star4(x, y, 22) }, g, { fill: "var(--c-lemon)", stroke: "var(--ink)", "stroke-width": "var(--w-thin)", "stroke-linejoin": "round" });
+            return g;
+          });
+
+          // ---------- flowing data in the pipes ----------
+          const flowG = G(svg, { filter: "url(#s4-wax)" });
+          const flow1 = mk("path", { d: P1D }, flowG, ST("var(--c-lemon)", "10px"));
+          const flow2 = mk("path", { d: P2D }, flowG, ST("var(--c-lemon)", "10px"));
+          [flow1, flow2].forEach((f) => { f.style.strokeDasharray = "1 30"; f.style.opacity = "0"; });
+
+          // ================= TIMELINE =================
+          // page turn in (joins the previous page), slow camera drift
+          tl.fromTo(stage, { rotation: 6, x: 260, opacity: 0, transformOrigin: "0% 50%" }, { rotation: 0, x: 0, opacity: 1, duration: 0.45, ease: "power3.out" }, 0);
+          tl.fromTo(cam, { scale: 1, x: 0, y: 0, transformOrigin: "50% 42%" }, { scale: 1.04, x: -12, y: -16, duration: DUR, ease: "none" }, 0);
+
+          // "Trang thứ hai": ring, lemon colouring, the number
+          draw(pnRing, tDash - 0.7, 0.42, 7);
+          draw(pnFill, tDash - 0.5, 0.4, 6);
+          write("#s4-pnum", tDash - 0.3, 0.1);
+
+          // "Claude Dashboards": title written, coral underline with the crayon on it
+          write("#s4-title", tDash, 0.95);
+          draw(ulLine, tDash + 1.0, 0.4, 8);
+          guide(ulLine[0], tDash + 1.0, 0.4, "--accent");
+          hideCray(tDash + 1.45);
+          pop(spEls[0], tDash + 1.1, "112 206");
+
+          // "Claude nối vào kho dữ liệu": sparkle, pipe drawn back to the barrel, barrel drawn and coloured
+          draw(stLine, tKho - 0.55, 0.35, 6);
+          draw(stFill, tKho - 0.4, 0.35, 6);
+          write("#s4-lclaude", tKho - 0.45, 0.3);
+          draw(pipe1.edge, tKho - 0.3, 0.45, 8, true);
+          draw(pipe1.fill, tKho - 0.25, 0.45, 8, true);
+          guide(pipe1.edge, tKho - 0.3, 0.45, "--ink", true);
+          // the barrel starts right after the title, so the page never sits half empty
+          draw(lidLine, tKho - 1.0, 0.35, 6);
+          draw(bodyLine, tKho - 0.8, 0.45, 8);
+          guide(bodyLine[0], tKho - 0.8, 0.45, "--ink");
+          draw(discLine, tKho - 0.45, 0.25, 4);
+          draw(brFill, tKho - 0.6, 0.5, 6);
+          draw(lidFill, tKho - 0.4, 0.35, 6);
+          hideCray(tKho + 0.65);
+          write("#s4-lkho", tKho + 0.3, 0.4);
+          pop(eyes, tKho, "250 680");
+          tl.fromTo(cheeks, { opacity: 0 }, { opacity: 1, duration: 0.12, ease: "steps(2)" }, tKho + 0.08);
+          draw(smile, tKho + 0.06, 0.2, 3);
+          tl.fromTo(flow1, { opacity: 0 }, { opacity: 1, duration: 0.08, ease: "steps(1)" }, tKho + 0.7);
+          {
+            const d = DUR - (tKho + 0.7), n = Math.round(d * 12);
+            tl.fromTo(flow1, { strokeDashoffset: 0 }, { strokeDashoffset: -n * 6, duration: d, ease: "steps(" + n + ")" }, tKho + 0.7);
+          }
+          pop(spEls[1], tKho + 0.7, "462 446");
+
+          // "bạn hỏi bằng lời thường": bubble drawn, sky colouring, the question written
+          draw(buLine, tHoi, 0.44, 8);
+          guide(buLine[0], tHoi, 0.44, "--ink");
+          hideCray(tHoi + 0.5);
+          draw(buFill, tHoi + 0.25, 0.45, 6);
+          write("#s4-q1", tHoi + 0.4, 0.35);
+          write("#s4-q2", tHoi + 0.75, 0.38);
+          pop(spEls[2], tHoi + 0.5, "990 690");
+
+          // the question lands on Claude: sparkle pulses, thinking rays
+          tl.to(st.g, { scale: 1.16, duration: 0.12, ease: "steps(2)", svgOrigin: "650 745" }, tBang - 0.34);
+          tl.to(st.g, { scale: 1, duration: 0.12, ease: "steps(2)", svgOrigin: "650 745" }, tBang - 0.2);
+          draw(rays, tBang - 0.3, 0.2, 3);
+
+          // "bảng số liệu tự dựng lên": pipe down, board frame, coral header, axes, bars rise, trend line
+          draw([pipe2.edge, pipe2.fill], tBang - 0.22, 0.3, 5);
+          tl.fromTo(flow2, { opacity: 0 }, { opacity: 1, duration: 0.08, ease: "steps(1)" }, tBang + 0.1);
+          {
+            const d = DUR - (tBang + 0.1), n = Math.round(d * 12);
+            tl.fromTo(flow2, { strokeDashoffset: 0 }, { strokeDashoffset: -n * 6, duration: d, ease: "steps(" + n + ")" }, tBang + 0.1);
+          }
+          draw(frame, tBang, 0.5, 8);
+          guide(frame[0], tBang, 0.5, "--ink");
+          draw(hdLine, tBang + 0.3, 0.2, 4);
+          draw(hdFill, tBang + 0.3, 0.4, 6);
+          dots.forEach((d, i) => pop(d, tBang + 0.55 + i * 0.06, `${156 + i * 40} 980`, 2));
+          draw(axes, tBang + 0.35, 0.35, 6);
+          draw(ticks, tBang + 0.55, 0.15, 3);
+          bars.forEach((b, i) => tl.fromTo(b.g, { y: H0[i] + 10 }, { y: 0, duration: 0.4, ease: "steps(6)" }, tBang + 0.45 + i * 0.15));
+          bars.forEach((b, i) => {
+            const L = b.cross.getTotalLength();
+            tl.fromTo(b.cross, { opacity: 0 }, { opacity: 0.5, duration: 0.001, ease: "none" }, tBang + 1.05 + i * 0.05);
+            tl.fromTo(b.cross, { strokeDashoffset: L }, { strokeDashoffset: 0, duration: 0.4, ease: "steps(6)" }, tBang + 1.05 + i * 0.05);
+          });
+          draw([trend, trendInk], tBang + 0.85, 0.42, 8);
+          guide(trend, tBang + 0.85, 0.42, "--c-plum");
+          tdots.forEach((d, i) => pop(d, tBang + 0.9 + i * 0.13, `${CX[i]} ${tPts(H0)[i][1]}`, 2));
+          tl.set([trend, trendInk], { strokeDasharray: "none" }, tCap);
+          pop(spEls[4], tBang + 0.6, "452 900");
+          pop(spEls[5], tBang + 1.3, "712 1496");
+
+          // "và tự cập nhật": round arrow drawn and spun, bars change height, trend line follows
+          draw([arrowT.edge, arrowT.fill], tCap - 0.25, 0.35, 6);
+          guide(arrowT.edge, tCap - 0.25, 0.35, "--ink", false, 6);
+          hideCray(tCap + 0.12);
+          pop(headG, tCap + 0.08, `${E[0].toFixed(1)} ${E[1].toFixed(1)}`, 2);
+          tl.fromTo(arrowG, { rotation: 0 }, { rotation: 360, duration: 0.38, ease: "steps(8)", svgOrigin: AC[0] + " " + AC[1] }, tCap + 0.05);
+          write("#s4-lcap", tCap, 0.35);
+          bars.forEach((b, i) => tl.to(b.g, { y: H0[i] - H1[i], duration: 0.35, ease: "steps(4)" }, tCap + 0.05));
+          tl.to([trend, trendInk], { attr: { d: trendD(H1) }, duration: 0.35, ease: "steps(4)" }, tCap + 0.05);
+          tdots.forEach((d, i) => tl.to(d, { attr: { cy: tPts(H1)[i][1] }, duration: 0.35, ease: "steps(4)" }, tCap + 0.05));
+          pop(spEls[3], tCap + 0.15, "930 1470");
+
+          // ---------- life between anchors (on the 92 BPM beat) ----------
+          const blink = (t) => {
+            tl.to(eyes, { scaleY: 0.12, duration: 0.06, ease: "steps(1)", svgOrigin: "250 680" }, t);
+            tl.to(eyes, { scaleY: 1, duration: 0.06, ease: "steps(1)", svgOrigin: "250 680" }, t + 0.14);
+          };
+          blink(tHoi + 0.6);
+          blink(tBang + 0.9);
+          blink(tCap + 0.1);
+          const SPT = [tDash + 1.1, tKho + 0.7, tHoi + 0.5, tCap + 0.15, tBang + 0.6, tBang + 1.3];
+          const calm = DUR - 0.6;
+          beats(0, calm).forEach((t, k) => {
+            // the guide crayon nods
+            tl.to(crayW, { rotation: k % 2 ? -7 : 3, duration: 0.1, ease: "steps(2)", svgOrigin: "0 0" }, t);
+            // sparkles twinkle (two key drawings alternating)
+            spEls.forEach((s, j) => {
+              if (t > SPT[j] + 0.25) tl.to(s, { scale: (k + j) % 2 ? 0.7 : 1, rotation: (k + j) % 2 ? 22 : 0, duration: 0.1, ease: "steps(2)", svgOrigin: `${SP[j][0]} ${SP[j][1]}` }, t);
+            });
+            // the barrel hums on the beat once it has a face
+            if (t > tKho + 0.85) tl.to(br.g, { scaleY: k % 2 ? 0.965 : 1, scaleX: k % 2 ? 1.025 : 1, duration: 0.1, ease: "steps(2)", svgOrigin: "250 830" }, t);
+            // Claude sparkle rocks (skips the pulse moment)
+            if (t > tKho && Math.abs(t - (tBang - 0.27)) > 0.25) tl.to(st.g, { rotation: k % 2 ? 6 : -4, duration: 0.1, ease: "steps(2)", svgOrigin: "650 745" }, t);
+          });
+
+          // ---------- boil: every drawn line re-jitters on twos (12 fps) ----------
+          const wob = ["#s4-tw1", "#s4-tw2", "#s4-tw3", "#s4-tw4"].map($), grain = ["#s4-tg1", "#s4-tg2", "#s4-tg3"].map($);
+          for (let t = 0, k = 0; t < DUR; t += 1 / 6, k++) {
+            tl.set(wob, { attr: { seed: 1 + (k % 5) } }, t);
+            tl.set(grain, { attr: { seed: 10 + (k % 3) } }, t);
+          }
+
+          // page turn out (last 0.3 s)
+          tl.to(stage, { x: -240, rotation: -5, opacity: 0, duration: 0.3, ease: "power2.in" }, DUR - 0.3);
+
+          window.__timelines["s4"] = tl;
+        })();
+      </script>
+    </template>
+  </body>
+</html>

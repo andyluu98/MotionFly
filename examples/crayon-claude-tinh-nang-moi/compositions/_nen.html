@@ -1,0 +1,59 @@
+<!doctype html>
+<html>
+  <head><meta charset="UTF-8" /></head>
+  <body>
+    <template>
+      <style>
+        #_nen-root { position: absolute; inset: 0; overflow: hidden; background: #d9cfba; }
+        #_nen-page { position: absolute; left: 10px; right: 10px; top: 10px; bottom: 10px; overflow: hidden; background: var(--paper);
+          border-radius: 6px 14px 14px 6px; box-shadow: 0 10px 30px rgba(60, 45, 20, 0.28); }
+        #_nen-page svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+      </style>
+      <div id="_nen-root" data-composition-id="_nen" data-width="1080" data-height="1920">
+        <div id="_nen-page">
+          <svg viewBox="0 0 1060 1900" preserveAspectRatio="none">
+            <defs>
+              <!-- paper tooth: fine grain + horizontal fibre, anchored to the page -->
+              <filter id="_nen-tooth" x="0" y="0" width="100%" height="100%">
+                <feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="3" seed="11" result="t" />
+                <feColorMatrix type="matrix" values="0 0 0 0 0.45  0 0 0 0 0.38  0 0 0 0 0.25  0 0 0 0.16 0" />
+              </filter>
+              <filter id="_nen-fibre" x="0" y="0" width="100%" height="100%">
+                <feTurbulence type="fractalNoise" baseFrequency="0.6 0.02" numOctaves="2" seed="4" />
+                <feColorMatrix type="matrix" values="0 0 0 0 0.5  0 0 0 0 0.42  0 0 0 0 0.3  0 0 0 0.07 0" />
+              </filter>
+              <filter id="_nen-mottle" x="0" y="0" width="100%" height="100%">
+                <feTurbulence type="fractalNoise" baseFrequency="0.006" numOctaves="3" seed="2" />
+                <feColorMatrix type="matrix" values="0 0 0 0 0.62  0 0 0 0 0.52  0 0 0 0 0.34  0 0 0 0.10 0" />
+              </filter>
+              <radialGradient id="_nen-vig" cx="52%" cy="46%" r="78%">
+                <stop offset="62%" stop-color="rgba(120,90,40,0)" />
+                <stop offset="100%" stop-color="rgba(120,90,40,0.22)" />
+              </radialGradient>
+              <linearGradient id="_nen-gutter" x1="0" x2="1">
+                <stop offset="0" stop-color="rgba(90,70,40,0.30)" />
+                <stop offset="0.6" stop-color="rgba(90,70,40,0.06)" />
+                <stop offset="1" stop-color="rgba(90,70,40,0)" />
+              </linearGradient>
+            </defs>
+            <rect width="1060" height="1900" filter="url(#_nen-mottle)" />
+            <rect width="1060" height="1900" filter="url(#_nen-tooth)" />
+            <rect width="1060" height="1900" filter="url(#_nen-fibre)" />
+            <rect width="70" height="1900" fill="url(#_nen-gutter)" />
+            <path d="M34 0 V1900" stroke="rgba(90,70,40,0.18)" stroke-width="2" />
+            <rect width="1060" height="1900" fill="url(#_nen-vig)" />
+          </svg>
+        </div>
+      </div>
+      <script>
+        (() => {
+          const tl = gsap.timeline({ paused: true });
+          const dur = Math.max(...Object.values(window.__vv.scenes).map((s) => s.end));
+          // the page breathes a little under the camera; background colouring never boils
+          tl.fromTo("#_nen-page", { scale: 1.0 }, { scale: 1.02, duration: dur, ease: "none" }, 0);
+          window.__timelines["_nen"] = tl;
+        })();
+      </script>
+    </template>
+  </body>
+</html>

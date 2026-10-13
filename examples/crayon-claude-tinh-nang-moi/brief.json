@@ -1,0 +1,32 @@
+{
+ "topic": "Ba tính năng mới của Claude: mod trong Claude Code, Claude Dashboards, Claude Motion",
+ "audience": "người dùng Claude và học viên khóa AI ở Việt Nam",
+ "message": "Claude giờ tự vẽ thêm công cụ cho bạn: khung riêng trong Claude Code, bảng số liệu tự cập nhật, và video giải thích dựng bằng mã.",
+ "aspect": "9:16",
+ "duration_s": 60,
+ "style": "crayon-book",
+ "voice": "Ngọc Huyền",
+ "music": "synth:calm",
+ "brand": {
+  "colors": [],
+  "name": ""
+ },
+ "sources": [
+  {
+   "what": "Mods: pane, band, /command, Claude viết mod, chạy bằng quyền người dùng",
+   "url": "https://code.claude.com/docs/en/plugins/mods/overview",
+   "date": "13/10/2026"
+  },
+  {
+   "what": "Claude Dashboards và Claude Motion ra mắt thử nghiệm 08/10/2026; Dashboards nối Redshift, BigQuery, Snowflake, Databricks, Salesforce, gói trả phí; Motion viết mã cho chữ, biểu đồ, hình, ảnh chuyển động, sửa chữ và nhịp, xuất MP4, không dùng mô hình tạo video, chỉ gói Team và Enterprise",
+   "url": "https://www.thestar.com.my/tech/tech-news/2026/10/09/anthropic-launches-dashboard-animation-tools-for-claude",
+   "date": "13/10/2026"
+  },
+  {
+   "what": "Tóm tắt thông báo",
+   "url": "https://runtimewire.com/article/anthropic-claude-dashboards-motion-beta",
+   "date": "13/10/2026"
+  }
+ ],
+ "auto": true
+}

@@ -1,0 +1,522 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <!-- Scene s6. Runtime keeps only <template>; put style, markup and script inside it. -->
+  </head>
+  <body>
+    <template>
+      <style>
+        /* Each scene declares its fonts (HyperFrames lint: font_family_without_font_face). Paths are relative to index.html. */
+        @font-face { font-family: "Be Vietnam Pro"; src: url("fonts/BeVietnamPro-Regular.ttf"); font-weight: 400; }
+        @font-face { font-family: "Be Vietnam Pro"; src: url("fonts/BeVietnamPro-Medium.ttf"); font-weight: 500; }
+        @font-face { font-family: "Be Vietnam Pro"; src: url("fonts/BeVietnamPro-Bold.ttf"); font-weight: 700; }
+        @font-face { font-family: "Be Vietnam Pro"; src: url("fonts/BeVietnamPro-ExtraBold.ttf"); font-weight: 800; }
+        #s6-root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          background: transparent;
+          color: var(--ink);
+          font-family: "Be Vietnam Pro", sans-serif;
+        }
+        #s6-stage { position: absolute; inset: 0; }
+        #s6-root svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
+        #s6-txt { position: absolute; inset: 0; }
+        #s6-root .s6-o { fill: none; stroke: var(--ink); stroke-width: var(--w-out); stroke-linecap: round; stroke-linejoin: round; }
+        #s6-root .s6-d { fill: none; stroke: var(--ink); stroke-width: var(--w-det); stroke-linecap: round; stroke-linejoin: round; }
+        #s6-root .s6-n { fill: none; stroke: var(--ink); stroke-width: var(--w-thin); stroke-linecap: round; stroke-linejoin: round; }
+        #s6-root .s6-hatch { fill: none; stroke-linecap: round; stroke-linejoin: round; }
+        #s6-root .s6-t {
+          position: absolute;
+          font-weight: 700;
+          color: var(--ink);
+          line-height: 1;
+          white-space: nowrap;
+          filter: url(#s6-wobt);
+        }
+        #s6-root .s6-t span { display: inline-block; opacity: 0; white-space: pre; }
+      </style>
+
+      <div id="s6-root" data-composition-id="s6" data-width="1080" data-height="1920">
+        <div id="s6-stage">
+          <!-- BACK LAYER: page drawings -->
+          <svg id="s6-svg" viewBox="0 0 1080 1920">
+            <defs>
+              <!-- 1. hand-wobble crayon line -->
+              <filter id="s6-wob" filterUnits="userSpaceOnUse" x="-100" y="-100" width="1280" height="2120" color-interpolation-filters="sRGB">
+                <feTurbulence class="s6-turb" type="fractalNoise" baseFrequency="0.035" numOctaves="2" seed="1" result="n" />
+                <feDisplacementMap in="SourceGraphic" in2="n" scale="4" xChannelSelector="R" yChannelSelector="G" />
+              </filter>
+              <!-- 2. wax on paper tooth: wobble + speckled alpha mask -->
+              <filter id="s6-wax" filterUnits="userSpaceOnUse" x="-100" y="-100" width="1280" height="2120" color-interpolation-filters="sRGB">
+                <feTurbulence class="s6-turb" type="fractalNoise" baseFrequency="0.035" numOctaves="2" seed="1" result="n" />
+                <feDisplacementMap in="SourceGraphic" in2="n" scale="5" xChannelSelector="R" yChannelSelector="G" result="d" />
+                <feTurbulence class="s6-grain" type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="3" result="g" />
+                <feColorMatrix in="g" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  5 0 0 0 -1.7" result="m" />
+                <feComposite in="d" in2="m" operator="in" />
+              </filter>
+              <!-- text wobble (HTML letters) -->
+              <filter id="s6-wobt" x="-10%" y="-20%" width="120%" height="140%" color-interpolation-filters="sRGB">
+                <feTurbulence class="s6-turb" type="fractalNoise" baseFrequency="0.035" numOctaves="2" seed="1" result="n" />
+                <feDisplacementMap in="SourceGraphic" in2="n" scale="3" xChannelSelector="R" yChannelSelector="G" />
+              </filter>
+              <!-- clip shapes, scaled and nudged so colouring spills past the outline -->
+              <clipPath id="s6-cl-card">
+                <path transform="translate(495 364) scale(1.025) translate(-490 -368)" d="M150 215 Q480 200 830 218 Q850 220 850 240 L846 500 Q845 520 825 520 Q480 532 155 518 Q135 516 136 496 L132 238 Q132 216 150 215 Z" />
+              </clipPath>
+              <clipPath id="s6-cl-track">
+                <path transform="translate(634 679) scale(1.02 1.12) translate(-631 -681)" d="M355 655 L905 652 Q935 653 934 680 Q933 707 905 706 L355 708 Q328 707 328 681 Q329 655 355 655 Z" />
+              </clipPath>
+              <clipPath id="s6-cl-frame">
+                <path transform="translate(317 1114) scale(1.03) translate(-312 -1118)" d="M130 885 Q310 875 492 888 L498 1350 Q310 1362 126 1352 Z" />
+              </clipPath>
+              <clipPath id="s6-cl-sil">
+                <path transform="translate(316 1176) scale(1.04) translate(-312 -1180)" d="M384 1035 A72 72 0 1 0 240 1035 A72 72 0 1 0 384 1035 Z" />
+                <path transform="translate(316 1176) scale(1.04) translate(-312 -1180)" d="M172 1350 Q176 1170 312 1150 Q448 1170 452 1350 Z" />
+              </clipPath>
+              <clipPath id="s6-cl-dress">
+                <path transform="translate(773 1166) scale(1.07) translate(-770 -1170)" d="M770 1050 L702 1238 L838 1236 Z" />
+              </clipPath>
+            </defs>
+
+            <!-- page number "3" ring -->
+            <g filter="url(#s6-wob)">
+              <path id="s6-pn-ring" class="s6-d" d="M990 172 C994 214 908 226 903 180 C898 136 984 128 995 184" />
+            </g>
+
+            <!-- word card -->
+            <g id="s6-card">
+              <g filter="url(#s6-wax)">
+                <g clip-path="url(#s6-cl-card)" opacity="0.55">
+                  <path id="s6-card-h" class="s6-hatch" data-h="138 208 706 316 30 1" style="stroke: var(--c-lemon); stroke-width: 24px" />
+                </g>
+                <g clip-path="url(#s6-cl-card)" opacity="0.28">
+                  <path id="s6-card-x" class="s6-hatch" data-h="138 208 706 316 40 -1" style="stroke: var(--c-orange); stroke-width: 14px" />
+                </g>
+              </g>
+              <g filter="url(#s6-wob)">
+                <path id="s6-card-o" class="s6-o" d="M150 215 Q480 200 830 218 Q850 220 850 240 L846 500 Q845 520 825 520 Q480 532 155 518 Q135 516 136 496 L132 238 Q132 216 150 215 Z" />
+                <path id="s6-under" class="s6-hatch" d="M392 440 Q430 426 470 441 T550 439 T642 437" style="stroke: var(--accent); stroke-width: 13px" />
+                <path id="s6-tick" class="s6-hatch" d="M700 362 L736 402 L802 316" style="stroke: var(--c-grass); stroke-width: 15px" />
+              </g>
+            </g>
+
+            <!-- rhythm slider -->
+            <g id="s6-slider">
+              <g filter="url(#s6-wax)">
+                <g clip-path="url(#s6-cl-track)">
+                  <path id="s6-track-h" class="s6-hatch" data-h="332 657 432 50 24 1" style="stroke: var(--c-sky); stroke-width: 20px" />
+                </g>
+              </g>
+              <g filter="url(#s6-wob)">
+                <path id="s6-track-o" class="s6-o" d="M355 655 L905 652 Q935 653 934 680 Q933 707 905 706 L355 708 Q328 707 328 681 Q329 655 355 655 Z" />
+                <path id="s6-ticks" class="s6-d" d="M370 726 L371 750 M458 726 L457 752 M546 726 L547 750 M634 726 L634 752 M722 726 L721 750 M810 726 L811 752 M898 726 L897 750" />
+              </g>
+              <g id="s6-note0" opacity="0">
+                <g filter="url(#s6-wax)"><ellipse cx="480" cy="620" rx="16" ry="11" transform="rotate(-20 480 620)" style="fill: var(--c-plum)" /></g>
+                <g filter="url(#s6-wob)"><ellipse class="s6-n" cx="480" cy="620" rx="16" ry="11" transform="rotate(-20 480 620)" /><path class="s6-d" d="M494 615 L494 566 Q506 574 514 586" /></g>
+              </g>
+              <g id="s6-note1" opacity="0">
+                <g filter="url(#s6-wax)"><ellipse cx="600" cy="606" rx="16" ry="11" transform="rotate(-20 600 606)" style="fill: var(--c-plum)" /></g>
+                <g filter="url(#s6-wob)"><ellipse class="s6-n" cx="600" cy="606" rx="16" ry="11" transform="rotate(-20 600 606)" /><path class="s6-d" d="M614 601 L614 552 Q626 560 634 572" /></g>
+              </g>
+              <g id="s6-note2" opacity="0">
+                <g filter="url(#s6-wax)"><ellipse cx="720" cy="620" rx="16" ry="11" transform="rotate(-20 720 620)" style="fill: var(--c-plum)" /></g>
+                <g filter="url(#s6-wob)"><ellipse class="s6-n" cx="720" cy="620" rx="16" ry="11" transform="rotate(-20 720 620)" /><path class="s6-d" d="M734 615 L734 566 Q746 574 754 586" /></g>
+              </g>
+              <g id="s6-knob" opacity="0">
+                <g filter="url(#s6-wax)"><circle cx="352" cy="681" r="36" style="fill: var(--c-orange)" /></g>
+                <g filter="url(#s6-wob)">
+                  <circle class="s6-o" cx="352" cy="681" r="36" />
+                  <path d="M336 664 Q344 656 354 657" style="fill: none; stroke: var(--c-white); stroke-width: 6px; stroke-linecap: round" />
+                </g>
+              </g>
+            </g>
+
+            <!-- real-person photo, crossed out -->
+            <g id="s6-photo">
+              <g filter="url(#s6-wax)">
+                <g clip-path="url(#s6-cl-frame)" opacity="0.6">
+                  <path id="s6-frame-h" class="s6-hatch" data-h="132 884 360 470 30 1" style="stroke: var(--c-sky); stroke-width: 22px" />
+                </g>
+                <g clip-path="url(#s6-cl-frame)" opacity="0.5">
+                  <path id="s6-frame-x" class="s6-hatch" data-h="132 884 360 470 42 -1" style="stroke: var(--c-sky); stroke-width: 12px" />
+                </g>
+                <g clip-path="url(#s6-cl-sil)">
+                  <path id="s6-sil-h" class="s6-hatch" data-h="175 965 278 382 23 1" style="stroke: var(--c-brown); stroke-width: 24px" />
+                </g>
+                <g clip-path="url(#s6-cl-sil)" opacity="0.5">
+                  <path id="s6-sil-x" class="s6-hatch" data-h="175 965 278 382 32 -1" style="stroke: var(--c-plum); stroke-width: 14px" />
+                </g>
+              </g>
+              <g filter="url(#s6-wob)">
+                <path id="s6-frame-o" class="s6-o" d="M130 885 Q310 875 492 888 L498 1350 Q310 1362 126 1352 Z" />
+                <path id="s6-head-o" class="s6-d" d="M384 1035 A72 72 0 1 0 240 1035 A72 72 0 1 0 384 1035" />
+                <path id="s6-shoul-o" class="s6-d" d="M175 1345 Q178 1170 312 1150 Q446 1170 450 1345" />
+              </g>
+              <g id="s6-tape0" opacity="0">
+                <g filter="url(#s6-wax)"><path d="M104 872 L176 848 L188 884 L116 908 Z" style="fill: var(--c-lemon)" /></g>
+                <g filter="url(#s6-wob)"><path class="s6-n" d="M104 872 L176 848 L188 884 L116 908 Z" /></g>
+              </g>
+              <g id="s6-tape1" opacity="0">
+                <g filter="url(#s6-wax)"><path d="M444 856 L516 874 L506 910 L434 892 Z" style="fill: var(--c-lemon)" /></g>
+                <g filter="url(#s6-wob)"><path class="s6-n" d="M444 856 L516 874 L506 910 L434 892 Z" /></g>
+              </g>
+              <g filter="url(#s6-wob)">
+                <path id="s6-x1" class="s6-hatch" d="M150 905 L475 1335" style="stroke: var(--accent); stroke-width: 24px" />
+                <path id="s6-x2" class="s6-hatch" d="M478 905 L148 1338" style="stroke: var(--accent); stroke-width: 24px" />
+              </g>
+            </g>
+
+            <!-- arrow: photo -> drawing -->
+            <g filter="url(#s6-wob)">
+              <path id="s6-arrow" class="s6-o" d="M515 1122 Q575 1084 636 1118" />
+              <path id="s6-arrowhead" class="s6-o" d="M606 1094 L638 1120 L602 1134" />
+            </g>
+
+            <!-- stick figure waving -->
+            <g id="s6-kid">
+              <g filter="url(#s6-wax)">
+                <g clip-path="url(#s6-cl-dress)">
+                  <path id="s6-dress-h" class="s6-hatch" data-h="708 1052 124 184 22 1" style="stroke: var(--accent); stroke-width: 19px" />
+                </g>
+              </g>
+              <g filter="url(#s6-wob)">
+                <path id="s6-body" class="s6-o" d="M770 1045 L770 1240" />
+                <path id="s6-dress-o" class="s6-d" d="M770 1050 L702 1238 L838 1236 Z" />
+                <path id="s6-legs" class="s6-o" d="M748 1238 L720 1360 L694 1364 M792 1238 L822 1360 L848 1362" />
+                <path id="s6-kidhead" class="s6-o" d="M830 985 A60 60 0 1 1 710 985 A60 60 0 1 1 830 985" />
+                <path id="s6-hair" class="s6-d" d="M742 932 q9 -24 18 -2 q9 -24 18 -2 q9 -24 18 -2" />
+                <path id="s6-smile" class="s6-d" d="M752 1012 Q770 1028 788 1012" />
+                <path id="s6-armL" class="s6-o" d="M758 1092 L688 1168" />
+              </g>
+              <g id="s6-face" opacity="0">
+                <g id="s6-eyes">
+                  <circle cx="750" cy="980" r="7.5" style="fill: var(--ink)" />
+                  <circle cx="790" cy="980" r="7.5" style="fill: var(--ink)" />
+                  <circle cx="747.5" cy="977" r="2.6" style="fill: var(--c-white)" />
+                  <circle cx="787.5" cy="977" r="2.6" style="fill: var(--c-white)" />
+                </g>
+                <g filter="url(#s6-wax)">
+                  <ellipse cx="736" cy="1004" rx="12" ry="7" style="fill: var(--c-pink)" />
+                  <ellipse cx="804" cy="1004" rx="12" ry="7" style="fill: var(--c-pink)" />
+                </g>
+              </g>
+              <g id="s6-mitL" opacity="0">
+                <g filter="url(#s6-wax)"><circle cx="684" cy="1173" r="14" style="fill: var(--c-lemon)" /></g>
+                <g filter="url(#s6-wob)"><circle class="s6-d" cx="684" cy="1173" r="14" /></g>
+              </g>
+              <g id="s6-armA">
+                <g filter="url(#s6-wob)"><path id="s6-armA-p" class="s6-o" d="M782 1092 L858 1020 L872 958" /></g>
+                <g id="s6-mitA" opacity="0">
+                  <g filter="url(#s6-wax)"><circle cx="873" cy="948" r="14" style="fill: var(--c-lemon)" /></g>
+                  <g filter="url(#s6-wob)"><circle class="s6-d" cx="873" cy="948" r="14" /></g>
+                </g>
+              </g>
+              <g id="s6-armB" opacity="0">
+                <g filter="url(#s6-wob)"><path class="s6-o" d="M782 1092 L880 1048 L925 995" /></g>
+                <g filter="url(#s6-wax)"><circle cx="930" cy="988" r="14" style="fill: var(--c-lemon)" /></g>
+                <g filter="url(#s6-wob)"><circle class="s6-d" cx="930" cy="988" r="14" /></g>
+              </g>
+              <g id="s6-wl" opacity="0" filter="url(#s6-wob)">
+                <path class="s6-d" d="M952 950 Q970 975 954 1000" />
+                <path class="s6-d" d="M978 938 Q1002 975 980 1012" />
+              </g>
+            </g>
+
+            <!-- lemon sparkles around the drawing -->
+            <g transform="translate(632 930)"><g id="s6-star0" opacity="0">
+              <g filter="url(#s6-wax)"><path d="M0 -22 Q4 -4 22 0 Q4 4 0 22 Q-4 4 -22 0 Q-4 -4 0 -22 Z" style="fill: var(--c-lemon)" /></g>
+              <g filter="url(#s6-wob)"><path class="s6-n" d="M0 -22 Q4 -4 22 0 Q4 4 0 22 Q-4 4 -22 0 Q-4 -4 0 -22 Z" /></g>
+            </g></g>
+            <g transform="translate(948 1240)"><g id="s6-star1" opacity="0">
+              <g filter="url(#s6-wax)"><path d="M0 -22 Q4 -4 22 0 Q4 4 0 22 Q-4 4 -22 0 Q-4 -4 0 -22 Z" style="fill: var(--c-lemon)" /></g>
+              <g filter="url(#s6-wob)"><path class="s6-n" d="M0 -22 Q4 -4 22 0 Q4 4 0 22 Q-4 4 -22 0 Q-4 -4 0 -22 Z" /></g>
+            </g></g>
+            <g transform="translate(626 1300) scale(0.8)"><g id="s6-star2" opacity="0">
+              <g filter="url(#s6-wax)"><path d="M0 -22 Q4 -4 22 0 Q4 4 0 22 Q-4 4 -22 0 Q-4 -4 0 -22 Z" style="fill: var(--c-lemon)" /></g>
+              <g filter="url(#s6-wob)"><path class="s6-n" d="M0 -22 Q4 -4 22 0 Q4 4 0 22 Q-4 4 -22 0 Q-4 -4 0 -22 Z" /></g>
+            </g></g>
+            <g transform="translate(900 872) scale(0.75)"><g id="s6-star3" opacity="0">
+              <g filter="url(#s6-wax)"><path d="M0 -22 Q4 -4 22 0 Q4 4 0 22 Q-4 4 -22 0 Q-4 -4 0 -22 Z" style="fill: var(--c-lemon)" /></g>
+              <g filter="url(#s6-wob)"><path class="s6-n" d="M0 -22 Q4 -4 22 0 Q4 4 0 22 Q-4 4 -22 0 Q-4 -4 0 -22 Z" /></g>
+            </g></g>
+          </svg>
+
+          <!-- MIDDLE LAYER: hand-lettered words (Be Vietnam Pro 700) -->
+          <div id="s6-txt">
+            <div class="s6-t" id="s6-pn" style="left: 908px; top: 146px; width: 80px; text-align: center; font-size: 60px;">3</div>
+            <div class="s6-t" id="s6-w-xin" style="left: 185px; top: 272px; padding: 30px 0; font-size: 96px;">Xin</div>
+            <div class="s6-t" id="s6-w-bad" style="left: 395px; top: 272px; padding: 30px 0; font-size: 96px;">chảo</div>
+            <div class="s6-t" id="s6-w-good" style="left: 395px; top: 272px; padding: 30px 0; font-size: 96px;">chào</div>
+            <div class="s6-t" id="s6-l-nhip" style="left: 120px; top: 654px; font-size: 50px;">Nhịp</div>
+            <div class="s6-t" id="s6-l-nguoi" style="left: 112px; top: 1384px; width: 400px; text-align: center; font-size: 50px;">người thật</div>
+            <div class="s6-t" id="s6-l-hinh" style="left: 570px; top: 1384px; width: 400px; text-align: center; font-size: 50px;">hình vẽ</div>
+          </div>
+
+          <!-- FRONT LAYER: eraser, crumbs, strike-through, guiding crayon -->
+          <svg id="s6-svg2" viewBox="0 0 1080 1920">
+            <g id="s6-crumbs">
+              <ellipse class="s6-crumb" opacity="0" cx="446" cy="430" rx="9" ry="6" style="fill: var(--c-pink); stroke: var(--ink); stroke-width: 2.5px" />
+              <ellipse class="s6-crumb" opacity="0" cx="484" cy="446" rx="7" ry="5" style="fill: var(--c-pink); stroke: var(--ink); stroke-width: 2.5px" />
+              <ellipse class="s6-crumb" opacity="0" cx="522" cy="428" rx="10" ry="6" style="fill: var(--c-pink); stroke: var(--ink); stroke-width: 2.5px" />
+              <ellipse class="s6-crumb" opacity="0" cx="562" cy="447" rx="7" ry="5" style="fill: var(--c-pink); stroke: var(--ink); stroke-width: 2.5px" />
+              <ellipse class="s6-crumb" opacity="0" cx="602" cy="432" rx="9" ry="6" style="fill: var(--c-pink); stroke: var(--ink); stroke-width: 2.5px" />
+              <ellipse class="s6-crumb" opacity="0" cx="640" cy="446" rx="7" ry="5" style="fill: var(--c-pink); stroke: var(--ink); stroke-width: 2.5px" />
+            </g>
+            <g id="s6-eraser" opacity="0">
+              <g filter="url(#s6-wax)">
+                <path d="M-70 -40 L70 -42 Q78 -40 78 -30 L76 32 Q75 42 66 42 L-68 40 Q-78 38 -77 28 L-76 -30 Q-76 -40 -70 -40 Z" style="fill: var(--c-pink)" />
+                <path d="M-15 -47 L45 -48 L46 48 L-14 47 Z" style="fill: var(--c-sky)" />
+              </g>
+              <g filter="url(#s6-wob)">
+                <path class="s6-d" d="M-70 -40 L70 -42 Q78 -40 78 -30 L76 32 Q75 42 66 42 L-68 40 Q-78 38 -77 28 L-76 -30 Q-76 -40 -70 -40 Z" />
+                <path class="s6-d" d="M-15 -47 L45 -48 L46 48 L-14 47 Z" />
+                <path class="s6-n" d="M0 -20 L30 -21 M0 0 L30 -1 M0 20 L30 19" />
+              </g>
+            </g>
+            <g filter="url(#s6-wob)">
+              <path id="s6-strike" class="s6-hatch" d="M150 1425 Q310 1419 478 1427" style="stroke: var(--accent); stroke-width: 11px" />
+            </g>
+            <g id="s6-pen" opacity="0">
+              <g transform="rotate(30)">
+                <g filter="url(#s6-wax)">
+                  <path d="M-17 -40 L17 -40 L17 -235 Q0 -245 -17 -235 Z" style="fill: var(--accent)" />
+                  <path d="M-4 -3 Q0 3 4 -3 L15 -40 L-15 -40 Z" style="fill: var(--accent)" />
+                  <path d="M-18 -72 L18 -72 L18 -196 L-18 -196 Z" style="fill: var(--c-lemon)" />
+                </g>
+                <g filter="url(#s6-wob)">
+                  <path class="s6-d" d="M-17 -40 L17 -40 L17 -235 Q0 -245 -17 -235 Z" />
+                  <path class="s6-d" d="M-4 -3 Q0 3 4 -3 L15 -40 L-15 -40 Z" />
+                  <path class="s6-n" d="M-18 -72 L18 -72 M-18 -88 L18 -88 M-18 -180 L18 -180 M-18 -196 L18 -196 M-13 -122 L-6 -146 L2 -122 L9 -146 L15 -128" />
+                </g>
+              </g>
+            </g>
+          </svg>
+        </div>
+      </div>
+
+      <script>
+        (() => {
+          // A("key") = local time (s) of an anchor from timeline.json; never hard-code word times.
+          const A = (key) => window.__vv.local("s6", key);
+          const SC = window.__vv.scenes["s6"];
+          const S = SC.start, DUR = SC.end - SC.start;
+          const BEAT = 60 / 92;
+          const beats = (from, to) => { const o = []; for (let k = Math.ceil((S + from) / BEAT); k * BEAT - S <= to; k++) o.push(k * BEAT - S); return o; };
+          const $ = (n) => document.getElementById("s6-" + n);
+          const root = $("root");
+          const stage = $("stage");
+          const PEN = $("pen");
+          const tl = gsap.timeline({ paused: true });
+
+          // ---------- zig-zag hatching (boustrophedon, deterministic) ----------
+          function hatchD(x, y, w, h, s, dir) {
+            let d = "", k = 0;
+            for (let c = s * 0.5; c < w + h; c += s, k++) {
+              const a1 = Math.max(0, c - h), a2 = Math.min(w, c);
+              const p1 = [x + a1, y + c - a1], p2 = [x + a2, y + c - a2];
+              if (dir < 0) { p1[0] = 2 * x + w - p1[0]; p2[0] = 2 * x + w - p2[0]; }
+              const P = k % 2 ? p2 : p1, Q = k % 2 ? p1 : p2;
+              d += (k ? " L" : "M") + P[0].toFixed(1) + " " + P[1].toFixed(1) + " L" + Q[0].toFixed(1) + " " + Q[1].toFixed(1);
+            }
+            return d;
+          }
+          root.querySelectorAll("[data-h]").forEach((el) => {
+            const v = el.getAttribute("data-h").split(" ").map(Number);
+            el.setAttribute("d", hatchD(v[0], v[1], v[2], v[3], v[4], v[5]));
+          });
+
+          // ---------- crayon draw-on (12 fps nicks), optional guiding crayon ----------
+          function draw(el, t, dur, steps = 8, pen = false) {
+            const L = el.getTotalLength(), off = L + 30;
+            el.style.strokeDasharray = off + " " + (L + 60);
+            // hidden until its stroke starts (round caps + wobble filter leaked specks before)
+            gsap.set(el, { opacity: 0 });
+            tl.set(el, { opacity: 1 }, t);
+            tl.fromTo(el, { strokeDashoffset: off }, { strokeDashoffset: 0, duration: dur, ease: "steps(" + steps + ")" }, t);
+            if (pen) {
+              for (let i = 0; i <= steps; i++) {
+                const p = el.getPointAtLength(Math.min(L, off * i / steps));
+                tl.set(PEN, { x: p.x, y: p.y }, t + dur * i / steps);
+              }
+            }
+          }
+
+          // ---------- hand-lettered words: per-letter tilt by index formula ----------
+          function letters(el) {
+            const s = el.textContent.trim().normalize("NFC");
+            el.textContent = "";
+            return Array.from(s).map((ch, i) => {
+              const sp = document.createElement("span"); sp.setAttribute("data-layout-allow-overlap", "");
+              sp.textContent = ch === " " ? " " : ch;
+              el.appendChild(sp);
+              const base = (i * 53 + 7) % 4;
+              gsap.set(sp, { rotation: ((i * 37 + 11) % 9) - 4, y: base });
+              sp.dataset.by = base;
+              return sp;
+            });
+          }
+          function write(sps, t, dur = 0.35) { sps.forEach((sp, i) => tl.set(sp, { opacity: 1 }, t + i * dur / sps.length)); }
+
+          const L_pn = letters($("pn")), L_xin = letters($("w-xin")), L_bad = letters($("w-bad")), L_good = letters($("w-good"));
+          const L_nhip = letters($("l-nhip")), L_nguoi = letters($("l-nguoi")), L_hinh = letters($("l-hinh"));
+
+          const tS = A("sua"), tN = A("nhip"), tP = A("nguoi"), tH = A("hinhve");
+
+          // ---------- camera: page turn in, slow drift, page turn out ----------
+          gsap.set(stage, { transformOrigin: "0% 50%" });
+          tl.fromTo(stage, { rotation: 6, x: 260, opacity: 0 }, { rotation: 0, x: 0, opacity: 1, duration: 0.45, ease: "power3.out" }, 0);
+          tl.fromTo(stage, { scale: 1, y: 0 }, { scale: 1.04, y: -14, duration: DUR, ease: "none" }, 0);
+
+          // ---------- boil: re-seed noise every 2 frames at 24 fps ----------
+          const turbs = root.querySelectorAll(".s6-turb"), grains = root.querySelectorAll(".s6-grain");
+          for (let t = 0, k = 0; t < DUR; t += 1 / 6, k++) {
+            tl.set(turbs, { attr: { seed: 1 + (k % 5) } }, t);
+            if (k % 2 === 0) tl.set(grains, { attr: { seed: 3 + ((k / 2) % 4) * 5 } }, t);
+          }
+
+          // ---------- beat 1: "Bạn sửa được từng chữ" (eraser fixes a word) ----------
+          draw($("card-o"), 0.05, 0.4, 8);
+          draw($("card-h"), 0.12, 0.45, 8);
+          draw($("card-x"), 0.3, 0.35, 6);
+          draw($("pn-ring"), 0.15, 0.35, 6);
+          write(L_pn, 0.4, 0.1);
+          write(L_xin, 0.06, 0.2);
+          write(L_bad, tS - 0.22, 0.2);
+
+          const ER = $("eraser");
+          gsap.set(ER, { transformOrigin: "50% 50%" });
+          tl.set(ER, { opacity: 1 }, tS - 0.12);
+          tl.fromTo(ER, { x: 1180, y: 240, rotation: 12 }, { x: 430, y: 355, rotation: -12, duration: 0.16, ease: "steps(3)" }, tS - 0.12);
+          const r0 = tS + 0.06, rN = 8, rD = 0.6;
+          for (let k = 1; k <= rN; k++) {
+            const p = k / rN;
+            tl.set(ER, { x: 430 + p * 210 + (k % 2 ? 16 : -16), y: 355 + (k % 2 ? -5 : 5), rotation: -12 + (k % 2 ? 6 : -6) }, r0 + k * rD / rN);
+          }
+          tl.fromTo($("w-bad"), { clipPath: "inset(0% 0% 0% 0%)" }, { clipPath: "inset(0% 0% 0% 100%)", duration: rD, ease: "steps(8)" }, r0);
+          const crumbs = root.querySelectorAll(".s6-crumb");
+          crumbs.forEach((c, i) => tl.set(c, { opacity: 1 }, r0 + (i + 1) * 0.085));
+          tl.to(crumbs, { y: 40, duration: 0.15, ease: "steps(3)" }, tS + 0.74);
+          tl.to(ER, { x: 1180, y: 180, rotation: 15, duration: 0.18, ease: "steps(3)" }, tS + 0.7);
+          write(L_good, tS + 0.62, 0.32);
+          draw($("under"), tS + 0.8, 0.3, 6);
+          draw($("tick"), tS + 0.95, 0.2, 4);
+
+          // ---------- beat 2: "từng nhịp" (rhythm slider) ----------
+          write(L_nhip, tN - 0.05, 0.3);
+          draw($("track-o"), tN, 0.4, 8);
+          draw($("ticks"), tN + 0.15, 0.3, 7);
+          const KN = $("knob");
+          gsap.set(KN, { transformOrigin: "50% 50%" });
+          tl.set(KN, { opacity: 1 }, tN + 0.35);
+          tl.fromTo(KN, { scale: 0 }, { scale: 1, duration: 0.12, ease: "steps(3)" }, tN + 0.35);
+          tl.fromTo(KN, { x: 0 }, { x: 408, duration: 0.45, ease: "steps(6)" }, tN + 0.42);
+          draw($("track-h"), tN + 0.42, 0.45, 6);
+          tl.to(KN, { x: 372, duration: 0.1, ease: "steps(2)" }, tN + 1.0);
+          tl.to(KN, { x: 408, duration: 0.1, ease: "steps(2)" }, tN + 1.2);
+          const notes = [$("note0"), $("note1"), $("note2")];
+          notes.forEach((n, i) => tl.set(n, { opacity: 1 }, tN + 0.5 + i * 0.1));
+          beats(tN + 0.55, DUR - 0.35).forEach((b) => {
+            notes.forEach((n, i) => {
+              tl.set(n, { y: -14 }, b + i * 0.08);
+              tl.set(n, { y: 0 }, b + i * 0.08 + 0.17);
+            });
+          });
+
+          // ---------- beat 3: "Không có người thật do máy tạo ra" (photo crossed out) ----------
+          draw($("frame-o"), tP - 0.26, 0.35, 8);
+          draw($("frame-h"), tP - 0.15, 0.4, 8);
+          draw($("frame-x"), tP, 0.3, 6);
+          tl.set($("tape0"), { opacity: 1 }, tP + 0.05);
+          tl.set($("tape1"), { opacity: 1 }, tP + 0.1);
+          draw($("head-o"), tP, 0.3, 8);
+          draw($("shoul-o"), tP + 0.1, 0.3, 8);
+          draw($("sil-h"), tP + 0.15, 0.4, 8);
+          draw($("sil-x"), tP + 0.3, 0.3, 6);
+          write(L_nguoi, tP + 0.12, 0.35);
+
+          gsap.set(PEN, { x: 1150, y: 1250 });
+          tl.set(PEN, { opacity: 1 }, tP + 0.42);
+          tl.fromTo(PEN, { x: 1150, y: 1250 }, { x: 150, y: 905, duration: 0.08, ease: "steps(2)", immediateRender: false }, tP + 0.42);
+          draw($("x1"), tP + 0.5, 0.22, 6, true);
+          tl.set(PEN, { x: 478, y: 905 }, tP + 0.74);
+          draw($("x2"), tP + 0.76, 0.22, 6, true);
+          tl.set(PEN, { y: 1326 }, tP + 0.99);
+          tl.set(PEN, { y: 1338 }, tP + 1.03);
+          tl.to(PEN, { x: 1150, y: 1500, duration: 0.15, ease: "steps(3)" }, tP + 1.06);
+          tl.set(PEN, { opacity: 0 }, tP + 1.22);
+          draw($("strike"), tP + 1.08, 0.2, 4);
+          const PH = $("photo");
+          gsap.set(PH, { transformOrigin: "50% 50%" });
+          [[1.15, 1.6], [1.27, -1.4], [1.39, 1.0], [1.5, 0]].forEach(([dt, r]) => tl.set(PH, { rotation: r }, tP + dt));
+
+          // ---------- beat 4: "chỉ có hình vẽ biết cử động" (stick figure waves) ----------
+          draw($("arrow"), tH - 0.38, 0.25, 6);
+          draw($("arrowhead"), tH - 0.14, 0.1, 3);
+          write(L_hinh, tH + 0.1, 0.3);
+
+          tl.set(PEN, { opacity: 1 }, tH - 0.2);
+          tl.fromTo(PEN, { x: 1150, y: 1400 }, { x: 830, y: 985, duration: 0.1, ease: "steps(2)", immediateRender: false }, tH - 0.2);
+          draw($("kidhead"), tH - 0.08, 0.25, 8, true);
+          draw($("body"), tH + 0.18, 0.12, 4, true);
+          tl.to(PEN, { x: 1150, y: 1500, duration: 0.15, ease: "steps(3)" }, tH + 0.32);
+          tl.set(PEN, { opacity: 0 }, tH + 0.48);
+          draw($("hair"), tH + 0.15, 0.1, 3);
+          tl.set($("face"), { opacity: 1 }, tH + 0.2);
+          draw($("smile"), tH + 0.22, 0.12, 3);
+          draw($("dress-o"), tH + 0.3, 0.18, 5);
+          draw($("legs"), tH + 0.28, 0.14, 4);
+          draw($("armL"), tH + 0.34, 0.12, 3);
+          draw($("armA-p"), tH + 0.36, 0.12, 3);
+          tl.set($("mitL"), { opacity: 1 }, tH + 0.47);
+          tl.set($("mitA"), { opacity: 1 }, tH + 0.49);
+          draw($("dress-h"), tH + 0.42, 0.35, 8);
+
+          // waving: two key drawings alternate (substitution)
+          const armA = $("armA"), armB = $("armB"), wl = $("wl");
+          for (let t = tH + 0.68, k = 0; t < DUR - 0.45; t += 0.22, k++) {
+            const up = k % 2 === 0;
+            tl.set(armA, { opacity: up ? 0 : 1 }, t);
+            tl.set(armB, { opacity: up ? 1 : 0 }, t);
+            tl.set(wl, { opacity: up ? 1 : 0 }, t);
+          }
+          // whole figure hops on the beat
+          const KID = $("kid");
+          beats(tH + 0.6, DUR - 0.45).forEach((b) => {
+            tl.set(KID, { y: -12 }, b);
+            tl.set(KID, { y: 0 }, b + 0.12);
+          });
+          // label letters hop on "cử động"
+          L_hinh.forEach((sp, i) => {
+            const by = +sp.dataset.by;
+            tl.set(sp, { y: by - 6 }, tH + 0.7 + i * 0.04);
+            tl.set(sp, { y: by }, tH + 0.82 + i * 0.04);
+          });
+          // eye blink
+          const EY = $("eyes");
+          gsap.set(EY, { transformOrigin: "50% 50%" });
+          tl.set(EY, { scaleY: 0.15 }, tH + 1.12);
+          tl.set(EY, { scaleY: 1 }, tH + 1.2);
+          // sparkles appear then pulse on beats
+          const stars = [0, 1, 2, 3].map((i) => $("star" + i));
+          stars.forEach((s, i) => {
+            gsap.set(s, { transformOrigin: "50% 50%" });
+            tl.set(s, { opacity: 1 }, tH + 0.2 + i * 0.1);
+          });
+          beats(tH + 0.4, DUR - 0.35).forEach((b, j) => {
+            stars.forEach((s, i) => {
+              if ((i + j) % 2 === 0) { tl.set(s, { scale: 1.35, rotation: 12 }, b); tl.set(s, { scale: 1, rotation: 0 }, b + 0.12); }
+            });
+          });
+
+          // ---------- page turn out ----------
+          tl.to(stage, { x: -240, rotation: -5, opacity: 0, duration: 0.3, ease: "power2.in" }, DUR - 0.3);
+
+          window.__timelines["s6"] = tl;
+        })();
+      </script>
+    </template>
+  </body>
+</html>

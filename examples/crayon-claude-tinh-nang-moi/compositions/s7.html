@@ -1,0 +1,561 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <!-- Scene s7. Runtime keeps only <template>; put style, markup and script inside it. -->
+  </head>
+  <body>
+    <template>
+      <style>
+        /* Each scene declares its fonts (HyperFrames lint: font_family_without_font_face). Paths are relative to index.html. */
+        @font-face { font-family: "Be Vietnam Pro"; src: url("fonts/BeVietnamPro-Regular.ttf"); font-weight: 400; }
+        @font-face { font-family: "Be Vietnam Pro"; src: url("fonts/BeVietnamPro-Medium.ttf"); font-weight: 500; }
+        @font-face { font-family: "Be Vietnam Pro"; src: url("fonts/BeVietnamPro-Bold.ttf"); font-weight: 700; }
+        @font-face { font-family: "Be Vietnam Pro"; src: url("fonts/BeVietnamPro-ExtraBold.ttf"); font-weight: 800; }
+        #s7-root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          background: transparent;
+          color: var(--ink);
+          font-family: "Be Vietnam Pro", sans-serif;
+        }
+        #s7-stage, #s7-cam, #s7-root .s7-layer { position: absolute; inset: 0; }
+        #s7-root .s7-layer svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+        #s7-root .s7-ln { fill: none; stroke: var(--ink); stroke-width: var(--w-out); stroke-linecap: round; stroke-linejoin: round; }
+        #s7-root .s7-dt { fill: none; stroke: var(--ink); stroke-width: var(--w-det); stroke-linecap: round; stroke-linejoin: round; }
+        #s7-root .s7-th { fill: none; stroke: var(--ink); stroke-width: var(--w-thin); stroke-linecap: round; stroke-linejoin: round; }
+        #s7-root .s7-h { fill: none; stroke-width: 22px; stroke-linecap: round; stroke-linejoin: round; }
+        #s7-root .s7-tx { fill: var(--ink); stroke: none; font-family: "Be Vietnam Pro", sans-serif; font-weight: 700; }
+        #s7-root .s7-txt {
+          position: absolute;
+          white-space: nowrap;
+          font-family: "Be Vietnam Pro", sans-serif;
+          font-weight: 700;
+          line-height: 1.15;
+          color: var(--ink);
+          filter: url(#s7-wobt);
+        }
+        #s7-root .s7-txt.s7-center { left: 0; right: 0; text-align: center; }
+        #s7-root .s7-txt span { display: inline-block; }
+      </style>
+
+      <div id="s7-root" data-composition-id="s7" data-width="1080" data-height="1920">
+        <!-- shared crayon filters: wobbly wax line, wax on paper tooth (fills), wobbly lettering -->
+        <svg id="s7-defs" width="0" height="0" style="position: absolute" aria-hidden="true">
+          <defs>
+            <filter id="s7-wob" x="-25%" y="-25%" width="150%" height="150%" color-interpolation-filters="sRGB">
+              <feTurbulence class="s7-boil" type="fractalNoise" baseFrequency="0.035" numOctaves="2" seed="1" result="n" />
+              <feDisplacementMap in="SourceGraphic" in2="n" scale="4.5" xChannelSelector="R" yChannelSelector="G" result="d" />
+              <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="7" result="g" />
+              <feColorMatrix in="g" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  4 0 0 0 -1.15" result="m" />
+              <feComposite in="d" in2="m" operator="in" />
+            </filter>
+            <filter id="s7-wax" x="-25%" y="-25%" width="150%" height="150%" color-interpolation-filters="sRGB">
+              <feTurbulence class="s7-boil" type="fractalNoise" baseFrequency="0.035" numOctaves="2" seed="1" result="n" />
+              <feDisplacementMap in="SourceGraphic" in2="n" scale="3.5" xChannelSelector="R" yChannelSelector="G" result="d" />
+              <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="3" result="g" />
+              <feColorMatrix in="g" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  6 0 0 0 -2.5" result="m" />
+              <feComposite in="d" in2="m" operator="in" />
+            </filter>
+            <filter id="s7-wobt" x="-10%" y="-25%" width="120%" height="150%" color-interpolation-filters="sRGB">
+              <feTurbulence class="s7-boil" type="fractalNoise" baseFrequency="0.035" numOctaves="2" seed="1" result="n" />
+              <feDisplacementMap in="SourceGraphic" in2="n" scale="3" xChannelSelector="R" yChannelSelector="G" result="d" />
+              <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="5" result="g" />
+              <feColorMatrix in="g" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  4 0 0 0 -1.05" result="m" />
+              <feComposite in="d" in2="m" operator="in" />
+            </filter>
+          </defs>
+        </svg>
+        <div id="s7-stage">
+          <div id="s7-cam"></div>
+        </div>
+      </div>
+
+      <script>
+        (() => {
+          // A("key") = local time (s) of an anchor from timeline.json; never hard-code word times.
+          const A = (key) => window.__vv.local("s7", key);
+          const tl = gsap.timeline({ paused: true });
+          const SC = window.__vv.scenes["s7"];
+          const DUR = SC.end - SC.start;
+          const BEAT = 60 / 92, S = SC.start;
+          const beats = (from, to) => { const o = []; for (let k = Math.ceil((S + from) / BEAT); k * BEAT - S <= to; k++) o.push(k * BEAT - S); return o; };
+          const halfBeats = (from, to) => { const H = BEAT / 2, o = []; for (let k = Math.ceil((S + from) / H); k * H - S <= to; k++) o.push(k * H - S); return o; };
+          const TN = A("thunghiem"), TP = A("traphi"), NH = A("nhom"), TM = A("tomau");
+          const STILL = DUR - 0.35; // last ~0.3 s: only boil + camera
+
+          // ---------- helpers (pure functions of index, no randomness) ----------
+          const cam = document.getElementById("s7-cam");
+          const add = (parent, html) => { parent.insertAdjacentHTML("beforeend", html); return parent.lastElementChild; };
+          const f1 = (n) => Math.round(n * 10) / 10;
+          const hash = (n) => { const s = Math.sin(n * 127.1 + 311.7) * 43758.5453; return s - Math.floor(s); };
+          const jr = (n, a) => (hash(n) * 2 - 1) * a;
+          const P = (cx, cy, r, a) => [cx + r * Math.cos((a * Math.PI) / 180), cy + r * Math.sin((a * Math.PI) / 180)];
+          let cid = 0;
+          const nid = (p) => `s7-${p}${++cid}`;
+
+          // hand-drawn rounded rectangle, one stroke, ending past its start (child overshoot)
+          function roughRect(x, y, w, h, k, r = 18) {
+            const a = (i) => f1(jr(k * 31 + i, 3));
+            return `M${x + r + a(1)} ${y + a(2)} Q${x + w / 2 + a(3)} ${y - 4 + a(4)} ${x + w - r + a(5)} ${y + a(6)} ` +
+              `Q${x + w + a(7)} ${y + a(8)} ${x + w + a(9)} ${y + r + a(10)} Q${x + w + 4 + a(11)} ${y + h / 2 + a(12)} ${x + w + a(13)} ${y + h - r + a(14)} ` +
+              `Q${x + w + a(15)} ${y + h + a(16)} ${x + w - r + a(17)} ${y + h + a(18)} Q${x + w / 2 + a(19)} ${y + h + 4 + a(20)} ${x + r + a(21)} ${y + h + a(22)} ` +
+              `Q${x + a(23)} ${y + h + a(24)} ${x + a(25)} ${y + h - r + a(26)} Q${x - 4 + a(27)} ${y + h / 2 + a(28)} ${x + a(29)} ${y + r + a(30)} ` +
+              `Q${x + a(31)} ${y + a(32)} ${x + r + Math.min(26, w * 0.3)} ${y + 2 + a(33)}`;
+          }
+          function smooth(pts) {
+            let d = `M${f1(pts[0][0])} ${f1(pts[0][1])}`;
+            for (let i = 1; i < pts.length - 1; i++) {
+              const mx = (pts[i][0] + pts[i + 1][0]) / 2, my = (pts[i][1] + pts[i + 1][1]) / 2;
+              d += ` Q${f1(pts[i][0])} ${f1(pts[i][1])} ${f1(mx)} ${f1(my)}`;
+            }
+            const L = pts[pts.length - 1];
+            return d + ` L${f1(L[0])} ${f1(L[1])}`;
+          }
+          function roughCircle(cx, cy, r, k, over = 25) {
+            const pts = [];
+            for (let a = -90; a <= 270 + over; a += 15) pts.push(P(cx, cy, r * (1 + jr(k * 17 + a, 0.035)), a));
+            return smooth(pts);
+          }
+          // back-and-forth zig-zag hatching (~63 deg), overshooting the box by o px; sp = spacing between strokes
+          function zig(x, y, w, h, sp, k, dir = 1, o = 6) {
+            const s = h * 0.5, gap = (2 * sp) / 0.894, cx = x + w / 2;
+            const yT = y - o, yB = y + h + o, pts = [];
+            let i = 0;
+            for (let xb = x - s - o; xb <= x + w + o + gap; xb += gap, i++) {
+              pts.push([xb + jr(k * 13 + i, 2.5), yB + jr(k * 7 + i, 3)]);
+              pts.push([xb + s + jr(k * 5 + i, 2.5), yT + jr(k * 11 + i, 3)]);
+            }
+            return "M" + pts.map(([px, py]) => `${f1(dir > 0 ? px : 2 * cx - px)} ${f1(py)}`).join(" L");
+          }
+          function sector(cx, cy, r, a0, a1) {
+            const p0 = P(cx, cy, r, a0), p1 = P(cx, cy, r, a1);
+            return `<path d="M${cx} ${cy} L${f1(p0[0])} ${f1(p0[1])} A${r} ${r} 0 ${a1 - a0 > 180 ? 1 : 0} 1 ${f1(p1[0])} ${f1(p1[1])} Z"/>`;
+          }
+          function starPts(cx, cy, ro, ri, k) {
+            const pts = [];
+            for (let i = 0; i <= 10; i++) pts.push(P(cx, cy, (i % 2 ? ri : ro) + (k ? jr(k + i, 2.5) : 0), -90 + 36 * i));
+            return pts;
+          }
+          const ptsD = (pts) => "M" + pts.map((p) => `${f1(p[0])} ${f1(p[1])}`).join(" L");
+
+          function layer(id) {
+            const div = document.createElement("div");
+            div.className = "s7-layer";
+            div.id = "s7-" + id;
+            cam.appendChild(div);
+            const svg = add(div, '<svg viewBox="0 0 1080 1920" xmlns="http://www.w3.org/2000/svg"><defs></defs></svg>');
+            return { div, svg, defs: svg.firstElementChild };
+          }
+          // an object: fills (wax on tooth) under outlines (wobbly wax line)
+          function item(L, id, parent) {
+            const g = add(parent || L.svg, `<g id="s7-${id}"><g filter="url(#s7-wax)"></g><g filter="url(#s7-wob)"></g></g>`);
+            return { g, f: g.children[0], l: g.children[1], L };
+          }
+          const line = (it, d, cls = "s7-ln", style = "") => add(it.l, `<path class="${cls}" d="${d}" style="${style}"/>`);
+          const solid = (it, d, col) => add(it.f, `<path d="${d}" style="fill:${col}"/>`);
+          function hatch(it, clipShape, box, col, k, o = {}) {
+            const id = nid("cp");
+            add(it.L.defs, `<clipPath id="${id}">${clipShape}</clipPath>`);
+            const sw = o.sw || 22, sp = o.sp || 20, dir = o.dir || 1;
+            const [x, y, w, h] = box;
+            const g = add(it.f, `<g clip-path="url(#${id})" style="opacity:${o.op || 1}"></g>`);
+            const a = add(g, `<path class="s7-h" d="${zig(x, y, w, h, sp, k, dir)}" style="stroke:${col};stroke-width:${sw}px"/>`);
+            const b = add(g, `<path class="s7-h" d="${zig(x, y, w, h, sp * 1.7, k + 50, -dir)}" style="stroke:${col};stroke-width:${Math.round(sw * 0.6)}px;opacity:0.5"/>`);
+            return [a, b];
+          }
+          // crayon stroke drawn on, 12 fps nicks
+          function draw(el, t, dur, n = 8) {
+            const L = Math.ceil(el.getTotalLength()) + 4;
+            gsap.set(el, { strokeDasharray: `${L} ${L + 60}`, strokeDashoffset: L + 30 });
+            tl.to(el, { strokeDashoffset: 0, duration: dur, ease: `steps(${n})` }, t);
+          }
+          function colour(pair, t, dur, n = 6) {
+            draw(pair[0], t, dur, n);
+            draw(pair[1], t + dur * 0.55, dur * 0.7, Math.max(3, n - 2));
+          }
+          // hand-lettered label: each glyph tilted/offset by index, written left to right
+          function label(parent, str, o) {
+            const d = document.createElement("div");
+            d.className = "s7-txt" + (o.center ? " s7-center" : ""); d.setAttribute("data-layout-allow-overlap", "");
+            if (!o.center) d.style.left = o.left + "px";
+            d.style.top = o.top + "px";
+            d.style.fontSize = o.size + "px";
+            parent.appendChild(d);
+            const spans = Array.from(str).map((ch, i) => {
+              const s = document.createElement("span"); s.setAttribute("data-layout-allow-overlap", "");
+              s.textContent = ch.trim() === "" ? String.fromCharCode(160) : ch; // keep word gaps in inline-block glyphs
+              // nbsp gap:" " : ch;
+              if (o.colorLast && i === Array.from(str).length - 1) s.style.color = o.colorLast;
+              d.appendChild(s);
+              const k = o.k || 0;
+              gsap.set(s, { rotation: f1(4 * Math.sin(i * 2.1 + k)), y: f1(1.5 + 1.5 * Math.sin(i * 1.3 + k * 2)), opacity: 0 });
+              return s;
+            });
+            const span = o.span || 0.35;
+            spans.forEach((s, i) => tl.set(s, { opacity: 1 }, o.t + (span * i) / spans.length));
+            return { d, spans };
+          }
+          const SP = "M0 -20 Q3 -3 20 0 Q3 3 0 20 Q-3 3 -20 0 Q-3 -3 0 -20 Z";
+          function sparkle(L, x, y, from, to, phase) {
+            const g = add(L.svg, `<g transform="translate(${x} ${y})"><g><g filter="url(#s7-wax)"><path d="${SP}" style="fill:var(--c-lemon)"/></g>` +
+              `<g filter="url(#s7-wob)"><path class="s7-th" d="${SP}"/><circle r="3.5" style="fill:var(--c-white)"/></g></g></g>`);
+            const inner = g.firstElementChild;
+            gsap.set(inner, { opacity: 0, transformOrigin: "50% 50%" });
+            tl.set(inner, { opacity: 1 }, from);
+            halfBeats(from, to).forEach((b, i) => {
+              if ((i + phase) % 2) return;
+              tl.set(inner, { scale: 1.35, rotation: 18 }, b);
+              tl.set(inner, { scale: 0.85, rotation: 0 }, b + 1 / 6);
+              tl.set(inner, { scale: 1 }, b + 2 / 6);
+            });
+          }
+          function crayon(col, pre) {
+            return `<g filter="url(#s7-wax)">
+                <path d="M4 -5 Q0 0 4 5 L44 21 L44 -21 Z" style="fill:${col}"/>
+                <path d="M44 -22 L244 -22 Q258 0 244 22 L44 22 Z" style="fill:${col}"/>
+                <path d="M88 -22 L210 -22 L210 22 L88 22 Z" style="fill:var(--c-white)"/>
+                <ellipse cx="124" cy="9" rx="9" ry="5" style="fill:var(--c-pink)"/>
+                <ellipse cx="178" cy="9" rx="9" ry="5" style="fill:var(--c-pink)"/>
+              </g>
+              <g filter="url(#s7-wob)">
+                <path class="s7-dt" d="M44 -22 L244 -22 Q258 0 244 22 L44 22 Z"/>
+                <path class="s7-dt" d="M44 -21 L4 -5 Q0 0 4 5 L44 21"/>
+                <path class="s7-th" d="M88 -22 L88 22 M210 -22 L210 22"/>
+                <path class="s7-th" d="M99 -22 L99 22 M199 -22 L199 22" style="stroke:${col}"/>
+                <path class="s7-th" d="M141 10 Q151 17 161 10"/>
+                <g id="${pre}-eyes"><circle cx="136" cy="-5" r="5.5" style="fill:var(--ink)"/><circle cx="166" cy="-5" r="5.5" style="fill:var(--ink)"/>
+                  <circle cx="134.5" cy="-6.8" r="1.9" style="fill:var(--c-white)"/><circle cx="164.5" cy="-6.8" r="1.9" style="fill:var(--c-white)"/></g>
+              </g>`;
+          }
+          function blink(el, t) { tl.set(el, { scaleY: 0.15 }, t); tl.set(el, { scaleY: 1 }, t + 1 / 6); }
+
+          // ---------- layers (bottom to top) ----------
+          const LA = layer("pageA"), LB = layer("pageB"), LE = layer("end"), LF = layer("fixed"), LP = layer("penl");
+
+          // guide crayon (coral, with a face) rides the tip of key strokes
+          const pen = add(LP.svg, `<g id="s7-pen"><g transform="rotate(-55) scale(0.8)">${crayon("var(--accent)", "s7-peye")}</g></g>`);
+          gsap.set(pen, { opacity: 0, x: 540, y: 960 });
+          const guides = [];
+          function guide(el, t, dur, n = 8) {
+            const L = el.getTotalLength();
+            tl.set(pen, { opacity: 1 }, t);
+            for (let i = 0; i <= n; i++) {
+              const p = el.getPointAtLength((L * i) / n);
+              tl.set(pen, { x: f1(p.x), y: f1(p.y + (i % 2 ? -3 : 2)) }, t + (dur * i) / n);
+            }
+            guides.push([t, t + dur]);
+          }
+          // lift the crayon off the page only when the next guided stroke is not right after
+          function liftPen() {
+            guides.sort((a, b) => a[0] - b[0]);
+            guides.forEach(([, end], i) => {
+              const next = guides[i + 1];
+              if (!next || next[0] - end > 0.2) tl.set(pen, { opacity: 0 }, end + 0.1);
+            });
+          }
+
+          // ---------- camera: page turn in, slow drift (last scene: no exit) ----------
+          gsap.set("#s7-stage", { transformOrigin: "0% 50%" });
+          gsap.set("#s7-cam", { transformOrigin: "50% 42%" });
+          tl.fromTo("#s7-stage", { rotation: 6, x: 260, opacity: 0 },
+            { rotation: 0, x: 0, opacity: 1, duration: 0.45, ease: "power3.out" }, 0);
+          tl.fromTo("#s7-cam", { scale: 1, x: 0, y: 0 },
+            { scale: 1.04, x: -8, y: -16, duration: DUR, ease: "none" }, 0);
+
+          // ---------- page badge ----------
+          const pn = item(LF, "pnum");
+          // page badge: a small lemon star inside a crayon ring (no number)
+          const pnH = hatch(pn, '<circle cx="948" cy="168" r="50"/>', [902, 122, 92, 92], "var(--c-sky)", 3, { sw: 16, sp: 14, op: 0.55 });
+          const pnC = line(pn, roughCircle(948, 168, 46, 4), "s7-dt");
+          draw(pnC, 0.3, 0.35, 6);
+          colour(pnH, 0.5, 0.3, 4);
+          const pnS = item(LF, "pnstar");
+          const pnSP = ptsD(starPts(948, 170, 27, 12, 95)) + " Z";
+          solid(pnS, pnSP, "var(--c-lemon)");
+          line(pnS, pnSP, "s7-th");
+          gsap.set(pnS.g, { svgOrigin: "948 170" });
+          tl.fromTo(pnS.g, { scale: 0 }, { scale: 1, duration: 0.17, ease: "steps(2)" }, 0.6);
+
+          // ================= PAGE A: dashboards (paid plans) =================
+          const cA = item(LA, "cardA");
+          const cAo = line(cA, roughRect(96, 250, 888, 600, 1));
+          const cAd = line(cA, "M952 850 Q958 836 984 822", "s7-dt");
+          draw(cAo, 0.12, 0.6, 8); guide(cAo, 0.12, 0.6, 8);
+          draw(cAd, 0.7, 0.15, 3);
+          label(LA.div, "Bảng số liệu", { left: 150, top: 282, size: 52, t: 0.28, span: 0.45, k: 1 });
+
+          // bar chart
+          const ch = item(LA, "chart");
+          const axes = line(ch, "M170 470 Q167 630 171 790 Q365 794 556 789");
+          draw(axes, 0.74, 0.28, 6); guide(axes, 0.74, 0.28, 6);
+          const BAR = [[120, "var(--c-sky)"], [200, "var(--c-grass)"], [150, "var(--c-lemon)"], [250, "var(--c-orange)"]];
+          BAR.forEach(([h, col], i) => {
+            const x = 200 + i * 88, w = 60, top = 790 - h;
+            const hp = hatch(ch, `<rect x="${x - 6}" y="${top - 6}" width="${w + 12}" height="${h + 8}" rx="6"/>`, [x, top, w, h], col, 20 + i, { sw: 16, sp: 15 });
+            const o = line(ch, roughRect(x, top, w, h, 10 + i, 6), "s7-dt");
+            draw(o, 0.86 + i * 0.07, 0.25, 5);
+            colour(hp, 0.94 + i * 0.09, 0.38, 6);
+          });
+          // trend line (plum crayon) over the bars
+          const tr = item(LA, "trend");
+          const trP = line(tr, "M230 636 L318 556 L406 606 L494 506", "s7-dt", "stroke:var(--c-plum)");
+          const trA = line(tr, "M468 510 L496 503 L492 531", "s7-dt", "stroke:var(--c-plum)");
+          draw(trP, TN + 0.72, 0.32, 6); draw(trA, TN + 1.04, 0.1, 2);
+          [[230, 636], [318, 556], [406, 606], [494, 506]].forEach(([x, y], i) => {
+            const dot = add(tr.l, `<circle cx="${x}" cy="${y}" r="8" style="fill:var(--c-plum)"/>`);
+            tl.fromTo(dot, { opacity: 0 }, { opacity: 1, duration: 0.01 }, TN + 0.74 + i * 0.08);
+          });
+
+          // pie chart
+          const pie = item(LA, "pie");
+          const PC = [770, 590], PR = 100;
+          const WED = [[-90, 60, "var(--c-sky)", 1], [60, 200, "var(--c-pink)", -1], [200, 270, "var(--c-lemon)", 1]];
+          const wedH = WED.map(([a0, a1, col, dir], j) =>
+            hatch(pie, sector(PC[0], PC[1], PR + 7, a0, a1), [PC[0] - PR - 8, PC[1] - PR - 8, 2 * PR + 16, 2 * PR + 16], col, 30 + j, { sw: 20, sp: 18, dir }));
+          const pieO = line(pie, roughCircle(PC[0], PC[1], PR, 5));
+          const s60 = P(PC[0], PC[1], PR, 60), s200 = P(PC[0], PC[1], PR, 200);
+          const pieS = line(pie, `M${PC[0]} ${PC[1] - PR} L${PC[0]} ${PC[1]} L${f1(s60[0])} ${f1(s60[1])} M${PC[0]} ${PC[1]} L${f1(s200[0])} ${f1(s200[1])}`, "s7-dt");
+          draw(pieO, TN + 0.2, 0.4, 8); guide(pieO, TN + 0.2, 0.4, 8);
+          draw(pieS, TN + 0.55, 0.2, 4);
+          wedH.forEach((hp, j) => colour(hp, TN + 0.6 + j * 0.12, 0.34, 5));
+
+          // sticker "thử nghiệm" slapped on at the keyword
+          const stA = item(LA, "stkA");
+          hatch(stA, '<rect x="644" y="264" width="302" height="88" rx="16"/>', [650, 270, 290, 76], "var(--c-lemon)", 40, { sw: 20, sp: 17 });
+          line(stA, roughRect(650, 270, 290, 76, 41, 14), "s7-dt");
+          line(stA, "M914 346 Q930 334 940 318", "s7-th");
+          add(stA.l, '<text class="s7-tx" x="795" y="322" text-anchor="middle" rotate="2 -3 1 -2 3 -1 2 -2 1 3" style="font-size:40px">thử nghiệm</text>');
+          gsap.set(stA.g, { svgOrigin: "795 308" });
+          tl.fromTo(stA.g, { scale: 1.7, rotation: -10, opacity: 0 },
+            { scale: 1, rotation: 6, opacity: 1, duration: 0.25, ease: "steps(3)" }, TN - 0.06);
+          tl.set(stA.g, { scale: 1.06 }, TN + 0.3); tl.set(stA.g, { scale: 1 }, TN + 0.42);
+
+          // chip "Gói trả phí" with a coin
+          const chA = item(LA, "chipA");
+          const chAH = hatch(chA, '<rect x="578" y="718" width="388" height="88" rx="30"/>', [584, 724, 376, 76], "var(--accent)", 45, { sw: 22, sp: 20, op: 0.7 });
+          const chAo = line(chA, roughRect(584, 724, 376, 76, 50, 30), "s7-dt");
+          draw(chAo, TP - 0.12, 0.34, 6); guide(chAo, TP - 0.12, 0.34, 6);
+          colour(chAH, TP + 0.2, 0.4, 6);
+          const coin = item(LA, "coin");
+          solid(coin, "M604 762 A24 24 0 1 1 652 762 A24 24 0 1 1 604 762 Z", "var(--c-lemon)");
+          line(coin, roughCircle(628, 762, 24, 6, 20), "s7-dt");
+          line(coin, "M628 749 L628 775 M620 754 Q628 748 636 754", "s7-th");
+          gsap.set(coin.g, { svgOrigin: "628 762" });
+          tl.fromTo(coin.g, { scale: 0 },{ scale: 1, duration: 0.17, ease: "steps(2)" }, TP + 0.02);
+          label(LA.div, "Gói trả phí", { left: 666, top: 738, size: 42, t: TP + 0.08, span: 0.35, k: 2 });
+
+          // white-wax sparkles on page A (on the beat)
+          sparkle(LA, 572, 452, TN + 0.6, 5.1, 0);
+          sparkle(LA, 930, 470, TP + 0.3, 5.1, 1);
+
+          // ================= PAGE B: motion (team & enterprise) =================
+          const cB = item(LB, "cardB");
+          const cBo = line(cB, roughRect(96, 920, 888, 600, 2));
+          const cBd = line(cB, "M940 1520 Q950 1496 984 1478", "s7-dt");
+          draw(cBo, 2.62, 0.55, 8); guide(cBo, 2.62, 0.55, 8);
+          draw(cBd, 3.15, 0.15, 3);
+          label(LB.div, "Chuyển động", { left: 150, top: 952, size: 52, t: 3.0, span: 0.36, k: 3 });
+
+          // ground + bouncing ball with a dotted motion trail
+          const G = 1362;
+          const bpos = (u) => {
+            if (u < 0.62) { const f = u / 0.62; return [200 + 270 * f, G - 230 * 4 * f * (1 - f)]; }
+            const g = (u - 0.62) / 0.38; return [470 + 110 * g, G - 95 * 4 * g * (1 - g)];
+          };
+          const mo = item(LB, "motion");
+          const gnd = line(mo, "M150 1366 Q385 1371 620 1365", "s7-dt");
+          draw(gnd, 3.2, 0.28, 6); guide(gnd, 3.2, 0.28, 6);
+          const tB0 = 3.42, tB1 = 5.14, PER = 1.1;
+          for (let k = 1; k <= 10; k++) {
+            const u = k / 11, [x, y] = bpos(u);
+            const dot = add(mo.l, `<circle cx="${f1(x)}" cy="${f1(y - 34)}" r="5" style="fill:var(--ink);opacity:0.75"/>`);
+            gsap.set(dot, { opacity: 0 });
+            tl.set(dot, { opacity: 1 }, tB0 + u * PER + 0.08);
+          }
+          const ballO = add(LB.svg, '<g id="s7-ball"><g id="s7-balli"><g filter="url(#s7-wax)"><circle cx="0" cy="-34" r="34" style="fill:var(--c-orange)"/></g>' +
+            `<g filter="url(#s7-wob)"><path class="s7-dt" d="${roughCircle(0, -34, 34, 7)}"/><path class="s7-th" d="M-18 -48 Q-10 -60 4 -60" style="stroke:var(--c-white);stroke-width:5px"/></g></g></g>`);
+          const ballI = ballO.firstElementChild;
+          gsap.set(ballO, { x: 200, y: G });
+          gsap.set(ballI, { transformOrigin: "50% 100%" });
+          tl.fromTo(ballI, { scale: 0 }, { scale: 1, duration: 0.15, ease: "steps(2)" }, 3.26);
+          for (let t = tB0; t <= tB1; t += 1 / 12) {
+            const c = Math.floor((t - tB0) / PER), uu = ((t - tB0) % PER) / PER, u = c % 2 ? 1 - uu : uu;
+            const [x, y] = bpos(u);
+            tl.set(ballO, { x: f1(x), y: f1(y) }, t);
+            tl.set(ballI, G - y < 8 ? { scaleX: 1.2, scaleY: 0.78 } : { scaleX: 0.95, scaleY: 1.07 }, t);
+          }
+
+          // spinning star with speed marks
+          const st = item(LB, "star");
+          const stC = [800, 1150];
+          const stH = hatch(st, `<polygon points="${starPts(stC[0], stC[1], 78, 38, 0).map((p) => f1(p[0]) + "," + f1(p[1])).join(" ")}"/>`,
+            [stC[0] - 80, stC[1] - 80, 160, 160], "var(--c-lemon)", 60, { sw: 20, sp: 17 });
+          const stPts = starPts(stC[0], stC[1], 72, 32, 61);
+          const stO = line(st, ptsD(stPts) + ` L${f1((stPts[1][0] + stPts[0][0]) / 2)} ${f1((stPts[1][1] + stPts[0][1]) / 2)}`);
+          const stL = add(st.l, `<circle cx="${stC[0] - 12}" cy="${stC[1] - 14}" r="4.5" style="fill:var(--c-white)"/>`);
+          tl.fromTo(stL, { opacity: 0 }, { opacity: 1, duration: 0.01 }, 3.95);
+          draw(stO, 3.55, 0.35, 7);
+          colour(stH, 3.78, 0.3, 5);
+          gsap.set(st.g, { svgOrigin: `${stC[0]} ${stC[1]}` });
+          for (let t = 4.0, k = 1; t <= 5.12; t += 1 / 6, k++) tl.set(st.g, { rotation: 12 * k }, t);
+          const sm = item(LB, "speed");
+          const smP = line(sm, "M692 1086 Q680 1150 700 1214 M906 1090 Q920 1150 902 1210 M670 1118 Q664 1150 674 1182", "s7-th");
+          draw(smP, 3.86, 0.25, 5);
+
+          // sticker "thử nghiệm" on page B
+          const stB = item(LB, "stkB");
+          hatch(stB, '<rect x="644" y="934" width="302" height="88" rx="16"/>', [650, 940, 290, 76], "var(--c-lemon)", 70, { sw: 20, sp: 17, dir: -1 });
+          line(stB, roughRect(650, 940, 290, 76, 71, 14), "s7-dt");
+          add(stB.l, '<text class="s7-tx" x="795" y="992" text-anchor="middle" rotate="-2 2 -1 3 -2 1 -3 2 -1 2" style="font-size:40px">thử nghiệm</text>');
+          gsap.set(stB.g, { svgOrigin: "795 978" });
+          tl.fromTo(stB.g, { scale: 1.7, rotation: 10, opacity: 0 },
+            { scale: 1, rotation: -5, opacity: 1, duration: 0.25, ease: "steps(3)" }, NH - 0.5);
+
+          // chip "Gói nhóm" (three little crayons standing together)
+          const c1 = item(LB, "chipB1");
+          const c1H = hatch(c1, '<rect x="124" y="1394" width="352" height="92" rx="30"/>', [130, 1400, 340, 80], "var(--accent)", 80, { sw: 22, sp: 20, op: 0.7 });
+          const c1o = line(c1, roughRect(130, 1400, 340, 80, 81, 30), "s7-dt");
+          draw(c1o, NH - 0.08, 0.32, 6); guide(c1o, NH - 0.08, 0.32, 6);
+          colour(c1H, NH + 0.18, 0.36, 6);
+          const team = item(LB, "team");
+          [[150, "var(--c-sky)"], [173, "var(--c-grass)"], [196, "var(--c-orange)"]].forEach(([x, col], i) => {
+            const dy = i === 1 ? -6 : 0;
+            const d = `M${x} ${1432 + dy} L${x + 8} ${1415 + dy} L${x + 16} ${1432 + dy} L${x + 16} ${1466} L${x} ${1466} Z`;
+            solid(team, d, col);
+            line(team, d, "s7-th");
+          });
+          gsap.set(team.g, { svgOrigin: "181 1466" });
+          tl.fromTo(team.g, { scale: 0 },{ scale: 1, duration: 0.17, ease: "steps(2)" }, NH);
+          label(LB.div, "Gói nhóm", { left: 226, top: 1417, size: 42, t: NH + 0.05, span: 0.3, k: 4 });
+
+          // chip "Doanh nghiệp" (a little building with a flag)
+          const c2 = item(LB, "chipB2");
+          const c2H = hatch(c2, '<rect x="494" y="1394" width="472" height="92" rx="30"/>', [500, 1400, 460, 80], "var(--accent)", 85, { sw: 22, sp: 20, op: 0.7, dir: -1 });
+          const c2o = line(c2, roughRect(500, 1400, 460, 80, 86, 30), "s7-dt");
+          draw(c2o, NH + 0.64, 0.32, 6); guide(c2o, NH + 0.64, 0.32, 6);
+          colour(c2H, NH + 0.92, 0.36, 6);
+          const bld = item(LB, "bld");
+          solid(bld, "M522 1424 L568 1424 L568 1468 L522 1468 Z", "var(--c-sky)");
+          [[530, 1431], [551, 1431], [530, 1449], [551, 1449]].forEach(([x, y]) => solid(bld, `M${x} ${y} h10 v10 h-10 Z`, "var(--c-lemon)"));
+          solid(bld, "M545 1404 L562 1410 L545 1416 Z", "var(--accent)");
+          line(bld, "M522 1424 L568 1424 L568 1468 L522 1468 Z M545 1424 L545 1402", "s7-th");
+          gsap.set(bld.g, { svgOrigin: "545 1468" });
+          tl.fromTo(bld.g, { scale: 0 },{ scale: 1, duration: 0.17, ease: "steps(2)" }, NH + 0.72);
+          label(LB.div, "Doanh nghiệp", { left: 588, top: 1417, size: 42, t: NH + 0.76, span: 0.38, k: 5 });
+
+          sparkle(LB, 650, 1056, 3.6, 5.1, 1);
+          sparkle(LB, 930, 1288, NH + 0.2, 5.1, 0);
+
+          // ================= the book closes =================
+          gsap.set(LB.div, { transformOrigin: "96px 1220px" });
+          gsap.set(LA.div, { transformOrigin: "96px 550px" });
+          tl.to(LB.div, { scaleX: 0, duration: 0.22, ease: "steps(3)" }, 5.12);
+          tl.set(LB.div, { opacity: 0 }, 5.35);
+          tl.to(LA.div, { scaleX: 0, duration: 0.22, ease: "steps(3)" }, 5.24);
+          tl.set(LA.div, { opacity: 0 }, 5.47);
+
+          // ending must be fully written 1.0 s before the scene ends; Q() squeezes the beat if the scene is shorter
+          const END = DUR - 1.0;
+          const kq = Math.min(1, (END - 0.03 - TM) / 0.98);
+          const Q = (x) => x * kq;
+
+          // closed book with a face, coloured in at "tô màu"
+          const bk = item(LE, "book");
+          const bkH = hatch(bk, '<rect x="350" y="354" width="436" height="612" rx="20"/>', [352, 360, 428, 600], "var(--c-sky)", 90, { sw: 24, sp: 22 });
+          const spH = hatch(bk, '<rect x="294" y="354" width="62" height="612" rx="16"/>', [300, 360, 52, 600], "var(--c-plum)", 91, { sw: 18, sp: 16, dir: -1 });
+          const bkO = line(bk, roughRect(300, 360, 480, 600, 92, 22));
+          const bkS = line(bk, "M352 368 Q347 660 352 954", "s7-dt");
+          const bkE = line(bk, "M314 966 Q550 980 794 966 Q798 946 794 380", "s7-th");
+          draw(bkO, 5.44, 0.38, 8); guide(bkO, 5.44, 0.38, 8);
+          draw(bkS, 5.76, 0.15, 3);
+          draw(bkE, 5.8, 0.16, 3);
+          colour(bkH, TM - 0.1, Q(0.45), 7);
+          colour(spH, TM + Q(0.05), Q(0.26), 4);
+          const cs = item(LE, "cstar");
+          const csP = ptsD(starPts(566, 482, 36, 16, 93)) + " Z";
+          solid(cs, csP, "var(--c-lemon)");
+          line(cs, csP, "s7-dt");
+          gsap.set(cs.g, { svgOrigin: "566 482" });
+          tl.fromTo(cs.g, { scale: 0 },{ scale: 1, duration: 0.17, ease: "steps(2)" }, TM + Q(0.25));
+          const face = item(LE, "face");
+          add(face.f, '<ellipse cx="488" cy="690" rx="24" ry="14" style="fill:var(--c-pink)"/>');
+          add(face.f, '<ellipse cx="644" cy="690" rx="24" ry="14" style="fill:var(--c-pink)"/>');
+          line(face, "M538 690 Q566 718 594 690", "s7-dt");
+          const ceyes = add(face.l, '<g id="s7-ceyes"><circle cx="522" cy="642" r="13" style="fill:var(--ink)"/><circle cx="610" cy="642" r="13" style="fill:var(--ink)"/>' +
+            '<circle cx="518" cy="638" r="4.2" style="fill:var(--c-white)"/><circle cx="606" cy="638" r="4.2" style="fill:var(--c-white)"/></g>');
+          gsap.set(ceyes, { transformOrigin: "50% 50%" });
+          gsap.set(face.g, { svgOrigin: "566 670" });
+          tl.fromTo(face.g, { opacity: 0, scale: 0.6 },{ opacity: 1, scale: 1, duration: 0.17, ease: "steps(2)" }, TM + Q(0.3));
+          blink(ceyes, 7.12); blink(ceyes, 7.62);
+
+          // the crayon is set down under the book
+          const hero = add(LE.svg, `<g transform="translate(392 1036) scale(1.2)"><g id="s7-hero">${crayon("var(--accent)", "s7-heye")}</g></g>`);
+          const heroI = hero.firstElementChild;
+          const heye = document.getElementById("s7-heye-eyes");
+          gsap.set(heye, { transformOrigin: "50% 50%" });
+          gsap.set(heroI, { transformOrigin: "50% 50%" });
+          tl.fromTo(heroI, { y: -260, rotation: -35, opacity: 0 },
+            { y: 0, rotation: 0, opacity: 1, duration: Q(0.25), ease: "steps(3)" }, TM + Q(0.2));
+          tl.set(heroI, { y: -12, rotation: 2 }, TM + Q(0.48));
+          tl.set(heroI, { y: 0, rotation: 0 }, TM + Q(0.56));
+          blink(heye, 7.4);
+          halfBeats(TM + 0.9, STILL - 0.2).forEach((b, i) => { tl.set(heroI, { rotation: i % 2 ? -2 : 2 }, b); tl.set(heroI, { rotation: 0 }, b + 1 / 6); });
+
+          // handwritten question
+          label(LE.div, "Tô trang nào", { center: true, top: 1098, size: 86, t: TM, span: Q(0.35), k: 6 });
+          const q2 = label(LE.div, "trước?", { center: true, top: 1200, size: 86, t: TM + Q(0.45), span: Q(0.25), k: 7, colorLast: "var(--accent)" });
+          tl.fromTo(q2.spans[q2.spans.length - 1], { scale: 1.8 }, { scale: 1, duration: Q(0.17), ease: "steps(2)" }, TM + Q(0.7));
+          const ul = item(LE, "uline");
+          const ulP = line(ul, "M392 1318 Q540 1332 690 1314 Q560 1338 430 1336", "s7-ln", "stroke:var(--accent)");
+          draw(ulP, TM + Q(0.7), Q(0.25), 5);
+
+          // two choices: page 2 (dashboards) or page 3 (motion)
+          function option(x, k, col, iconFn, txt, t) {
+            const it = item(LE, "opt" + k);
+            const h = hatch(it, `<rect x="${x - 6}" y="1394" width="312" height="132" rx="18"/>`, [x, 1400, 300, 120], col, 100 + k, { sw: 20, sp: 18, op: 0.5 });
+            const o = line(it, roughRect(x, 1400, 300, 120, 100 + k, 18), "s7-dt");
+            draw(o, t, Q(0.25), 5);
+            colour(h, t + Q(0.15), Q(0.26), 4);
+            const ic = item(LE, "opti" + k, it.g);
+            iconFn(ic, x);
+            tl.fromTo(ic.g, { opacity: 0 }, { opacity: 1, duration: 0.01 }, t + Q(0.1));
+            const lb = label(LE.div, txt, { left: x + 104, top: 1436, size: 42, t: t + Q(0.1), span: Q(0.25), k: 8 + k });
+            return [it.g, lb.d];
+          }
+          const o2 = option(196, 2, "var(--c-lemon)", (ic, x) => {
+            [[26, "var(--c-sky)"], [44, "var(--c-grass)"], [34, "var(--c-orange)"]].forEach(([h, col], i) => {
+              const d = `M${x + 26 + i * 18} ${1490 - h} h12 v${h} h-12 Z`;
+              solid(ic, d, col); line(ic, d, "s7-th");
+            });
+            line(ic, `M${x + 20} 1428 L${x + 20} 1492 L${x + 86} 1492`, "s7-th");
+          }, "Trang 2", TM + Q(0.4));
+          const o3 = option(584, 3, "var(--c-sky)", (ic, x) => {
+            add(ic.f, `<circle cx="${x + 64}" cy="${1476}" r="13" style="fill:var(--c-orange)"/>`);
+            line(ic, roughCircle(x + 64, 1476, 13, 9, 15), "s7-th");
+            line(ic, `M${x + 24} 1492 Q${x + 36} 1430 ${x + 52} 1462 M${x + 18} 1494 L${x + 90} 1494`, "s7-th");
+          }, "Trang 3", TM + Q(0.5));
+          halfBeats(TM + 1.0, STILL - 0.2).forEach((b, i) => {
+            const els = i % 2 ? o3 : o2;
+            tl.set(els, { y: -9 }, b);
+            tl.set(els, { y: 0 }, b + 1 / 6);
+          });
+
+          sparkle(LE, 252, 404, TM + 0.4, STILL - 0.4, 0);
+          sparkle(LE, 836, 372, TM + 0.5, STILL - 0.4, 1);
+          sparkle(LE, 842, 926, TM + 0.6, STILL - 0.4, 0);
+          sparkle(LE, 240, 930, TM + 0.7, STILL - 0.4, 1);
+
+          liftPen();
+
+          // ---------- boil: re-jitter every wax line on twos (12 fps) ----------
+          const turbs = document.querySelectorAll("#s7-defs feTurbulence.s7-boil");
+          for (let t = 0, k = 0; t < DUR; t += 1 / 6, k++) tl.set(turbs, { attr: { seed: 1 + (k % 5) } }, t);
+
+          window.__timelines["s7"] = tl;
+        })();
+      </script>
+    </template>
+  </body>
+</html>

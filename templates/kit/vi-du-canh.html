@@ -1,0 +1,65 @@
+<!doctype html>
+<html>
+  <head><meta charset="UTF-8" /></head>
+  <body>
+    <template>
+      <style>
+        @font-face { font-family: "Be Vietnam Pro"; src: url("fonts/BeVietnamPro-Bold.ttf"); font-weight: 700; }
+        #s3-root { position: absolute; inset: 0; overflow: hidden; background: transparent; font-family: "Be Vietnam Pro", sans-serif; color: var(--ink); }
+        #s3-stage, #s3-cam { position: absolute; inset: 0; }
+        #s3-svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+        .s3-o { fill: none; stroke: var(--ink); stroke-width: var(--w-out); stroke-linecap: round; stroke-linejoin: round; }
+        .s3-d { fill: none; stroke: var(--ink); stroke-width: var(--w-det); stroke-linecap: round; stroke-linejoin: round; }
+        .s3-h { fill: none; stroke-width: 22; stroke-linecap: round; stroke-linejoin: round; }
+        .s3-lbl { position: absolute; font-weight: 700; color: var(--ink); filter: url(#s3-ftxt); white-space: nowrap; }
+      </style>
+      <div id="s3-root" data-composition-id="s3" data-width="1080" data-height="1920">
+        <div id="s3-stage"><div id="s3-cam">
+          <svg id="s3-svg" viewBox="0 0 1080 1920"><defs id="s3-defs"></defs>
+            <g filter="url(#s3-fwax)">
+              <path id="s3-fpuz" class="s3-h" style="stroke: var(--accent)" />
+              <path id="s3-flock" class="s3-h" style="stroke: var(--c-plum)" />
+              <path id="s3-fkey" class="s3-h" style="stroke: var(--c-lemon); stroke-width: 16" />
+              <path id="s3-fshield" class="s3-h" style="stroke: var(--c-grass)" />
+            </g>
+            <g filter="url(#s3-fline)">
+              <path id="s3-puz" class="s3-o" />
+              <path id="s3-lock" class="s3-o" />
+              <path id="s3-shackle" class="s3-o" d="M720 520 V440 Q720 370 790 370 Q860 370 860 440 V520" />
+              <path id="s3-key" class="s3-d" d="M420 640 m-34 0 a34 34 0 1 0 68 0 a34 34 0 1 0 -68 0 M454 640 H640 M600 640 v26 M626 640 v20" />
+              <path id="s3-shield" class="s3-o" d="M540 960 Q640 1010 740 960 Q750 1160 540 1300 Q330 1160 340 960 Q440 1010 540 960 Z" />
+              <path id="s3-tick" class="s3-o" style="stroke: var(--accent)" d="M455 1120 L520 1185 L640 1050" />
+            </g>
+            <path id="s3-pen" d="M0 0 l-14 -40 l28 0 Z M-14 -40 h28 v-110 h-28 Z" style="fill: var(--c-orange); stroke: var(--ink); stroke-width: 3; opacity: 0" />
+          </svg>
+          <div id="s3-t-title" class="s3-lbl" style="left: 120px; top: 150px; font-size: 84px;">Cẩn thận nhé!</div>
+          <div id="s3-t-quyen" class="s3-lbl" style="left: 300px; top: 720px; font-size: 46px;">quyền của bạn</div>
+          <div id="s3-t-tin" class="s3-lbl" style="left: 300px; top: 1350px; font-size: 50px;">chỉ cài từ người viết đáng tin</div>
+        </div></div>
+      </div>
+      <script>
+        (() => {
+          const K = MF.scene("s3", { bpm: 92, doc: document }), G = MF.geo, $ = K.$, set = (id, d) => $(id).setAttribute("d", d);
+          $("defs").innerHTML = MF.style.crayon.defs("s3");
+          set("puz", G.wobRect(150, 380, 300, 220, 30, 2)); set("fpuz", G.hatch(150, 380, 300, 220, { seed: 2 }));
+          set("lock", G.wobRect(690, 510, 200, 170, 22, 5)); set("flock", G.hatch(690, 510, 200, 170, { seed: 5, s: 60 }));
+          set("fkey", G.hatch(390, 610, 64, 60, { g: 24, seed: 3 }));
+          set("fshield", G.hatch(350, 970, 380, 320, { seed: 7, s: 120 }));
+          K.clip("fpuz", "puz"); K.clip("flock", "lock"); K.clip("fshield", "shield");
+          K.pageIn(); K.drift(); K.pageOut(); K.boil();
+          K.write("t-title", 0.3, 0.35);
+          const q = K.A("quyen"), c = K.A("cai"), t = K.A("tin");
+          K.draw("puz", q - 0.7, 0.5, { pen: "#s3-pen" }); K.colour("fpuz", q - 0.25, 0.35);
+          K.draw("key", q, 0.45, { pen: "#s3-pen" }); K.colour("fkey", q + 0.4, 0.25);
+          K.write("t-quyen", q + 0.2, 0.35);
+          K.draw("lock", q + 0.55, 0.45); K.colour("flock", q + 0.95, 0.3); K.draw("shackle", q + 0.75, 0.35);
+          K.draw("shield", c, 0.55, { pen: "#s3-pen" }); K.colour("fshield", c + 0.45, 0.4);
+          K.write("t-tin", t - 0.3, 0.4);
+          K.draw("tick", t + 0.1, 0.35, { pen: "#s3-pen" });
+          K.beats(0.6, K.exitAt - 0.1).forEach((b, i) => K.tl.to(K.$("lock"), { rotation: i % 2 ? 2 : -2, svgOrigin: "790 595", duration: 0.12, ease: "steps(2)", mfIdle: true }, b));
+          K.done();
+        })();
+      </script>
+    </template>
+  </body>
+</html>

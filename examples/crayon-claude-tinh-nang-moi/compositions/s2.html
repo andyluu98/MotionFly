@@ -1,0 +1,478 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <!-- Scene s2. Runtime keeps only <template>; put style, markup and script inside it. -->
+  </head>
+  <body>
+    <template>
+      <style>
+        /* Each scene declares its fonts (HyperFrames lint: font_family_without_font_face). Paths are relative to index.html. */
+        @font-face { font-family: "Be Vietnam Pro"; src: url("fonts/BeVietnamPro-Regular.ttf"); font-weight: 400; }
+        @font-face { font-family: "Be Vietnam Pro"; src: url("fonts/BeVietnamPro-Medium.ttf"); font-weight: 500; }
+        @font-face { font-family: "Be Vietnam Pro"; src: url("fonts/BeVietnamPro-Bold.ttf"); font-weight: 700; }
+        @font-face { font-family: "Be Vietnam Pro"; src: url("fonts/BeVietnamPro-ExtraBold.ttf"); font-weight: 800; }
+        #s2-root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          background: transparent;
+          color: var(--ink);
+          font-family: "Be Vietnam Pro", sans-serif;
+        }
+        #s2-stage, #s2-cam { position: absolute; inset: 0; }
+        #s2-svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+
+        /* crayon strokes: indigo outline, round ends */
+        #s2-root .s2-o, #s2-root .s2-d, #s2-root .s2-t {
+          fill: none; stroke: var(--ink); stroke-linecap: round; stroke-linejoin: round;
+        }
+        #s2-root .s2-o { stroke-width: var(--w-out); }
+        #s2-root .s2-d { stroke-width: var(--w-det); }
+        #s2-root .s2-t { stroke-width: var(--w-thin); }
+        /* zig-zag hatching (colouring) */
+        #s2-root .s2-h { fill: none; stroke-linecap: round; stroke-linejoin: round; }
+
+        /* hand lettering on the page */
+        #s2-root .s2-lbl {
+          position: absolute; font-weight: 700; color: var(--ink); line-height: 1.2;
+          white-space: nowrap; filter: url(#s2-ftxt);
+        }
+        #s2-root .s2-ch { display: inline-block; opacity: 0; white-space: pre; }
+        #s2-root .s2-cur {
+          display: inline-block; width: 24px; height: 44px; vertical-align: -6px;
+          background: var(--accent); border-radius: 4px 6px 3px 5px; opacity: 0;
+        }
+        #s2-gt { opacity: 0; }
+        #s2-cur1 { position: absolute; left: 44px; top: 9px; }
+        #s2-cmd { margin-left: 16px; }
+        #s2-cur2 { margin-left: 8px; }
+        #s2-crayon, #s2-burst, #s2-k-btn, #s2-spark > g > path { opacity: 0; }
+      </style>
+
+      <div id="s2-root" data-composition-id="s2" data-width="1080" data-height="1920">
+        <div id="s2-stage">
+          <div id="s2-cam">
+            <svg id="s2-svg" viewBox="0 0 1080 1920" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <!-- 1. hand-wobbled wax line: low-freq displacement + fine tooth grain on the stroke -->
+                <filter id="s2-fline" filterUnits="userSpaceOnUse" x="0" y="0" width="1080" height="1920" color-interpolation-filters="sRGB">
+                  <feTurbulence class="s2-turb" type="fractalNoise" baseFrequency="0.035" numOctaves="2" seed="1" result="wob" />
+                  <feDisplacementMap in="SourceGraphic" in2="wob" scale="4.5" xChannelSelector="R" yChannelSelector="G" result="moved" />
+                  <feTurbulence class="s2-turb" type="fractalNoise" baseFrequency="0.75" numOctaves="2" seed="3" result="grain" />
+                  <feColorMatrix in="grain" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  5 0 0 0 -1.6" result="ga" />
+                  <feComposite in="moved" in2="ga" operator="in" />
+                </filter>
+                <!-- 2. wax on the peaks of the paper tooth: speckled colouring, ~20% paper left -->
+                <filter id="s2-fwax" filterUnits="userSpaceOnUse" x="0" y="0" width="1080" height="1920" color-interpolation-filters="sRGB">
+                  <feTurbulence class="s2-turb" type="fractalNoise" baseFrequency="0.035" numOctaves="2" seed="2" result="wob" />
+                  <feDisplacementMap in="SourceGraphic" in2="wob" scale="3.5" xChannelSelector="R" yChannelSelector="G" result="moved" />
+                  <feTurbulence class="s2-turb" type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="4" result="tooth" />
+                  <feColorMatrix in="tooth" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  6 0 0 0 -2.1" result="ta" />
+                  <feComposite in="moved" in2="ta" operator="in" />
+                </filter>
+                <!-- 3. lettering: gentle wobble + light grain (used by CSS filter on HTML labels) -->
+                <filter id="s2-ftxt" x="-10%" y="-25%" width="120%" height="150%" color-interpolation-filters="sRGB">
+                  <feTurbulence class="s2-turb" type="fractalNoise" baseFrequency="0.04" numOctaves="2" seed="5" result="wob" />
+                  <feDisplacementMap in="SourceGraphic" in2="wob" scale="3" xChannelSelector="R" yChannelSelector="G" result="moved" />
+                  <feTurbulence class="s2-turb" type="fractalNoise" baseFrequency="0.8" numOctaves="2" seed="6" result="grain" />
+                  <feColorMatrix in="grain" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  4 0 0 0 -1.1" result="ga" />
+                  <feComposite in="moved" in2="ga" operator="in" />
+                </filter>
+                <clipPath id="s2-cp-puz">
+                  <path id="s2-cp-puz-p" transform="translate(575 230) scale(1.12) translate(-575 -230)" />
+                </clipPath>
+              </defs>
+
+              <!-- colouring layer (wax on tooth) -->
+              <g id="s2-fills" filter="url(#s2-fwax)">
+                <path id="s2-f-bar" class="s2-h" style="stroke: var(--c-sky); stroke-width: 22px;" />
+                <path id="s2-f-bar2" class="s2-h" style="stroke: var(--c-sky); stroke-width: 14px; opacity: 0.5;" />
+                <path id="s2-f-pan" class="s2-h" style="stroke: var(--accent); stroke-width: 22px; opacity: 0.8;" />
+                <path id="s2-f-pan2" class="s2-h" style="stroke: var(--accent); stroke-width: 14px; opacity: 0.5;" />
+                <path id="s2-f-bub" class="s2-h" style="stroke: var(--c-lemon); stroke-width: 22px; opacity: 0.85;" />
+                <path id="s2-f-bub2" class="s2-h" style="stroke: var(--c-lemon); stroke-width: 14px; opacity: 0.5;" />
+                <g id="s2-g-puz"><g clip-path="url(#s2-cp-puz)"><path id="s2-f-puz" class="s2-h" style="stroke: var(--accent); stroke-width: 18px;" /></g></g>
+                <circle id="s2-dot1" cx="160" cy="445" r="16" style="fill: var(--accent);" />
+                <circle id="s2-dot2" cx="207" cy="445" r="16" style="fill: var(--c-lemon);" />
+                <circle id="s2-dot3" cx="254" cy="445" r="16" style="fill: var(--c-grass);" />
+                <path id="s2-f-heart" style="fill: var(--c-pink);" />
+                <path id="s2-f-star" style="fill: var(--c-lemon);" />
+                <rect id="s2-f-b1" x="668" y="770" width="44" height="75" style="fill: var(--c-sky);" />
+                <rect id="s2-f-b2" x="738" y="730" width="44" height="115" style="fill: var(--c-grass);" />
+                <rect id="s2-f-b3" x="808" y="790" width="44" height="55" style="fill: var(--c-plum);" />
+                <path id="s2-f-hl" class="s2-h" style="stroke: var(--c-lemon); stroke-width: 16px; opacity: 0.9;" />
+              </g>
+
+              <!-- knock-out: the button keeps the paper clean behind it -->
+              <g id="s2-knock"><path id="s2-k-btn" style="fill: var(--paper);" /></g>
+              <g id="s2-fills2" filter="url(#s2-fwax)">
+                <path id="s2-f-btn" class="s2-h" style="stroke: var(--c-lemon); stroke-width: 20px;" />
+                <path id="s2-f-btn2" class="s2-h" style="stroke: var(--c-orange); stroke-width: 12px; opacity: 0.45;" />
+              </g>
+
+              <!-- outline layer (indigo wax) -->
+              <g id="s2-lines" filter="url(#s2-fline)">
+                <path id="s2-l-page" class="s2-d" />
+                <path id="s2-l-under" class="s2-o" style="stroke: var(--accent);" />
+                <path id="s2-l-puz" class="s2-d" d="M530 200 L548 200 C540 176 590 176 582 200 L600 200 L600 218 C624 210 624 260 600 252 L600 270 L530 270 Z" />
+                <path id="s2-l-win" class="s2-o" />
+                <path id="s2-l-div" class="s2-d" d="M104 490 Q540 497 976 488" />
+                <circle id="s2-l-dot1" class="s2-t" cx="160" cy="445" r="16" />
+                <circle id="s2-l-dot2" class="s2-t" cx="207" cy="445" r="16" />
+                <circle id="s2-l-dot3" class="s2-t" cx="254" cy="445" r="16" />
+                <path id="s2-l-s1" class="s2-d" />
+                <path id="s2-l-s2" class="s2-d" />
+                <path id="s2-l-s3" class="s2-d" style="stroke: var(--accent);" />
+                <path id="s2-l-s4" class="s2-d" style="stroke: var(--accent);" />
+                <path id="s2-l-s5" class="s2-d" style="stroke: var(--accent);" />
+                <path id="s2-l-bub" class="s2-o" />
+                <path id="s2-l-tail" class="s2-o" d="M395 1451 Q300 1530 232 1572 Q270 1500 309 1431" />
+                <path id="s2-l-heart" class="s2-t" />
+                <path id="s2-l-star" class="s2-t" />
+                <path id="s2-l-arrow" class="s2-d" d="M640 1180 C660 1140 600 1110 505 1082" />
+                <path id="s2-l-head" class="s2-d" d="M534 1076 L505 1082 L526 1103" />
+                <path id="s2-l-pan" class="s2-o" />
+                <path id="s2-l-pl1" class="s2-t" d="M648 632 Q770 627 905 634" />
+                <path id="s2-l-pl2" class="s2-t" d="M648 672 Q740 676 840 669" />
+                <path id="s2-l-b1" class="s2-d" />
+                <path id="s2-l-b2" class="s2-d" />
+                <path id="s2-l-b3" class="s2-d" />
+                <path id="s2-l-btn" class="s2-o" />
+                <g id="s2-burst"></g>
+              </g>
+
+              <!-- white-wax sparkles -->
+              <g id="s2-spark" filter="url(#s2-fline)">
+                <g transform="translate(690 215)"><path id="s2-spk1" /></g>
+                <g transform="translate(792 292)"><path id="s2-spk2" /></g>
+                <g transform="translate(122 1170)"><path id="s2-spk3" /></g>
+                <g transform="translate(985 1160)"><path id="s2-spk4" /></g>
+                <g transform="translate(470 988)"><path id="s2-spk5" /></g>
+              </g>
+
+              <!-- guide crayon: tip at (0,0), body up-right -->
+              <g id="s2-crayon" filter="url(#s2-fline)">
+                <g id="s2-crayon-in">
+                  <g transform="rotate(-45)">
+                    <path d="M2 0 L36 -14 L36 14 Z" style="fill: var(--ink); stroke: var(--ink); stroke-width: 3px; stroke-linejoin: round;" />
+                    <rect x="36" y="-15" width="26" height="30" style="fill: var(--ink);" />
+                    <rect x="62" y="-16" width="90" height="32" rx="3" style="fill: var(--c-lemon); stroke: var(--ink); stroke-width: 3px;" />
+                    <path d="M76 -16 L84 16 M132 -16 L140 16" style="fill: none; stroke: var(--ink); stroke-width: 4px; stroke-linecap: round;" />
+                    <path d="M92 -6 Q107 4 122 -6" style="fill: none; stroke: var(--accent); stroke-width: 4px; stroke-linecap: round;" />
+                    <path d="M152 -15 L168 -15 Q176 0 168 15 L152 15 Z" style="fill: var(--ink);" />
+                    <path d="M40 -8 L58 -8" style="fill: none; stroke: var(--c-white); stroke-width: 3px; stroke-linecap: round;" />
+                  </g>
+                </g>
+              </g>
+            </svg>
+
+            <!-- hand lettering (Be Vietnam Pro 700, letter by letter) -->
+            <div id="s2-t-page" class="s2-lbl" style="left: 897px; top: 160px; width: 96px; text-align: center; font-size: 56px;">1</div>
+            <div id="s2-t-title" class="s2-lbl" style="left: 110px; top: 168px; font-size: 88px;">Bản mod</div>
+            <div id="s2-t-cc" data-layout-allow-overlap class="s2-lbl" style="left: 292px; top: 417px; font-size: 44px;">Claude Code</div>
+            <div id="s2-prompt" class="s2-lbl" style="left: 140px; top: 1012px; font-size: 46px;"><span id="s2-gt">&gt;</span><span id="s2-cur1" class="s2-cur"></span><span id="s2-cmd">/lệnh-riêng</span><span id="s2-cur2" class="s2-cur"></span></div>
+            <div id="s2-t-bub" class="s2-lbl" style="left: 170px; top: 1286px; width: 780px; text-align: center; font-size: 54px;">Mình muốn…</div>
+            <div id="s2-t-pan" class="s2-lbl" style="left: 640px; top: 545px; font-size: 44px;">Khung mới</div>
+            <div id="s2-t-btn" class="s2-lbl" style="left: 650px; top: 900px; width: 260px; text-align: center; font-size: 48px;">Bấm</div>
+          </div>
+        </div>
+      </div>
+
+      <script>
+        (() => {
+          // A("key") = local time (s) of an anchor from timeline.json; never hard-code word times.
+          const A = (key) => window.__vv.local("s2", key);
+          const sc = window.__vv.scenes["s2"];
+          const DUR = sc.end - sc.start;
+          const BEAT = 60 / 92, S = sc.start;
+          const beats = (from, to) => { const o = []; for (let k = Math.ceil((S + from) / BEAT); k * BEAT - S <= to; k++) o.push(k * BEAT - S); return o; };
+          const root = document.getElementById("s2-root");
+          const $ = (id) => document.getElementById("s2-" + id);
+          const f1 = (n) => (+n).toFixed(1);
+
+          // ---------- geometry (deterministic hand wobble) ----------
+          const wobRect = (x, y, w, h, r, sd) => {
+            const j = (k) => +(2.6 * Math.sin(sd * 3.1 + k * 2.7)).toFixed(1);
+            const X2 = x + w, Y2 = y + h;
+            return [
+              `M${x + r + 6} ${y + j(0)}`,
+              `Q${x + w / 2} ${y - 3 + j(1)} ${X2 - r} ${y + j(2)}`,
+              `Q${X2 + j(3)} ${y + j(4)} ${X2 + j(5)} ${y + r}`,
+              `Q${X2 + 3 + j(6)} ${y + h / 2} ${X2 + j(7)} ${Y2 - r}`,
+              `Q${X2 + j(8)} ${Y2 + j(9)} ${X2 - r} ${Y2 + j(10)}`,
+              `Q${x + w / 2} ${Y2 + 3 + j(11)} ${x + r} ${Y2 + j(12)}`,
+              `Q${x + j(13)} ${Y2 + j(14)} ${x + j(15)} ${Y2 - r}`,
+              `Q${x - 3 + j(16)} ${y + h / 2} ${x + j(17)} ${y + r}`,
+              `Q${x + j(18)} ${y + j(19)} ${x + r} ${y + 2 + j(20)}`,
+              `L${x + r + Math.min(30, w * 0.3)} ${y - 4 + j(21)}`,
+            ].join(" ");
+          };
+          // ellipse drawn in one go, ending a little past the start (a child closing the loop)
+          const wobEll = (cx, cy, rx, ry, sd, n = 44) => {
+            const pts = [];
+            for (let i = 0; i <= n; i++) {
+              const t = -Math.PI / 2 + (i / n) * (Math.PI * 2 + 0.4);
+              const r = 1 + 0.016 * Math.sin(i * 1.7 + sd) + 0.01 * Math.sin(i * 0.5 + sd * 3) + 0.03 * (i / n);
+              pts.push(f1(cx + Math.cos(t) * rx * r) + " " + f1(cy + Math.sin(t) * ry * r));
+            }
+            return "M" + pts.join(" L");
+          };
+          // zig-zag hatch over a rect, strokes leaning by s, overshooting the outline by ov; v = cross pass
+          const hatch = (x, y, w, h, o = {}) => {
+            const g = o.g || 36, ov = o.ov ?? 7, sd = o.seed || 1, V = !!o.v;
+            const A0 = V ? y : x, B0 = V ? x : y, AW = V ? h : w, BH = V ? w : h;
+            const s = o.s ?? BH * 0.4;
+            const lo = A0 - ov, hi = A0 + AW + ov, pts = [];
+            for (let u = lo - s, i = 0; u <= hi + g / 2; u += g / 2, i++) {
+              const j = 3.5 * Math.sin(i * 1.93 + sd), k = 2.5 * Math.sin(i * 0.71 + sd * 2);
+              const a = Math.min(hi, Math.max(lo, i % 2 ? u + s : u)) + k;
+              const b = i % 2 ? B0 - ov - j : B0 + BH + ov + j;
+              pts.push(V ? [b, a] : [a, b]);
+            }
+            return "M" + pts.map((p) => f1(p[0]) + " " + f1(p[1])).join(" L");
+          };
+          const hatchEll = (cx, cy, rx, ry, o = {}) => {
+            const g = o.g || 36, ov = o.ov ?? 7, sd = o.seed || 1, s = o.s ?? 40;
+            const half = (xx) => { const q = (xx - cx) / rx; return q * q >= 1 ? 0 : ry * Math.sqrt(1 - q * q); };
+            const pts = [];
+            for (let u = cx - rx - ov, i = 0; u <= cx + rx + ov; u += g / 2, i++) {
+              const j = 3.5 * Math.sin(i * 1.93 + sd);
+              const a = Math.min(cx + rx, Math.max(cx - rx, i % 2 ? u + s : u));
+              const b = i % 2 ? cy - half(a) - ov - j : cy + half(a) + ov + j;
+              pts.push(f1(a) + " " + f1(b));
+            }
+            return "M" + pts.join(" L");
+          };
+          // cursive scribble "writing": humps, with word gaps
+          const scrib = (x0, x1, y, sd) => {
+            const n = Math.round((x1 - x0) / 17);
+            let d = `M${x0} ${y}`;
+            for (let i = 1; i <= n; i++) {
+              const x = x0 + ((x1 - x0) * i) / n;
+              const up = (i % 3 === 0 ? -17 : -9) + 2 * Math.sin(i * 1.3 + sd);
+              const yy = y + 2 * Math.sin(i * 2.1 + sd);
+              if (i % 7 === 0) d += ` M${f1(x + 6)} ${f1(yy)}`;
+              else d += ` Q${f1(x - 9)} ${f1(y + up)} ${f1(x)} ${f1(yy)}`;
+            }
+            return d;
+          };
+          const starPath = (cx, cy, R, r) => {
+            let d = "";
+            for (let i = 0; i < 10; i++) {
+              const a = -Math.PI / 2 + (i * Math.PI) / 5, rr = i % 2 ? r : R;
+              d += (i ? " L" : "M") + f1(cx + Math.cos(a) * rr) + " " + f1(cy + Math.sin(a) * rr);
+            }
+            return d + " Z";
+          };
+          const sparkle = "M0 -20 Q3 -3 20 0 Q3 3 0 20 Q-3 3 -20 0 Q-3 -3 0 -20 Z";
+
+          const setD = (id, d) => $(id).setAttribute("d", d);
+          setD("l-page", wobEll(945, 195, 50, 48, 2));
+          setD("l-under", "M104 302 Q200 292 300 300 T498 294");
+          setD("cp-puz-p", $("l-puz").getAttribute("d"));
+          setD("f-puz", hatch(520, 172, 110, 106, { g: 26, s: 40, seed: 8 }));
+          setD("l-win", wobRect(100, 400, 880, 720, 30, 1));
+          setD("f-bar", hatch(100, 400, 880, 90, { g: 34, s: 40, seed: 2 }));
+          setD("f-bar2", hatch(100, 400, 880, 90, { g: 30, s: 60, seed: 5, v: true }));
+          setD("l-s1", scrib(145, 520, 572, 1));
+          setD("l-s2", scrib(145, 455, 640, 2));
+          setD("l-s3", scrib(145, 545, 708, 3));
+          setD("l-s4", scrib(145, 480, 776, 4));
+          setD("l-s5", scrib(145, 410, 844, 5));
+          setD("l-bub", wobEll(560, 1320, 390, 145, 4, 52));
+          setD("f-bub", hatchEll(560, 1320, 390, 145, { g: 38, s: 46, seed: 4 }));
+          setD("f-bub2", hatchEll(560, 1320, 390, 145, { g: 34, s: -70, seed: 9 }));
+          const heart = "M265 1342 C222 1314 240 1281 265 1303 C290 1281 308 1314 265 1342 Z";
+          setD("f-heart", heart); setD("l-heart", heart);
+          const star = starPath(855, 1318, 28, 12);
+          setD("f-star", star); setD("l-star", star);
+          setD("l-pan", wobRect(610, 520, 340, 560, 26, 3));
+          setD("f-pan", hatch(610, 520, 340, 560, { g: 38, seed: 3 }));
+          setD("f-pan2", hatch(610, 520, 340, 560, { g: 34, seed: 6, v: true }));
+          setD("l-b1", wobRect(668, 770, 44, 75, 6, 5));
+          setD("l-b2", wobRect(738, 730, 44, 115, 6, 6));
+          setD("l-b3", wobRect(808, 790, 44, 55, 6, 7));
+          const btnD = wobRect(650, 880, 260, 100, 30, 8);
+          setD("l-btn", btnD); setD("k-btn", btnD);
+          setD("f-btn", hatch(650, 880, 260, 100, { g: 30, s: 36, seed: 7 }));
+          setD("f-btn2", hatch(650, 880, 260, 100, { g: 28, seed: 10, v: true }));
+          setD("f-hl", hatch(172, 1030, 275, 38, { g: 24, s: 18, seed: 6, ov: 5 }));
+          for (let i = 1; i <= 5; i++) {
+            const p = $("spk" + i);
+            p.setAttribute("d", sparkle);
+            p.setAttribute("style", "fill: var(--c-white); stroke: var(--ink); stroke-width: 3px; stroke-linejoin: round;");
+          }
+          // press burst: 8 short rays around the button
+          const burst = $("burst");
+          for (let i = 0; i < 8; i++) {
+            const a = (i / 8) * Math.PI * 2 + Math.PI / 8;
+            const ln = document.createElementNS("http://www.w3.org/2000/svg", "path");
+            ln.setAttribute("class", "s2-d");
+            ln.setAttribute("d", `M${f1(780 + Math.cos(a) * 152)} ${f1(930 + Math.sin(a) * 72)} L${f1(780 + Math.cos(a) * 190)} ${f1(930 + Math.sin(a) * 100)}`);
+            burst.appendChild(ln);
+          }
+
+          // ---------- timeline helpers ----------
+          const tl = gsap.timeline({ paused: true });
+          const crayon = $("crayon"), crIn = $("crayon-in");
+          let cp = { x: 136, y: 400 };
+
+          // outline drawn in wax strokes: 8 visible stabs
+          const draw = (id, t, dur, guide) => {
+            const el = $(id), len = el.getTotalLength() + 2;
+            // round caps leave a dot at dashoffset = len: keep the stroke hidden until its draw starts
+            gsap.set(el, { strokeDasharray: len, opacity: 0 });
+            tl.set(el, { opacity: 0 }, 0);
+            tl.set(el, { opacity: 1 }, t);
+            tl.fromTo(el, { strokeDashoffset: len }, { strokeDashoffset: 0, duration: dur, ease: "steps(8)" }, t);
+            if (guide) {
+              for (let i = 0; i <= 8; i++) {
+                const p = el.getPointAtLength(((len - 2) * i) / 8);
+                tl.set(crayon, { x: p.x, y: p.y }, t + (dur * i) / 8);
+                cp = { x: p.x, y: p.y };
+              }
+            }
+          };
+          // crayon hop between strokes (child drawing: 3 poses, no in-betweens)
+          const hop = (x, y, t, dur = 0.15) => {
+            tl.fromTo(crayon, { x: cp.x, y: cp.y }, { x, y, duration: dur, ease: "steps(3)", immediateRender: false }, t);
+            cp = { x, y };
+          };
+          // colouring row by row along the hatch direction
+          const colour = (ids, w, t, dur = 0.4) => {
+            ids.forEach((id) => tl.fromTo($(id),
+              { clipPath: `inset(-40px ${w + 60}px -40px -40px)` },
+              { clipPath: "inset(-40px -40px -40px -40px)", duration: dur, ease: "steps(6)" }, t));
+          };
+          const pop = (els, t, origin, dur = 0.25) => {
+            tl.fromTo(els, { scale: 0, svgOrigin: origin }, { scale: 1, svgOrigin: origin, duration: dur, ease: "steps(3)" }, t);
+          };
+          // letters written left to right, each tilted by a fixed formula
+          const write = (id, t, dur = 0.35, sd = 1, guide) => {
+            const el = $(id), chars = Array.from(el.textContent.normalize("NFC"));
+            el.textContent = "";
+            chars.forEach((ch, i) => {
+              const s = document.createElement("span"); s.setAttribute("data-layout-allow-overlap", "");
+              s.className = "s2-ch"; s.textContent = ch; el.appendChild(s);
+              gsap.set(s, { rotation: 4 * Math.sin(i * 2.39 + sd), y: 1.5 + 1.5 * Math.sin(i * 1.37 + sd * 1.7) });
+              const ti = t + (dur * i) / chars.length;
+              tl.set(s, { opacity: 1 }, ti);
+              if (guide) { const x = guide.x + guide.step * (i + 0.5); tl.set(crayon, { x, y: guide.y }, ti); cp = { x, y: guide.y }; }
+            });
+          };
+
+          // ---------- camera: page turn in, slow drift, page turn out ----------
+          tl.fromTo("#s2-stage", { rotation: 6, x: 260, opacity: 0, transformOrigin: "0% 50%" },
+            { rotation: 0, x: 0, opacity: 1, duration: 0.45, ease: "power3.out" }, 0);
+          tl.fromTo("#s2-cam", { scale: 1, x: 0, y: 0, transformOrigin: "50% 45%" },
+            { scale: 1.04, x: -16, y: -12, duration: DUR, ease: "none" }, 0);
+          tl.to("#s2-stage", { x: -240, rotation: -5, opacity: 0, duration: 0.3, ease: "power2.in" }, DUR - 0.3);
+
+          // ---------- boil: every texture re-seeds on twos (12 fps) ----------
+          const turbs = Array.from(root.querySelectorAll(".s2-turb"));
+          for (let t = 0, k = 0; t < DUR; t += 1 / 6, k++) {
+            turbs.forEach((tb, j) => tl.set(tb, { attr: { seed: 1 + ((k + j * 2) % 5) } }, t));
+          }
+
+          // ---------- sentence 1: "Trang đầu tiên là bản mod trong Claude Code" ----------
+          draw("l-page", 0.35, 0.45);
+          write("t-page", 0.7, 0.1, 3);
+          write("t-title", A("mod"), 0.35, 1);                       // "Bản mod"
+          draw("l-puz", A("mod") + 0.1, 0.4);                        // puzzle piece = a mod
+          pop("#s2-g-puz", A("mod") + 0.42, "575 230");
+          draw("l-under", A("mod") + 0.3, 0.4);
+
+          tl.set(crayon, { x: cp.x, y: cp.y }, 0);
+          tl.set(crayon, { opacity: 1 }, A("cc"));
+          draw("l-win", A("cc"), 0.75, true);                        // Claude Code window
+          pop(["#s2-dot1", "#s2-l-dot1"], A("cc") + 0.44, "160 445", 0.17);
+          pop(["#s2-dot2", "#s2-l-dot2"], A("cc") + 0.54, "207 445", 0.17);
+          pop(["#s2-dot3", "#s2-l-dot3"], A("cc") + 0.64, "254 445", 0.17);
+          write("t-cc", A("cc") + 0.44, 0.35, 2);
+          draw("l-div", A("cc") + 0.62, 0.4);
+          colour(["f-bar", "f-bar2"], 880, A("cc") + 0.6, 0.4);
+          tl.set("#s2-gt", { opacity: 1 }, A("cc") + 0.84);
+          hop(145, 572, A("cc") + 0.76, 0.08);
+          draw("l-s1", A("cc") + 0.8, 0.32, true);
+          hop(145, 640, A("cc") + 1.13, 0.05);
+          draw("l-s2", A("cc") + 1.18, 0.3, true);
+
+          // ---------- sentence 2: "Bạn kể điều mình muốn" ----------
+          hop(560, 1175, A("ke") - 0.1, 0.09);
+          draw("l-bub", A("ke"), 0.6, true);                         // speech bubble
+          draw("l-tail", A("ke") + 0.5, 0.4);
+          colour(["f-bub", "f-bub2"], 780, A("ke") + 0.35, 0.45);
+          write("t-bub", A("ke") + 0.42, 0.4, 4);                    // "Mình muốn…"
+          pop(["#s2-f-heart", "#s2-l-heart"], A("ke") + 0.75, "265 1315");
+          pop(["#s2-f-star", "#s2-l-star"], A("ke") + 0.85, "855 1318");
+          draw("l-arrow", A("ke") + 0.8, 0.4);                       // the wish travels into the window
+          draw("l-head", A("ke") + 1.15, 0.17);
+
+          // ---------- sentence 3: "Claude tự viết thêm một khung, một nút bấm hay một lệnh riêng" ----------
+          const tW = A("khung") - 0.78;                               // "Claude tự viết": new coral lines
+          hop(145, 708, tW - 0.2, 0.15);
+          draw("l-s3", tW, 0.22, true);
+          hop(145, 776, tW + 0.22, 0.02);
+          draw("l-s4", tW + 0.25, 0.22, true);
+          hop(145, 844, tW + 0.47, 0.02);
+          draw("l-s5", tW + 0.5, 0.22, true);
+          hop(646, 520, A("khung") - 0.06, 0.05);
+
+          draw("l-pan", A("khung"), 0.55, true);                     // the new frame
+          colour(["f-pan", "f-pan2"], 340, A("khung") + 0.18, 0.4);
+          write("t-pan", A("khung") + 0.22, 0.35, 5);                // "Khung mới"
+          draw("l-pl1", A("khung") + 0.4, 0.17);
+          draw("l-pl2", A("khung") + 0.5, 0.17);
+          [["#s2-f-b1", "#s2-l-b1", "690 845"], ["#s2-f-b2", "#s2-l-b2", "760 845"], ["#s2-f-b3", "#s2-l-b3", "830 845"]].forEach((b, i) => {
+            tl.fromTo([b[0], b[1]], { scaleY: 0, svgOrigin: b[2] }, { scaleY: 1, svgOrigin: b[2], duration: 0.25, ease: "steps(4)" }, A("khung") + 0.38 + i * 0.08);
+          });
+
+          hop(686, 880, A("nut") - 0.1, 0.08);
+          tl.set("#s2-k-btn", { opacity: 1 }, A("nut"));
+          draw("l-btn", A("nut"), 0.4, true);                        // the button
+          colour(["f-btn", "f-btn2"], 260, A("nut") + 0.22, 0.3);
+          write("t-btn", A("nut") + 0.3, 0.2, 6);                    // "Bấm"
+          const tP = A("nut") + 0.48;                                 // on "bấm": the crayon presses it
+          hop(780, 925, tP - 0.06, 0.05);
+          const btnParts = ["#s2-k-btn", "#s2-f-btn", "#s2-f-btn2", "#s2-l-btn"];
+          tl.set(btnParts, { scale: 0.88, svgOrigin: "780 930" }, tP);
+          tl.set("#s2-t-btn", { scale: 0.88, transformOrigin: "50% 50%" }, tP);
+          tl.set(btnParts, { scale: 1, svgOrigin: "780 930" }, tP + 0.17);
+          tl.set("#s2-t-btn", { scale: 1 }, tP + 0.17);
+          tl.set("#s2-burst", { opacity: 1, scale: 0.85, svgOrigin: "780 930" }, tP + 0.04);
+          tl.set("#s2-burst", { scale: 1.12, svgOrigin: "780 930" }, tP + 0.21);
+          tl.set("#s2-burst", { opacity: 0 }, tP + 0.42);
+          hop(860, 1080, tP + 0.2, 0.15);
+
+          // "/lệnh-riêng": crayon writes the command after the prompt
+          hop(181, 1054, A("lenh") - 0.17, 0.15);
+          tl.set("#s2-cur1", { opacity: 0 }, A("lenh"));
+          write("cmd", A("lenh"), 0.35, 7, { x: 181, y: 1054, step: 22.6 });
+          colour(["f-hl"], 275, A("lenh") + 0.37, 0.25);             // coloured over: highlight the command
+          tl.set("#s2-spk5", { opacity: 1 }, A("lenh") + 0.45);
+          hop(862, 1556, A("lenh") + 0.4, 0.2);                       // crayon goes to rest
+
+          // ---------- life between anchors ----------
+          const BT = beats(0, DUR);
+          BT.forEach((b, k) => {
+            tl.set(crIn, { rotation: k % 2 ? 5 : -4, transformOrigin: "0% 100%" }, b);    // crayon nods on the beat
+            if (b > A("cc") + 0.85 && b < A("lenh")) tl.set("#s2-cur1", { opacity: k % 2 }, b);
+            if (b > A("lenh") + 0.37) tl.set("#s2-cur2", { opacity: k % 2 }, b);
+            if (b > A("cc") + 0.85) [["1", "160 445"], ["2", "207 445"], ["3", "254 445"]].forEach((d, j) =>
+              tl.set(["#s2-dot" + d[0], "#s2-l-dot" + d[0]], { scale: (k + j) % 3 === 0 ? 1.18 : 1, svgOrigin: d[1] }, b));
+            if (b > A("ke") + 1.0) tl.set(["#s2-f-heart", "#s2-l-heart"], { scale: k % 2 ? 1.15 : 1, svgOrigin: "265 1315" }, b);
+            [1, 2, 3, 4, 5].forEach((i) => tl.set("#s2-spk" + i, { scale: (k + i) % 2 ? 1 : 0.55, rotation: (k + i) % 2 ? 0 : 20, transformOrigin: "50% 50%" }, b));
+          });
+          // first cursor appears with the prompt; sparkles come in with their page parts
+          tl.set("#s2-cur1", { opacity: 1 }, A("cc") + 0.86);
+          tl.set(["#s2-spk1", "#s2-spk2"], { opacity: 1 }, A("mod") + 0.5);
+          tl.set(["#s2-spk3", "#s2-spk4"], { opacity: 1 }, A("ke") + 0.9);
+          tl.set("#s2-cur2", { opacity: 1 }, A("lenh") + 0.37);
+
+          window.__timelines["s2"] = tl;
+        })();
+      </script>
+    </template>
+  </body>
+</html>

@@ -80,3 +80,31 @@ def test_duck_envelope_and_srt():
     env = smooth(mask)
     assert 0 < env[90] < 1 and env[150] == 1.0 and 0 < env[230] < 1
     assert to_srt([{"start": 1.5, "end": 3.25, "text": "Xin chào"}]) == "1\n00:00:01,500 --> 00:00:03,250\nXin chào\n\n"
+
+
+def test_assemble_loads_kit(tmp_path):
+    import json
+    from assemble import build
+    (tmp_path / "timeline.json").write_text(json.dumps({"width": 1080, "height": 1920, "duration": 4.0, "captions": [],
+        "scenes": [{"id": "s1", "start": 0.0, "end": 4.0, "anchors": {}}]}), encoding="utf-8")
+    (tmp_path / "storyboard.json").write_text(json.dumps({"title": "t", "scenes": [{"id": "s1", "visual": "x"}]}), encoding="utf-8")
+    page = build(tmp_path, audio=False).read_text(encoding="utf-8")
+    assert '<script src="kit/mf-kit.js"></script>' in page
+    assert (tmp_path / "kit" / "mf-kit.js").exists()
+
+
+def test_gate_still_vs_moving():
+    from PIL import Image, ImageDraw
+    import gate
+    a = Image.new("RGB", (1080, 1920), "#f4efe3")
+    b = a.copy()
+    ImageDraw.Draw(b).rectangle((200, 300, 800, 900), fill="#2b2d6e")
+    tmp = Path(__file__).parent
+    pa, pb = tmp / "_ga.png", tmp / "_gb.png"
+    a.save(pa); b.save(pb)
+    try:
+        fa, fb = gate.prep(pa), gate.prep(pb)
+        assert gate.diff(fa, fa) < gate.STATIC
+        assert gate.diff(fa, fb) > gate.SETTLE
+    finally:
+        pa.unlink(); pb.unlink()

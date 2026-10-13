@@ -24,4 +24,4 @@ Soát theo thứ tự:
 3. **Style:** có giữ đúng color logic và chất liệu của style không; có lẫn style khác không.
 4. **Nhịp:** cảnh nào trống, hoặc nhồi quá nhiều chữ cùng lúc.
 
-Đầu ra: bảng phát hiện, mỗi dòng gồm mức (`blocker`: người xem bình thường thấy ngay; `polish`: chỉ người kỹ mới thấy), cảnh và thời điểm (lấy từ tên file snap), vấn đề, đề xuất sửa cụ thể. Không có lỗi `blocker` thì ghi rõ "ĐẠT". Không có căn cứ từ ảnh thì không nêu.
+Đầu ra: dòng đầu tiên đúng một trong hai câu `KẾT LUẬN: ĐẠT` (không còn `blocker`) hoặc `KẾT LUẬN: CHƯA ĐẠT`. Sau đó là bảng phát hiện, mỗi dòng gồm mức (`blocker`: người xem bình thường thấy ngay; `polish`: chỉ người kỹ mới thấy), cảnh và thời điểm (lấy từ tên file snap), vấn đề, đề xuất sửa cụ thể. Không có căn cứ từ ảnh thì không nêu. Người dựng chép nguyên văn báo cáo này vào `checks/review.md` (tools/gate.py đọc dòng kết luận).

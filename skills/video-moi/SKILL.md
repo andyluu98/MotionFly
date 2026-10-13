@@ -85,7 +85,7 @@ Theo skill `dung-video` mục 1 đến 4. Gửi tờ duyệt `checks/sheet.jpg`,
 
 ## Bước 7. Render và giao (cổng duyệt 3 nếu người dùng muốn xem bản nháp trước)
 
-Theo skill `dung-video` mục 5 và 6. Tên file `<slug>-<ddmmyyyy>`.
+Theo skill `dung-video` mục 5 và 6: chỉ render khi `tools/gate.py` in `GATE PASS`. Tên file `<slug>-<ddmmyyyy>`.
 
 Báo cáo cuối: đường dẫn tuyệt đối của MP4, SRT, tờ duyệt; độ dài; style; giọng; nguồn nhạc; số đo loudness; câu nào đã sửa phát âm; chỗ nào dùng ví dụ tự đặt (để người dùng xác nhận); nguồn tư liệu dạng link.
 

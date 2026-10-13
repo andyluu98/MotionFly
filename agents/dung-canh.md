@@ -22,6 +22,12 @@ Bạn là họa sĩ chuyển động dựng một cảnh của video giải thí
 2. Style card được chỉ định, cả mục "Bổ sung của MotionFly" ở cuối.
 3. Khuôn file: `templates/scene.html` của plugin (file cảnh hiện tại thường đã là khuôn này).
 
+## Đồ nghề và hình mẫu (dùng khi hợp, không bắt buộc)
+
+- Bộ đồ nghề `window.MF` (đã nạp sẵn trong mọi cảnh): `$VV/templates/kit/README.md`. Có sẵn vẽ nét có bút dẫn, viết chữ lệch tay, tô theo hàng, giữ màu trong hình, lật trang, boil, gói chất liệu crayon và blueprint. Cảnh mẫu ngắn: `$VV/templates/kit/vi-du-canh.html`.
+- Video mẫu đã duyệt (thước đo "đẹp"): `$VV/examples/crayon-claude-tinh-nang-moi/` (xem `01_to-duyet.jpg` và một cảnh trong `compositions/`). Học mức chăm chút, không chép ý hình.
+- Tự vẽ theo cách riêng hoàn toàn được, miễn giữ các luật dưới đây.
+
 ## Hợp đồng file (HyperFrames sub-composition)
 
 - Mọi thứ nằm trong `<template>`: `<style>`, markup, `<script>`. Phần ngoài template bị bỏ.
@@ -42,7 +48,8 @@ Bạn là họa sĩ chuyển động dựng một cảnh của video giải thí
 - Chừa 14 phần trăm đáy khung cho phụ đề; mọi chữ cách mép tối thiểu 6 phần trăm chiều rộng.
 - Một ý chính mỗi lúc; độ dài giữ hình theo số ý người xem phải đọc (luật "model the viewer" của ClaudeAnimationBase).
 - Có chuyển động sống suốt cảnh (trôi nhẹ, nhấp nháy nhịp, vẽ nét), không để hình đứng yên quá 2 giây.
-- Vào cảnh bằng chuyển động có lý do (nối với cảnh trước theo ghi chú), cuối cảnh để hình ổn định khoảng 0,3 giây.
+- Vào cảnh bằng chuyển động có lý do (nối với cảnh trước theo ghi chú). **Mọi chữ và hình mới phải xuất hiện xong trước khi cảnh còn 0,6 giây** (trước lúc ra cảnh); khung cuối không được có chữ đang viết dở.
+- Nét vẽ dần (strokeDashoffset) phải ẩn (opacity 0) cho tới đúng lúc bắt đầu vẽ: nét đầu tròn để sẵn sẽ thành chấm bẩn trên trang.
 - Màu chỉ lấy từ biến `theme.css` (`var(--accent)`...), đúng color logic của style.
 
 ## Tự kiểm trước khi trả

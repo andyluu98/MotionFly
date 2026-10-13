@@ -1,0 +1,408 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <!-- Scene s3. Runtime keeps only <template>; put style, markup and script inside it. -->
+  </head>
+  <body>
+    <template>
+      <style>
+        /* Each scene declares its fonts (HyperFrames lint: font_family_without_font_face). Paths are relative to index.html. */
+        @font-face { font-family: "Be Vietnam Pro"; src: url("fonts/BeVietnamPro-Regular.ttf"); font-weight: 400; }
+        @font-face { font-family: "Be Vietnam Pro"; src: url("fonts/BeVietnamPro-Medium.ttf"); font-weight: 500; }
+        @font-face { font-family: "Be Vietnam Pro"; src: url("fonts/BeVietnamPro-Bold.ttf"); font-weight: 700; }
+        @font-face { font-family: "Be Vietnam Pro"; src: url("fonts/BeVietnamPro-ExtraBold.ttf"); font-weight: 800; }
+        #s3-root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          background: transparent;
+          color: var(--ink);
+          font-family: "Be Vietnam Pro", sans-serif;
+        }
+        #s3-stage { position: absolute; inset: 0; }
+        #s3-root .s3-svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+        /* crayon outline: indigo, round ends */
+        #s3-root .s3-ln {
+          fill: none; stroke: var(--ink); stroke-width: var(--w-out);
+          stroke-linecap: round; stroke-linejoin: round;
+        }
+        #s3-root .s3-ln.s3-det { stroke-width: var(--w-det); }
+        #s3-root .s3-ln.s3-thin { stroke-width: var(--w-thin); }
+        /* zig-zag colouring strokes */
+        #s3-root .s3-hatch { fill: none; stroke-linecap: round; stroke-linejoin: round; }
+        #s3-root .s3-spark { fill: var(--c-white); stroke: var(--ink); stroke-width: var(--w-thin); stroke-linejoin: round; opacity: 0; }
+        #s3-root .s3-hide { opacity: 0; }
+        /* hand-lettered words on the page */
+        #s3-root .s3-lab {
+          position: absolute; margin: 0; font-family: "Be Vietnam Pro", sans-serif; font-weight: 700;
+          color: var(--ink); white-space: nowrap; line-height: 1.15; filter: url(#s3-rough-t);
+        }
+        #s3-root .s3-ch { display: inline-block; opacity: 0; }
+        #s3-title { left: 110px; top: 138px; font-size: 84px; }
+        #s3-pnum { left: 905px; top: 160px; width: 90px; text-align: center; font-size: 54px; }
+        #s3-lmod { left: 220px; top: 572px; width: 160px; text-align: center; font-size: 56px; }
+        #s3-lquyen { left: 240px; top: 800px; width: 600px; text-align: center; font-size: 52px; }
+        #s3-lnguoi { left: 480px; top: 1140px; font-size: 56px; }
+        #s3-ltin { left: 480px; top: 1222px; font-size: 56px; }
+        #s3-crayon { opacity: 0; }
+      </style>
+
+      <div id="s3-root" data-composition-id="s3" data-width="1080" data-height="1920">
+        <div id="s3-stage">
+          <svg id="s3-svg" class="s3-svg" viewBox="0 0 1080 1920" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+            <defs>
+              <!-- 1. hand-wobbled wax line: low-frequency displacement + grain on the paper tooth -->
+              <filter id="s3-rough" x="-25%" y="-25%" width="150%" height="150%">
+                <feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="2" seed="1" result="w" />
+                <feDisplacementMap in="SourceGraphic" in2="w" scale="4" xChannelSelector="R" yChannelSelector="G" result="d" />
+                <feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="2" seed="3" result="g" />
+                <feColorMatrix in="g" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  4 0 0 0 -1.15" result="ga" />
+                <feComposite in="d" in2="ga" operator="in" />
+              </filter>
+              <!-- 2. wax only on the peaks of the tooth: speckled colouring (about 20% paper left) -->
+              <filter id="s3-wax" x="-25%" y="-25%" width="150%" height="150%">
+                <feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="2" seed="2" result="w" />
+                <feDisplacementMap in="SourceGraphic" in2="w" scale="3" xChannelSelector="R" yChannelSelector="G" result="d" />
+                <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="4" result="g" />
+                <feColorMatrix in="g" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  5 0 0 0 -1.9" result="ga" />
+                <feComposite in="d" in2="ga" operator="in" />
+              </filter>
+              <!-- lettering: lighter wobble so words stay readable -->
+              <filter id="s3-rough-t" x="-10%" y="-25%" width="120%" height="150%">
+                <feTurbulence type="fractalNoise" baseFrequency="0.04" numOctaves="2" seed="5" result="w" />
+                <feDisplacementMap in="SourceGraphic" in2="w" scale="2.6" xChannelSelector="R" yChannelSelector="G" result="d" />
+                <feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="2" seed="1" result="g" />
+                <feColorMatrix in="g" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  3.4 0 0 0 -0.9" result="ga" />
+                <feComposite in="d" in2="ga" operator="in" />
+              </filter>
+
+              <!-- shape clips, scaled up ~5% so the colouring spills past the outline -->
+              <clipPath id="s3-cp-puz">
+                <path transform="translate(300 600) scale(1.05) translate(-300 -600)"
+                  d="M 190 500 L 265 500 C 250 460, 270 435, 300 435 C 330 435, 350 460, 335 500 L 410 500 L 410 575 C 450 560, 475 580, 475 610 C 475 640, 450 660, 410 645 L 410 720 L 335 720 C 350 680, 330 660, 300 660 C 270 660, 250 680, 265 720 L 190 720 Z" />
+              </clipPath>
+              <clipPath id="s3-cp-key">
+                <circle cx="522" cy="610" r="47" />
+                <path d="M 558 595 L 740 595 L 740 655 L 713 655 L 713 640 L 705 640 L 705 655 L 680 655 L 680 625 L 558 625 Z" />
+              </clipPath>
+              <clipPath id="s3-cp-lock">
+                <path transform="translate(860 680) scale(1.04) translate(-860 -680)"
+                  d="M 785 590 L 935 590 Q 960 590 960 615 L 960 745 Q 960 770 935 770 L 785 770 Q 760 770 760 745 L 760 615 Q 760 590 785 590 Z" />
+              </clipPath>
+              <clipPath id="s3-cp-shield">
+                <path transform="translate(280 1265) scale(1.04) translate(-280 -1265)"
+                  d="M 280 1070 C 330 1100, 390 1105, 430 1095 L 430 1240 C 430 1350, 360 1420, 280 1460 C 200 1420, 130 1350, 130 1240 L 130 1095 C 170 1105, 230 1100, 280 1070 Z" />
+              </clipPath>
+              <!-- row-by-row colouring reveals (rect x is stepped across) -->
+              <clipPath id="s3-rv-puz"><rect id="s3-rvr-puz" x="178" y="420" width="312" height="318" /></clipPath>
+              <clipPath id="s3-rv-key"><rect id="s3-rvr-key" x="470" y="556" width="276" height="106" /></clipPath>
+              <clipPath id="s3-rv-lock"><rect id="s3-rvr-lock" x="750" y="580" width="220" height="200" /></clipPath>
+              <clipPath id="s3-rv-shield"><rect id="s3-rvr-shield" x="118" y="1058" width="324" height="414" /></clipPath>
+            </defs>
+
+            <!-- ===== top: the mod (puzzle piece) carries your key to your lock ===== -->
+            <!-- puzzle colouring: coral = the new thing on this page -->
+            <g filter="url(#s3-wax)">
+              <g clip-path="url(#s3-cp-puz)">
+                <g clip-path="url(#s3-rv-puz)">
+                  <path class="s3-hatch" data-box="180 425 485 730" data-gap="27" data-slant="70" style="stroke: var(--accent); stroke-width: 23px" />
+                  <path class="s3-hatch" data-box="180 425 485 730" data-gap="34" data-slant="-45" data-rows="1" style="stroke: var(--accent); stroke-width: 13px; opacity: 0.5" />
+                </g>
+              </g>
+            </g>
+            <!-- lock body colouring: plum -->
+            <g filter="url(#s3-wax)">
+              <g clip-path="url(#s3-cp-lock)">
+                <g clip-path="url(#s3-rv-lock)">
+                  <path class="s3-hatch" data-box="752 582 968 778" data-gap="26" data-slant="55" style="stroke: var(--c-plum); stroke-width: 22px" />
+                  <path class="s3-hatch" data-box="752 582 968 778" data-gap="32" data-slant="-35" data-rows="1" style="stroke: var(--c-plum); stroke-width: 12px; opacity: 0.5" />
+                </g>
+              </g>
+            </g>
+            <!-- title underline, orange -->
+            <g filter="url(#s3-wax)">
+              <path id="s3-tline" class="s3-hatch" d="M 112 262 C 260 248, 420 270, 560 255 S 720 250, 772 260" style="stroke: var(--c-orange); stroke-width: 11px" />
+            </g>
+
+            <g filter="url(#s3-rough)">
+              <!-- page number ring -->
+              <path id="s3-pring" class="s3-ln s3-det" d="M 985 172 C 1000 210, 975 243, 945 242 C 910 240, 897 205, 910 177 C 925 147, 968 145, 992 178" />
+              <!-- puzzle outline -->
+              <path id="s3-puz" class="s3-ln"
+                d="M 190 500 L 265 500 C 250 460, 270 435, 300 435 C 330 435, 350 460, 335 500 L 410 500 L 410 575 C 450 560, 475 580, 475 610 C 475 640, 450 660, 410 645 L 410 720 L 335 720 C 350 680, 330 660, 300 660 C 270 660, 250 680, 265 720 L 190 720 Z" />
+              <!-- shackle (behind body, pops open) -->
+              <g id="s3-shackle">
+                <path id="s3-shk" class="s3-ln" d="M 790 596 L 790 530 A 70 70 0 0 1 930 530 L 930 596 L 905 596 L 905 530 A 45 45 0 0 0 815 530 L 815 596" />
+              </g>
+              <!-- lock body -->
+              <path id="s3-lock" class="s3-ln"
+                d="M 785 590 L 935 590 Q 960 590 960 615 L 960 745 Q 960 770 935 770 L 785 770 Q 760 770 760 745 L 760 615 Q 760 590 785 590 Z" />
+              <g id="s3-khole" class="s3-hide">
+                <circle cx="860" cy="650" r="13" style="fill: var(--ink)" />
+                <path class="s3-ln" d="M 860 656 L 860 690" style="stroke-width: 11px" />
+              </g>
+              <!-- alarm marks when the lock opens -->
+              <g id="s3-alarm" style="stroke: var(--accent)">
+                <path class="s3-ln s3-det s3-al" d="M 772 470 L 744 444" style="stroke: var(--accent)" />
+                <path class="s3-ln s3-det s3-al" d="M 760 520 L 724 514" style="stroke: var(--accent)" />
+                <path class="s3-ln s3-det s3-al" d="M 806 432 L 798 398" style="stroke: var(--accent)" />
+              </g>
+            </g>
+
+            <!-- sparkle on the puzzle -->
+            <g transform="translate(240 545)"><path id="s3-sp1" class="s3-spark" d="M 0 -18 Q 3 -3 18 0 Q 3 3 0 18 Q -3 3 -18 0 Q -3 -3 0 -18 Z" /></g>
+
+            <!-- the key (lemon), carried by the mod; slides into the lock -->
+            <g id="s3-key">
+              <g filter="url(#s3-wax)">
+                <g clip-path="url(#s3-cp-key)">
+                  <g clip-path="url(#s3-rv-key)">
+                    <path class="s3-hatch" data-box="472 558 744 660" data-gap="24" data-slant="34" style="stroke: var(--c-lemon); stroke-width: 20px" />
+                    <path class="s3-hatch" data-box="472 558 744 660" data-gap="28" data-slant="-30" data-rows="1" style="stroke: var(--c-orange); stroke-width: 9px; opacity: 0.5" />
+                  </g>
+                </g>
+              </g>
+              <g filter="url(#s3-rough)">
+                <path id="s3-kbow" class="s3-ln" d="M 564 610 A 42 42 0 1 1 480 610 A 42 42 0 1 1 564 610" />
+                <path id="s3-khol" class="s3-ln s3-det" d="M 534 610 A 12 12 0 1 1 510 610 A 12 12 0 1 1 534 610" />
+                <path id="s3-kshaft" class="s3-ln" d="M 564 600 L 735 600 L 735 650 L 717 650 L 717 635 L 701 635 L 701 650 L 685 650 L 685 620 L 564 620" />
+              </g>
+              <g transform="translate(612 566)"><path id="s3-sp2" class="s3-spark" d="M 0 -18 Q 3 -3 18 0 Q 3 3 0 18 Q -3 3 -18 0 Q -3 -3 0 -18 Z" /></g>
+            </g>
+
+            <!-- ===== bottom: green shield, trusted author, tick ===== -->
+            <g filter="url(#s3-wax)">
+              <g clip-path="url(#s3-cp-shield)">
+                <g clip-path="url(#s3-rv-shield)">
+                  <path class="s3-hatch" data-box="120 1060 440 1470" data-gap="28" data-slant="80" style="stroke: var(--c-grass); stroke-width: 24px" />
+                  <path class="s3-hatch" data-box="120 1060 440 1470" data-gap="34" data-slant="-50" data-rows="1" style="stroke: var(--c-grass); stroke-width: 13px; opacity: 0.5" />
+                </g>
+              </g>
+            </g>
+            <!-- white-wax inner rim + lemon underline -->
+            <g filter="url(#s3-wax)">
+              <path id="s3-rim" class="s3-hatch"
+                d="M 280 1100 C 322 1124, 372 1128, 405 1120 L 405 1240 C 405 1335, 345 1395, 280 1430 C 215 1395, 155 1335, 155 1240 L 155 1120 C 188 1128, 238 1124, 280 1100 Z"
+                style="stroke: var(--c-white); stroke-width: 9px" />
+              <path id="s3-uline" class="s3-hatch" d="M 478 1322 C 540 1308, 600 1330, 660 1318 S 730 1314, 752 1320" style="stroke: var(--c-lemon); stroke-width: 15px" />
+              <path id="s3-tickc" class="s3-hatch" d="M 772 1280 L 805 1315 L 872 1225" style="stroke: var(--accent); stroke-width: 22px" />
+            </g>
+            <!-- mini mod puzzle dropped safely inside the shield -->
+            <g id="s3-mini" class="s3-hide">
+              <g transform="translate(280 1262) scale(0.42) translate(-330 -580)">
+                <g filter="url(#s3-wax)">
+                  <g clip-path="url(#s3-cp-puz)">
+                    <path class="s3-hatch" data-box="180 425 485 730" data-gap="40" data-slant="70" style="stroke: var(--accent); stroke-width: 34px" />
+                  </g>
+                </g>
+                <path class="s3-ln" filter="url(#s3-rough)" style="stroke-width: 15px"
+                  d="M 190 500 L 265 500 C 250 460, 270 435, 300 435 C 330 435, 350 460, 335 500 L 410 500 L 410 575 C 450 560, 475 580, 475 610 C 475 640, 450 660, 410 645 L 410 720 L 335 720 C 350 680, 330 660, 300 660 C 270 660, 250 680, 265 720 L 190 720 Z" />
+              </g>
+            </g>
+            <g filter="url(#s3-rough)">
+              <path id="s3-shield" class="s3-ln"
+                d="M 280 1070 C 330 1100, 390 1105, 430 1095 L 430 1240 C 430 1350, 360 1420, 280 1460 C 200 1420, 130 1350, 130 1240 L 130 1095 C 170 1105, 230 1100, 280 1070 Z" />
+              <path id="s3-tick" class="s3-ln s3-det" d="M 768 1276 L 801 1311 L 868 1221" />
+            </g>
+            <g transform="translate(192 1160)"><path id="s3-sp3" class="s3-spark" d="M 0 -18 Q 3 -3 18 0 Q 3 3 0 18 Q -3 3 -18 0 Q -3 -3 0 -18 Z" /></g>
+            <g transform="translate(362 1318)"><path id="s3-sp4" class="s3-spark" d="M 0 -16 Q 3 -3 16 0 Q 3 3 0 16 Q -3 3 -16 0 Q -3 -3 0 -16 Z" /></g>
+          </svg>
+
+          <!-- words written on the page (letters built by the script) -->
+          <div id="s3-labels">
+            <div id="s3-title" class="s3-lab" data-t="Cẩn thận nhé!"></div>
+            <div id="s3-pnum" class="s3-lab" data-t="1"></div>
+            <div id="s3-lmod" class="s3-lab" data-t="mod"></div>
+            <div id="s3-lquyen" class="s3-lab" data-t="quyền của bạn"></div>
+            <div id="s3-lnguoi" class="s3-lab" data-t="người viết"></div>
+            <div id="s3-ltin" class="s3-lab" data-t="đáng tin"></div>
+          </div>
+
+          <!-- the guiding crayon, above everything -->
+          <svg id="s3-svg2" class="s3-svg" viewBox="0 0 1080 1920" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+            <g id="s3-crayon">
+              <g transform="rotate(-40)" filter="url(#s3-rough)">
+                <path d="M 3 -3 L 32 -13 L 32 13 L 3 3 Z" style="fill: var(--ink); stroke: var(--ink); stroke-width: 3px; stroke-linejoin: round" />
+                <rect x="30" y="-14" width="146" height="28" rx="6" style="fill: var(--ink)" />
+                <rect x="54" y="-16" width="100" height="32" rx="3" style="fill: var(--c-white); stroke: var(--ink); stroke-width: 3px" />
+                <path d="M 66 -16 L 66 16 M 142 -16 L 142 16 M 80 -6 L 92 6 L 104 -6 L 116 6 L 128 -6" style="fill: none; stroke: var(--ink); stroke-width: 3px; stroke-linecap: round; stroke-linejoin: round" />
+              </g>
+            </g>
+          </svg>
+        </div>
+      </div>
+
+      <script>
+        (() => {
+          // A("key") = local time (s) of an anchor from timeline.json; never hard-code word times.
+          const A = (key) => window.__vv.local("s3", key);
+          const SC = window.__vv.scenes["s3"];
+          const S = SC.start;
+          const DUR = SC.end - SC.start;
+          const BEAT = 60 / 92;
+          const beats = (from, to) => { const o = []; for (let k = Math.ceil((S + from) / BEAT); k * BEAT - S <= to; k++) o.push(k * BEAT - S); return o; };
+          const root = document.getElementById("s3-root");
+          const $ = (id) => root.querySelector("#s3-" + id);
+
+          // ---- zig-zag hatching (deterministic jitter), optionally in rows for the cross pass
+          const hatch = (box, gap, slant, rows) => {
+            let [x0, y0, x1, y1] = box;
+            if (rows) [x0, y0, x1, y1] = [y0, x0, y1, x1];
+            const pts = [];
+            let i = 0;
+            for (let u = x0 - Math.abs(slant); u <= x1 + Math.abs(slant); u += gap, i++) {
+              const a = (((i * 37) % 7) - 3) * 1.6, c = (((i * 53) % 7) - 3) * 1.6;
+              pts.push([u + slant, y0 + a]);
+              pts.push([u, y1 + c]);
+            }
+            const P = rows ? pts.map(([u, v]) => [v, u]) : pts;
+            return "M" + P.map((p) => p[0].toFixed(1) + " " + p[1].toFixed(1)).join(" L");
+          };
+          root.querySelectorAll("path[data-box]").forEach((p) => {
+            const box = p.dataset.box.split(" ").map(Number);
+            p.setAttribute("d", hatch(box, +p.dataset.gap, +p.dataset.slant, p.dataset.rows === "1"));
+          });
+
+          // ---- hand-lettered words: each glyph tilted and offset by a formula on its index
+          const letters = (el) => {
+            const chars = Array.from(el.dataset.t.normalize("NFC"));
+            el.textContent = "";
+            return chars.map((ch, i) => {
+              const s = document.createElement("span"); s.setAttribute("data-layout-allow-overlap", "");
+              s.className = "s3-ch";
+              s.textContent = ch === " " ? " " : ch;
+              const r = ((i * 7 + 3) % 9) - 4;
+              const dy = (i * 5) % 4;
+              s.style.transform = "translateY(" + dy + "px) rotate(" + r + "deg)";
+              el.appendChild(s);
+              return s;
+            });
+          };
+
+          // ---- line lengths for draw-on
+          const prep = (p) => {
+            const L = p.getTotalLength();
+            p.style.strokeDasharray = L + " " + (L + 30);
+            p.style.strokeDashoffset = L + 14;
+            return L;
+          };
+
+          const tl = gsap.timeline({ paused: true });
+          const cray = $("crayon");
+
+          // draw a line in 8 wax strokes; the crayon (optional) rides the tip
+          const draw = (id, t, d, guide) => {
+            const p = typeof id === "string" ? $(id) : id;
+            const L = prep(p);
+            tl.fromTo(p, { strokeDashoffset: L + 14 }, { strokeDashoffset: 0, duration: d, ease: "steps(8)" }, t);
+            if (guide) {
+              for (let i = 0; i <= 8; i++) {
+                const pt = p.getPointAtLength((L * i) / 8);
+                tl.set(cray, { x: pt.x, y: pt.y }, t + (d * i) / 8);
+              }
+            }
+          };
+          const write = (id, t, d) => {
+            const sp = letters($(id));
+            sp.forEach((s, i) => tl.set(s, { opacity: 1 }, t + ((d || 0.35) * i) / sp.length));
+          };
+          const reveal = (id, t, d) => {
+            const r = $(id);
+            const x = +r.getAttribute("x"), w = +r.getAttribute("width");
+            tl.fromTo(r, { attr: { x: x - w } }, { attr: { x: x }, duration: d, ease: "steps(6)" }, t);
+          };
+          const travel = (from, to, t, d) => {
+            tl.fromTo(cray, { x: from[0], y: from[1] }, { x: to[0], y: to[1], duration: d, ease: "steps(4)" }, t);
+          };
+          const sparkle = (id, t) => {
+            const el = $(id);
+            tl.fromTo(el, { scale: 0, opacity: 0, transformOrigin: "50% 50%" }, { scale: 1, opacity: 1, duration: 0.17, ease: "steps(2)" }, t);
+            beats(t + 0.2, DUR - 0.35).forEach((b, i) => {
+              tl.set(el, { scale: i % 2 ? 0.8 : 1.28, rotation: i % 2 ? 0 : 20, transformOrigin: "50% 50%" }, b);
+            });
+          };
+
+          const Q = A("quyen"), C = A("cai"), T = A("tin");
+
+          // ---- page turn in, slow camera drift, page turn out
+          const stage = $("stage");
+          tl.fromTo(stage, { rotation: 6, x: 260, opacity: 0, transformOrigin: "0% 50%" },
+            { rotation: 0, x: 0, opacity: 1, transformOrigin: "0% 50%", duration: 0.45, ease: "power3.out" }, 0);
+          tl.fromTo(stage, { scale: 1 }, { scale: 1.03, duration: DUR, ease: "none" }, 0);
+          tl.fromTo(stage, { y: 0 }, { y: -22, duration: DUR - 0.3, ease: "sine.inOut" }, 0);
+          tl.to(stage, { x: -18, duration: DUR - 0.75, ease: "sine.inOut" }, 0.45);
+          tl.to(stage, { x: -240, rotation: -5, opacity: 0, duration: 0.3, ease: "power2.in" }, DUR - 0.3);
+
+          // ---- "Có điều": page title + page number
+          write("title", 0.25, 0.35);
+          draw("tline", 0.55, 0.35);
+          draw("pring", 0.3, 0.4);
+          write("pnum", 0.68, 0.1);
+
+          // ---- "bản mod": puzzle piece drawn, then coloured coral, labelled
+          // no anchor on "bản mod": beats are placed just before the "quyen" anchor
+          const P0 = Math.max(0.4, Q - 1.14);
+          tl.set(cray, { opacity: 1 }, P0);
+          draw("puz", P0, 0.7, true);
+          reveal("rvr-puz", Q - 0.59, 0.45);
+          write("lmod", Q - 0.47, 0.22);
+          sparkle("sp1", Q - 0.09);
+
+          // ---- "quyền của chính bạn": the mod carries your key; your lock
+          travel([190, 500], [564, 610], P0 + 0.75, Math.max(0.12, Q - 0.1 - (P0 + 0.75)));
+          draw("kbow", Q - 0.05, 0.3, true);
+          draw("khol", Q + 0.25, 0.1, true);
+          draw("kshaft", Q + 0.35, 0.4, true);
+          reveal("rvr-key", Q + 0.45, 0.4);
+          write("lquyen", Q + 0.4, 0.35);
+          sparkle("sp2", Q + 0.85);
+          draw("lock", Q + 0.75, 0.45, true);
+          draw("shk", Q + 0.86, 0.4);
+          reveal("rvr-lock", Q + 1.06, 0.35);
+          tl.set($("khole"), { opacity: 1 }, Q + 1.2);
+
+          // ---- the pause: key slides into the lock, the shackle pops open (it can open everything)
+          travel([785, 590], [280, 1070], Q + 1.25, C - Q - 1.35);
+          tl.fromTo($("key"), { x: 0, y: 0 }, { x: 118, y: 40, duration: 0.25, ease: "steps(4)" }, C - 0.5);
+          tl.fromTo($("shackle"), { rotation: 0, y: 0, svgOrigin: "917 596" },
+            { rotation: 22, y: -14, svgOrigin: "917 596", duration: 0.15, ease: "steps(3)" }, C - 0.25);
+          const alarms = root.querySelectorAll(".s3-al");
+          alarms.forEach((p, i) => {
+            draw(p, C - 0.15 + i * 0.05, 0.15);
+            beats(C + 0.2, DUR - 0.35).forEach((b, k) => tl.set(p, { opacity: (k + i) % 2 ? 0.35 : 1 }, b));
+          });
+
+          // ---- "chỉ cài": green shield drawn and coloured, a small mod dropped inside it
+          draw("shield", C - 0.05, 0.65, true);
+          reveal("rvr-shield", C + 0.4, 0.45);
+          const mini = $("mini");
+          tl.fromTo(mini, { y: -70, opacity: 0 }, { y: 0, opacity: 1, duration: 0.25, ease: "steps(4)" }, C + 0.5);
+          beats(C + 0.8, DUR - 0.35).forEach((b, k) =>
+            tl.set(mini, { rotation: k % 2 ? -4 : 4, transformOrigin: "50% 50%" }, b));
+          draw("rim", C + 0.85, 0.35);
+
+          // ---- "người viết mà bạn tin": words, lemon underline, coral tick
+          write("lnguoi", C + 0.7, 0.35);
+          travel([280, 1070], [768, 1276], C + 0.68, T - C - 0.6);
+          write("ltin", T, 0.3);
+          draw("uline", T + 0.05, 0.4);
+          draw("tickc", T + 0.1, 0.35);
+          draw("tick", T + 0.1, 0.35, true);
+          sparkle("sp3", T);
+          sparkle("sp4", T + 0.15);
+          // crayon lifts off the page, then the picture holds (boil + twinkles) before the page turns
+          tl.fromTo(cray, { y: 1221, opacity: 1 }, { y: 1171, opacity: 0, duration: 0.15, ease: "steps(3)" }, T + 0.48);
+
+          // ---- boil: every turbulence re-seeds on twos (12 fps)
+          const turbs = root.querySelectorAll("feTurbulence");
+          for (let t = 0, k = 0; t < DUR; t += 1 / 6, k++) {
+            turbs.forEach((tb, i) => tl.set(tb, { attr: { seed: 1 + ((k + i) % 5) } }, t));
+          }
+
+          window.__timelines["s3"] = tl;
+        })();
+      </script>
+    </template>
+  </body>
+</html>
